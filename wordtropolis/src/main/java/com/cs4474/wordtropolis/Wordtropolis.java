@@ -2,13 +2,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
 
-package com.mycompany.spelling_game;
+package com.cs4474.wordtropolis;
 
 /**
  *
- * @author annanguyen
+ * @author svand
  */
-public class Spelling_game {
+public class Wordtropolis {
 
     public static void main(String[] args) {
         System.out.println("Hello World!");
