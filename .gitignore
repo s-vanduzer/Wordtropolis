@@ -23,3 +23,14 @@
 hs_err_pid*
 replay_pid*
 /wordtropolis/target/
+
+# macOS
+.DS_Store
+
+# NetBeans
+nbproject/private/
+build/
+dist/
+nbbuild/
+nbdist/
+.nb-gradle/
