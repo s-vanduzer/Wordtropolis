@@ -43,6 +43,13 @@ public class BurglarGamePanel extends JPanel {
     private int sparkleX, sparkleY;
     private Timer sparkleTimer, feedbackTimer;
     
+        // -- Sprite Animation State --
+    private int animationFrame = 0;
+    private Timer animationTimer;
+    private static final int TOTAL_FRAMES = 4; // Both sheets have 4 frames
+    private static final int FRAME_W = 160;     // Width of one sprite frame
+    private static final int FRAME_H = 160;     // Height of one sprite frame
+    
     // ── Floating letter tile positions ────────────────────────────────────────
     private int[] tileBaseX, tileBaseY;
     
@@ -62,6 +69,9 @@ public class BurglarGamePanel extends JPanel {
     private int hoverArrIdx = -1;
     private int cameraOffset = 0;
     
+    private enum Screen { INTRO, GAME, WIN }
+private Screen currentScreen = Screen.INTRO;
+    
     // ── Click zones ───────────────────────────────────────────────────────────
     private java.util.Map<String, Rectangle> clickZones = new HashMap<>();
     
@@ -80,6 +90,15 @@ public class BurglarGamePanel extends JPanel {
     updateCamera();
     repaint();
 }).start();
+        
+        
+        animationTimer = new Timer(150, e -> {
+        animationFrame = (animationFrame + 1) % TOTAL_FRAMES;
+        repaint();
+    });
+    animationTimer.start();
+    
+    
     }
     
     @Override
@@ -99,7 +118,7 @@ public class BurglarGamePanel extends JPanel {
     private void loadImages() {
         imgBg          = img("/images/burglar_game/street.png");
         imgHero        = img("/images/burglar_game/hero1_running.png");
-        imgRobber      = img("/images/burglar_game/robber_running.gif");
+        imgRobber      = img("/images/burglar_game/robber.png");
         imgProgressBar = img("/images/cat_game/progress_bar.png");
         imgLetterBox   = img("/images/cat_game/individual_box.png");
         imgOuterBox    = img("/images/cat_game/outer_box.png");
@@ -119,35 +138,37 @@ public class BurglarGamePanel extends JPanel {
     
     // ═══════════════════════════════ UPDATE CAMERA ══════════════════════════════
     
-     private void updateCamera() {
-    int stepSize = 50;
-    int robberWorldX = 100 + (model.getRobberPosition() * stepSize);
+    private void updateCamera() {
+        int stepSize = 50;
+        // 1. Calculate the robber's ABSOLUTE position in the world (0 to background width)
+        int robberWorldX = 100 + (model.getRobberPosition() * stepSize);
 
-    int screenRightEdge = getWidth() - 150;
+        // 2. Define the "Trigger Point" (e.g., 60% of the screen width)
+        // Using getWidth() - 150 often causes issues if the screen is small. 
+        // Let's trigger scrolling once he passes the middle.
+        int scrollTriggerX = getWidth() / 2;
 
-    // Desired camera position (only when robber reaches edge)
-    int targetOffset = 0;
+        int targetOffset = 0;
 
-    if (robberWorldX - cameraOffset > screenRightEdge) {
-        targetOffset = robberWorldX - screenRightEdge;
+        // 3. If the robber is past the trigger point, the camera follows him
+        if (robberWorldX > scrollTriggerX) {
+            targetOffset = robberWorldX - scrollTriggerX;
+        }
+
+        // 4. Smooth movement (Interpolation)
+        double diff = targetOffset - cameraOffset;
+        if (Math.abs(diff) > 0.5) { 
+            cameraOffset += diff * 0.1; // Adjust 0.1 for speed (lower = smoother)
+        } else {
+            cameraOffset = targetOffset; 
+        }
+
+        // 5. Clamp to background limits
+        if (imgBg != null) {
+            int maxOffset = imgBg.getWidth() - getWidth();
+            cameraOffset = Math.max(0, Math.min(cameraOffset, maxOffset));
+        }
     }
-
-    // Smoothly move camera toward target
-    // Smooth movement
-    double diff = targetOffset - cameraOffset;
-
-    if (Math.abs(diff) > 1) {   // DEAD ZONE (prevents shaking)
-        cameraOffset += diff * 0.1;
-    } else {
-        cameraOffset = targetOffset; // snap when close
-    }
-
-    // Clamp to background limits
-    if (imgBg != null) {
-        int maxOffset = imgBg.getWidth() - getWidth();
-        cameraOffset = Math.max(0, Math.min(cameraOffset, maxOffset));
-    }
-}
     
     // ═══════════════════════════════ ANIMATIONS ══════════════════════════════
     
@@ -161,11 +182,11 @@ public class BurglarGamePanel extends JPanel {
         sparkleTimer.start();
     }
     
-    private void stopAll() {
-        for (Timer t : new Timer[]{sparkleTimer, feedbackTimer}) {
-            if (t != null) t.stop();
-        }
-    }
+        private void stopAll() {
+            for (Timer t : new Timer[]{sparkleTimer, feedbackTimer, animationTimer}) {
+                if (t != null) t.stop();
+            }
+}
     
     // ═══════════════════════════════ KEYBOARD ════════════════════════════════
     
@@ -183,7 +204,7 @@ public class BurglarGamePanel extends JPanel {
                 for (int i = 0; i < model.getAvailableLetters().size(); i++) {
                     if (model.getAvailableLetters().get(i) == key) {
                         model.selectLetter(i);
-                        CatSoundManager.play(CatSoundManager.SFX_TILE_CLICK);
+                        BurglarSoundManager.play(BurglarSoundManager.SFX_TILE_CLICK);
                         triggerSparkle(getWidth() / 2, getHeight() / 2 - 60);
                         computeTilePositions();
                         repaint();
@@ -192,7 +213,7 @@ public class BurglarGamePanel extends JPanel {
                 }
                 
                 // Letter not available
-                CatSoundManager.play(CatSoundManager.SFX_ERROR);
+                BurglarSoundManager.play(BurglarSoundManager.SFX_ERROR);
                 showFeedback("'" + key + "' is not available!", UITheme.ACCENT_RED);
                 shakeEffect();
             }
@@ -204,7 +225,7 @@ public class BurglarGamePanel extends JPanel {
                 int c = e.getKeyCode();
                 if (c == KeyEvent.VK_BACK_SPACE && model.getPlayerArrangement().size() > 0) {
                     model.removeLetter(model.getPlayerArrangement().size() - 1);
-                    CatSoundManager.play(CatSoundManager.SFX_TILE_CLICK);
+                    BurglarSoundManager.play(BurglarSoundManager.SFX_TILE_CLICK);
                     computeTilePositions();
                     repaint();
                 } else if (c == KeyEvent.VK_ENTER) {
@@ -229,7 +250,7 @@ public class BurglarGamePanel extends JPanel {
         int tileSize = 64;
         int totalW = count * (tileSize + 10) - 10;
         int startX = (W - totalW) / 2;
-        int baseY = (int)(H * 0.60f);  // Above the word box
+        int baseY = 120;  // Above the word box
         
         for (int i = 0; i < count; i++) {
             tileBaseX[i] = startX + i * (tileSize + 10);
@@ -254,8 +275,8 @@ public class BurglarGamePanel extends JPanel {
         
         if (correct) {
             showFeedback("Correct! The hero moves forward!", UITheme.ACCENT_TEAL);
-            CatSoundManager.playFrom(CatSoundManager.SFX_CORRECT, 1.0, 1.5);
-            CatSoundManager.play(CatSoundManager.SFX_MEOW_HAPPY);
+            BurglarSoundManager.playFrom(BurglarSoundManager.SFX_CORRECT, 1.0, 1.5);
+ 
             triggerSparkle(getWidth() / 2, getHeight() / 2);
             repaint();
             
@@ -271,8 +292,8 @@ public class BurglarGamePanel extends JPanel {
             }
         } else {
             showFeedback("Incorrect! The robber moves back!", UITheme.ACCENT_RED);
-            CatSoundManager.play(CatSoundManager.SFX_MEOW_MAD);
-            CatSoundManager.play(CatSoundManager.SFX_ERROR);
+
+            BurglarSoundManager.play(BurglarSoundManager.SFX_ERROR);
             shakeEffect();
             repaint();
             
@@ -298,7 +319,7 @@ public class BurglarGamePanel extends JPanel {
     
     private void gameComplete() {
         showFeedback("Hero caught the burglar! Mission Complete!", UITheme.ACCENT_TEAL);
-        CatSoundManager.play(CatSoundManager.SFX_LEVEL_COMPLETE);
+        BurglarSoundManager.play(BurglarSoundManager.SFX_LEVEL_COMPLETE);
         
         new Timer(3000, e -> {
             showResultDialog(true);
@@ -308,7 +329,7 @@ public class BurglarGamePanel extends JPanel {
     
     private void gameFailed() {
         showFeedback("The burglar escaped! Game Over!", UITheme.ACCENT_RED);
-        CatSoundManager.play(CatSoundManager.SFX_ERROR);
+        BurglarSoundManager.play(BurglarSoundManager.SFX_ERROR);
         
         new Timer(3000, e -> {
             showResultDialog(false);
@@ -317,14 +338,14 @@ public class BurglarGamePanel extends JPanel {
     }
     
     private void showResultDialog(boolean won) {
-        CatSoundManager.stopMusic();
+       BurglarSoundManager.stopMusic();
         stopAll();
         
         String title = won ? "Victory!" : "Game Over!";
         String message = "<html><div style='font-size:14px;text-align:center;padding:10px'>"
             + "<b>" + title + "</b><br><br>"
             + "Score: <b>" + model.getTotalScore() + "</b><br>"
-            + "Words completed: " + model.getWordsCompleted() + "/" + model.getTotalWords() + "<br>"
+            + "Words completed: " + model.getWordsCompleted()  + "<br>"
             + "Wrong attempts: " + model.getIncorrectAttempts()
             + "</div></html>";
         
@@ -386,25 +407,30 @@ public class BurglarGamePanel extends JPanel {
         shakeTimer.start();
     }
     
-    // ═══════════════════════════════ PAINTING ════════════════════════════════
-    
+        
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g.create();
+
+        
+super.paintComponent(g);
+    Graphics2D g2 = (Graphics2D) g;
+    int W = getWidth(), H = getHeight();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        
-        int W = getWidth(), H = getHeight();
+      
         
         // 1. Background
         paintBackground(g2, W, H);
-        
-        // 2. Progress bar (chase meter)
+    // Always paint the background so the start screen has the street behind it
+
+    if (currentScreen == Screen.INTRO) {
+        paintStartScreen(g2, W, H);
+    } else {
+        // Your existing game drawing logic
         paintProgressBar(g2, W, H);
-        
-        // 3. Characters (hero and robber)
         paintCharacters(g2, W, H);
+        paintWordDisplay(g2, W, H);
+//        paintAvailableLetters(g2);
         
         // 4. Sparkle effect
         if (showSparkle) paintSparkle(g2);
@@ -438,27 +464,34 @@ public class BurglarGamePanel extends JPanel {
         
         g2.dispose();
     }
+    }
     
     private void paintBackground(Graphics2D g2, int W, int H) {
         if (imgBg != null) {
-            int bgWidth = imgBg.getWidth();
-        int bgHeight = imgBg.getHeight();
+            int imgW = imgBg.getWidth();
+            int imgH = imgBg.getHeight();
 
-        // Clamp camera so it doesn't go past image edges
-        cameraOffset = Math.max(0, Math.min(cameraOffset, bgWidth - W));
+            // 1. Calculate the scale factor based on the current panel height
+            // This ensures the street fills the screen vertically.
+            double scale = (double) H / imgH;
+            int scaledWidth = (int) (imgW * scale);
 
-        // Draw only part of the image
-            g2.drawImage(imgBg,
-            0, 0, W, H,                  // screen
-            cameraOffset, 0,             // source start
-            cameraOffset + W, bgHeight,  // source end
-            null);
+            // 2. Calculate the xOffset for the loop
+            // We use cameraOffset % scaledWidth to ensure it wraps around.
+            int xOffset = (int) (cameraOffset % scaledWidth);
+
+            // 3. Draw the first instance of the background
+            g2.drawImage(imgBg, -xOffset, 0, scaledWidth, H, null);
+
+            // 4. Draw the second instance for a seamless loop
+            // This appears as the first one slides off the left side.
+            if (xOffset > 0) {
+                g2.drawImage(imgBg, scaledWidth - xOffset, 0, scaledWidth, H, null);
+            }
         } else {
-            // Fallback gradient
-            g2.setPaint(new GradientPaint(0, 0, UITheme.SKY_TOP, 0, H, UITheme.SKY_BOT));
+            // Fallback if image fails to load
+            g2.setPaint(new GradientPaint(0, 0, new Color(0x87CEEB), 0, H, new Color(0xE0F6FF)));
             g2.fillRect(0, 0, W, H);
-            g2.setColor(UITheme.GRASS_COLOR);
-            g2.fillRect(0, (int)(H * 0.85), W, (int)(H * 0.15));
         }
     }
     
@@ -491,39 +524,133 @@ public class BurglarGamePanel extends JPanel {
         }
         
         // Labels
-        g2.setFont(UITheme.FONT_SMALL);
-        g2.setColor(UITheme.TEXT_BRIGHT);
-        drawCentredString(g2, "START", barX + 20, barY + barH + 15);
-        drawCentredString(g2, "CATCH!", barX + barW - 40, barY + barH + 15);
+g2.setFont(UITheme.FONT_SMALL);
+    g2.setColor(UITheme.TEXT_BRIGHT);
+    
+    // Change "START" and "CATCH!" to reflect the chase
+    drawCentredString(g2, "CHASE START", barX + 40, barY + barH + 15);
+    drawCentredString(g2, "CAUGHT!", barX + barW - 40, barY + barH + 15);
     }
     
         // Inside paintCharacters(Graphics2D g2, int W, int H)
-        private void paintCharacters(Graphics2D g2, int W, int H) {
-            int groundY = (int)(H * 0.75);
-            int charSize = 80;
-            int stepSize = 50; // Pixels per logical position step
+private void paintCharacters(Graphics2D g2, int W, int H) {
+    int groundY = (int)(H * 0.85);
+    int charSize = 105; 
+    int stepSize = 50; 
 
-            // Hero starts at left, Robber starts a few steps ahead
-            int heroX = 100 + (model.getHeroPosition() * stepSize) - cameraOffset;
-            int robberX = 100 + (model.getRobberPosition() * stepSize) - cameraOffset;
-            int screenRightEdge = getWidth() - 150;
+    // Use a consistent screen-space calculation
+    int heroX = 100 + (model.getHeroPosition() * stepSize) - (int)cameraOffset;
+    int robberX = 100 + (model.getRobberPosition() * stepSize) - (int)cameraOffset;
 
-            // If robber is near right edge → move camera
-            if (robberX > screenRightEdge) {
-                cameraOffset += 2;  // speed of scrolling
-            }
+    //Calculate source coordinates precisely
+    int sx1 = animationFrame * FRAME_W;
+    int sx2 = sx1 + FRAME_W; 
+    int sy1 = 0;
+    int sy2 = FRAME_H;
 
-            // Draw Hero
-            if (imgHero != null) {
-                g2.drawImage(imgHero, heroX, groundY - charSize, charSize, charSize, null);
-            }
+    // Draw Hero
+    if (imgHero != null) {
+        g2.drawImage(imgHero, 
+            heroX, groundY - charSize, heroX + charSize, groundY, // Destination
+            sx1, sy1, sx2, sy2,                                   // Source
+            null);
+    }
 
-            // Draw Robber
-            if (imgRobber != null) {
-                g2.drawImage(imgRobber, robberX, groundY - charSize, charSize, charSize, null);
-            }
+    // Draw Robber
+    if (imgRobber != null) {
+        g2.drawImage(imgRobber, 
+            robberX, groundY - charSize, robberX + charSize, groundY, 
+            sx1, sy1, sx2, sy2, 
+            null);
+    }
+}
+        
+
+    private void paintStartScreen(Graphics2D g2, int W, int H) {
+        // Full-page dark overlay
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRect(0, 0, W, H);
+
+        // FIX 1: One single outer_box card centred on screen
+        // Contains: title line, description line, and Start Rescue button
+        // Wide enough to fit the longest text line comfortably
+        int cardW = Math.min(W - 80, 680);
+        int cardH = 220;
+        int cardX = W / 2 - cardW / 2;
+        int cardY = H / 2 - cardH / 2;
+
+        // Draw the outer_box as the card background
+        paintOuterBoxButton(g2, cardX, cardY, cardW, cardH, "", "");  // background only
+
+        // Title text inside card
+        g2.setFont(UITheme.FONT_HEADING);
+        g2.setColor(new Color(0x3B2A1A));
+        drawCentredString(g2, "Help catch the burglar!", W / 2, cardY + 48);
+
+        // Description text inside card — two lines if needed
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 15));
+        g2.setColor(new Color(0x5A4A3A));
+        drawCentredString(g2,
+                "Fill in the missing letters. Each correct word makes you faster!",
+                W / 2, cardY + 84);
+        drawCentredString(g2,
+                "Type with keyboard or drag tiles into the box.",
+                W / 2, cardY + 108);
+
+        // Divider line
+        g2.setColor(new Color(0xC8A97A));
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawLine(cardX + 30, cardY + 124, cardX + cardW - 30, cardY + 124);
+        g2.setStroke(new BasicStroke(1));
+
+        // Start Rescue button INSIDE the card at the bottom
+        int btnW = 260, btnH = 58;
+        int btnX = W / 2 - btnW / 2;
+        int btnY = cardY + cardH - btnH - 20;
+        paintClickBox(g2, btnX, btnY, btnW, btnH, "Start Rescue!", UITheme.FONT_HEADING,
+                new Color(0xFCD475), UITheme.BG_DARK, "start_rescue");
+    }
+    
+        private void paintOuterBoxButton(Graphics2D g2, int x, int y, int w, int h,
+                                      String label, String zoneId) {
+        paintOuterBox(g2, x, y, w, h);
+        if (!label.isEmpty()) {
+            g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+            g2.setColor(new Color(0x3B2A1A));
+            drawCentredString(g2, label, x + w / 2, y + h / 2 + 5);
         }
-            private void paintWordDisplay(Graphics2D g2, int W, int H) {
+        if (!zoneId.isEmpty()) {
+            clickZones.put(zoneId, new Rectangle(x, y, w, h));
+        }
+    }
+        
+            private void paintClickBox(Graphics2D g2, int x, int y, int w, int h,
+                                String text, Font font, Color bgTint, Color textColor,
+                                String zoneId) {
+        // Slightly tinted outer box for clickable elements
+        g2.setColor(new Color(bgTint.getRed(), bgTint.getGreen(), bgTint.getBlue(), 180));
+        g2.fillRoundRect(x, y, w, h, 8, 8);
+        if (imgOuterBox != null) {
+            // Light overlay
+            g2.setColor(new Color(1f,1f,1f,0.15f));
+            g2.fillRoundRect(x, y, w, h, 8, 8);
+        }
+        g2.setColor(new Color(0,0,0,100));
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRoundRect(x+1, y+1, w-2, h-2, 8, 8);
+        g2.setStroke(new BasicStroke(1));
+        g2.setFont(font);
+        g2.setColor(textColor);
+        drawCentredString(g2, text, x + w/2, y + h/2 + 5);
+        clickZones.put(zoneId, new Rectangle(x, y, w, h));
+    }
+
+    private void drawCentredString(Graphics2D g2, String s, int cx, int cy) {
+        FontMetrics fm = g2.getFontMetrics();
+        g2.drawString(s, cx - fm.stringWidth(s)/2, cy);
+    }
+  
+        private void paintWordDisplay(Graphics2D g2, int W, int H) {
         BurglarGameModel.WordQuestion q = model.getCurrentQuestion();
         if (q == null) return;
         
@@ -535,7 +662,7 @@ public class BurglarGamePanel extends JPanel {
         int boxW = totalW + boxPad * 2;
         int boxH = slotSize + boxPad;
         int boxX = (W - boxW) / 2;
-        int boxY = H - boxH - 120;
+        int boxY = 200;
         
         // Draw outer box container
         paintOuterBox(g2, boxX, boxY, boxW, boxH);
@@ -740,11 +867,11 @@ public class BurglarGamePanel extends JPanel {
         drawCentredString(g2, text, x + w / 2, y + h / 2 + 5);
     }
     
-    private void drawCentredString(Graphics2D g2, String s, int cx, int cy) {
-        FontMetrics fm = g2.getFontMetrics();
-        g2.drawString(s, cx - fm.stringWidth(s) / 2, cy);
-    }
-    
+//    private void drawCentredString(Graphics2D g2, String s, int cx, int cy) {
+//        FontMetrics fm = g2.getFontMetrics();
+//        g2.drawString(s, cx - fm.stringWidth(s) / 2, cy);
+//    }
+//    
     // ═══════════════════════════════ MOUSE INTERACTION ════════════════════════
     
     private Rectangle wordBoxGeo() {
@@ -758,7 +885,7 @@ public class BurglarGamePanel extends JPanel {
         int boxW = totalW + boxPad * 2;
         int boxH = slotSize + boxPad;
         int boxX = (getWidth() - boxW) / 2;
-        int boxY = getHeight() - boxH - 120;
+        int boxY = 200;
         return new Rectangle(boxX, boxY, boxW, boxH);
     }
     
@@ -767,6 +894,18 @@ public class BurglarGamePanel extends JPanel {
             
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
+               if (currentScreen == Screen.INTRO) {
+        int W = getWidth(), H = getHeight();
+        int btnW = 240, btnH = 60;
+        int btnX = (W - btnW) / 2;
+        int btnY = H / 2;
+        
+        Rectangle btnRect = new Rectangle(btnX, btnY, btnW, btnH);
+        if (btnRect.contains(e.getPoint())) {
+            startGame();
+        }
+        return; // Don't process game clicks while in Intro
+    }
                 int mx = e.getX(), my = e.getY();
                 if (!model.isGameActive() || waitingForNext) return;
                 
@@ -823,7 +962,7 @@ public class BurglarGamePanel extends JPanel {
                 // Button clicks
                 Rectangle back = clickZones.get("back_btn");
                 if (back != null && back.contains(mx, my) && !isDragging) {
-                    CatSoundManager.stopMusic();
+                    BurglarSoundManager.stopMusic();
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
                 }
@@ -848,13 +987,13 @@ public class BurglarGamePanel extends JPanel {
                 
                 if (!dragFromArr && inBox) {
                     // Available tile dropped into word box
-                    CatSoundManager.play(CatSoundManager.SFX_TILE_CLICK);
+                    BurglarSoundManager.play(BurglarSoundManager.SFX_TILE_CLICK);
                     model.selectLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
                 } else if (dragFromArr && !inBox) {
                     // Arrangement tile dragged out
-                    CatSoundManager.play(CatSoundManager.SFX_TILE_CLICK);
+                    BurglarSoundManager.play(BurglarSoundManager.SFX_TILE_CLICK);
                     model.removeLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
@@ -951,12 +1090,42 @@ public class BurglarGamePanel extends JPanel {
         addMouseMotionListener(ma);
     }
     
+
+    
+
+    
+    private void startGame() {
+    BurglarSoundManager.play(BurglarSoundManager.SFX_GAME_START);
+    BurglarSoundManager.startMusic();
+    
+    currentScreen = Screen.GAME;
+        // Show instruction dialog
+    
+//    // Show instruction dialog exactly like Cat Game
+//    JOptionPane.showMessageDialog(this,
+//        "<html><div style='font-size:14px;text-align:center;padding:10px'>"
+//        + "<b>How to Play</b><br><br>"
+//        + "Spell the words correctly to catch the burglar!<br>"
+//        + "Drag the letters into the box below.<br><br>"
+//        + "Each correct word moves the hero closer."
+//        + "</div></html>",
+//        "How to Play", JOptionPane.INFORMATION_MESSAGE);
+        
+    currentScreen = Screen.GAME;
+    computeTilePositions();
+    repaint();
+    }
+    
+    
+    
+    
+    
+    
     @Override
     public void setBounds(int x, int y, int w, int h) {
         super.setBounds(x, y, w, h);
         computeTilePositions();
-    }
-    
+    }    
     // ── Helpers ───────────────────────────────────────────────────────────────
     private int clamp(int v, int lo, int hi) { return Math.max(lo, Math.min(hi, v)); }
 }

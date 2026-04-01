@@ -10,7 +10,7 @@ import java.util.*;
 public class BurglarGameModel {
 
     // ── Constants ─────────────────────────────────────────────────────────────
-    public static final int TOTAL_WORDS        = 12;
+    public static final int TOTAL_WORDS        = 500;
     public static final int POINTS_PER_CORRECT = 50;
     public static final int PENALTY_INCORRECT  = 10;
     public static final int HERO_START_POS     = 0;      // Hero starts at left (0)
@@ -90,10 +90,10 @@ public class BurglarGameModel {
         // Step 2: Sort shortest first
         clean.sort(Comparator.comparingInt(String::length));
         
-        // Step 3: Cap at TOTAL_WORDS
-        if (clean.size() > TOTAL_WORDS) {
-            clean = clean.subList(0, TOTAL_WORDS);
-        }
+//        // Step 3: Cap at TOTAL_WORDS
+//        if (clean.size() > TOTAL_WORDS) {
+//            clean = clean.subList(0, TOTAL_WORDS);
+//        }
         
         // Step 4: Pad by cycling if fewer than TOTAL_WORDS
         List<String> base = new ArrayList<>(clean);
@@ -292,11 +292,30 @@ public boolean checkAnswer() {
     public int getHeroPosition() { return heroPosition; }
     public int getRobberPosition() { return robberPosition; }
     public boolean isGameActive() { return gameActive; }
-    public boolean isComplete() { return heroPosition >= WIN_POSITION; }
-    public boolean isFailed() { return robberPosition <= LOSE_POSITION; }
-    public double getProgress() { 
-        return (double) (heroPosition - HERO_START_POS) / (WIN_POSITION - HERO_START_POS); 
-    }
+    public boolean isComplete() { 
+    // Hero wins if they reach or pass the robber's current position
+    return heroPosition >= robberPosition; 
+}
+public boolean isFailed() { 
+    // Robber wins if they reach the escape point (LOSE_POSITION, usually 0)
+    return robberPosition <= LOSE_POSITION; 
+}
+    
+public double getProgress() { 
+    // Calculate total distance between their starting points
+    int totalInitialDistance = ROBBER_START_POS - HERO_START_POS; // Usually 10
+    
+    // Calculate the current gap
+    int currentGap = robberPosition - heroPosition;
+    
+    // If the hero catches or passes the robber, progress is 100% (1.0)
+    if (currentGap <= 0) return 1.0;
+    
+    // Progress is based on how much the starting gap has been closed
+    double progress = 1.0 - ((double) currentGap / totalInitialDistance);
+    
+    return Math.max(0.0, Math.min(1.0, progress)); 
+}
     
     // ── Resets ────────────────────────────────────────────────────────────────
     
