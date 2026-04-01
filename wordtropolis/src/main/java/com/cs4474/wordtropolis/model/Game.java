@@ -2,7 +2,8 @@ package com.cs4474.wordtropolis.model;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Scanner;
+import java.util.Collections;
 /**
  * Core Game model – singleton holding all shared state across the application.
  * Matches the Game class from the flowchart diagram.
@@ -15,6 +16,10 @@ public class Game {
     public enum CurrentStage {
         CAT, BURGULAR, FIRE, BRIDGE, BOSS
     }
+        public enum Difficulty {
+        EASY, MEDIUM, HARD
+    }
+    private Difficulty difficulty;
 
     private String playerName;
     private List<String> wordList;
@@ -63,6 +68,44 @@ public class Game {
     public static void resetInstance() {
         instance = new Game();
     }
+    public void loadWordsFromFile(String filename) {
+    List<String> loadedWords = new ArrayList<>();
+
+    try (Scanner sc = new Scanner(
+            getClass().getResourceAsStream("/wordlists/" + filename))) {
+
+        while (sc.hasNextLine()) {
+            String word = sc.nextLine().trim().toUpperCase();
+            if (!word.isEmpty() && word.matches("[A-Z]+")) {
+                loadedWords.add(word);
+            }
+        }
+        Collections.shuffle(loadedWords);
+
+        if (!loadedWords.isEmpty()) {
+            this.wordList = loadedWords;
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error loading word file: " + filename);
+        e.printStackTrace();
+    }
+}
+    public void loadWordsForDifficulty() {
+    if (difficulty == null) difficulty = Difficulty.EASY;
+
+    switch (difficulty) {
+        case EASY:
+            loadWordsFromFile("Wordlist.txt");
+            break;
+        case MEDIUM:
+            loadWordsFromFile("WordGr1.txt");
+            break;
+        case HARD:
+            loadWordsFromFile("WordlistGr2.txt");
+            break;
+    }
+}
 
     // ── Getters & Setters ────────────────────────────────────────────────────
 
@@ -105,4 +148,7 @@ public class Game {
     public boolean allActivitiesCompleted() {
         return catCompleted && burgularCompleted && fireCompleted && bridgeCompleted;
     }
+    
+    public Difficulty getDifficulty() { return difficulty; }
+    public void setDifficulty(Difficulty d) { this.difficulty = d; }
 }

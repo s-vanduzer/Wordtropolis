@@ -73,11 +73,18 @@ public class MapPagePanel extends JPanel implements Refreshable {
             actButtons[i] = makeActivityButton(idx);
             actButtons[i].addActionListener(e -> {
                 if (idx == 0) {
-                    // Rebuild cat game so it always starts fresh
-                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_CAT_GAME, new CatGamePanel());
-                }
-                Wordtropolis.showScreen(ACT_SCREENS[idx]);
-            });
+                            // Rebuild Cat Game when the first button is clicked
+                            Wordtropolis.replaceScreen(Wordtropolis.SCREEN_CAT_GAME, new CatGamePanel());
+                        } 
+                        else if (idx == 3) {
+                            // Rebuild Burglar Game when the fourth button is clicked
+                            Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BURGLAR_GAME, new BurglarGamePanel());
+                        } 
+                        else {
+                            // For other games that don't need a full rebuild yet
+                            Wordtropolis.showScreen(ACT_SCREENS[idx]);
+                        }
+                    });
             grid.add(actButtons[i]);
         }
         add(grid, BorderLayout.CENTER);

@@ -1285,16 +1285,16 @@ public class CatGamePanel extends JPanel {
         // FIX 3d: music starts when user clicks Start Rescue — not before
         CatSoundManager.startMusic();
         // Show instruction dialog
-        JOptionPane.showMessageDialog(this,
-            "<html><div style='font-size:14px;text-align:center;padding:10px'>"
-            + "<b>How to Play</b><br><br>"
-            + "Listen to the word spoken aloud.<br>"
-            + "Drag the floating letters or type on your keyboard<br>"
-            + "to spell the word in the box below.<br><br>"
-            + "Each correct word builds the rescue ladder!<br>"
-            + "You have 60 seconds per word. Good luck!"
-            + "</div></html>",
-            "How to Play", JOptionPane.INFORMATION_MESSAGE);
+//        JOptionPane.showMessageDialog(this,
+//            "<html><div style='font-size:14px;text-align:center;padding:10px'>"
+//            + "<b>How to Play</b><br><br>"
+//            + "Listen to the word spoken aloud.<br>"
+//            + "Drag the floating letters or type on your keyboard<br>"
+//            + "to spell the word in the box below.<br><br>"
+//            + "Each correct word builds the rescue ladder!<br>"
+//            + "You have 60 seconds per word. Good luck!"
+//            + "</div></html>",
+//            "How to Play", JOptionPane.INFORMATION_MESSAGE);
         currentScreen = Screen.GAME;
         computeTilePositions();
         speakWord();

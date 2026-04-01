@@ -50,6 +50,10 @@ public class Wordtropolis {
         // Enable anti-aliased text system-wide
         System.setProperty("swing.aatext", "true");
         System.setProperty("awt.useSystemAAFontSettings", "on");
+        
+        Game game = Game.getInstance();
+        game.setDifficulty(Game.Difficulty.HARD);   // change to MEDIUM / HARD
+        game.loadWordsForDifficulty();
 
         mainFrame = new JFrame("Wordtropolis \u2013 Save the City!");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,6 +64,7 @@ public class Wordtropolis {
         cardLayout = new CardLayout();
         cardPanel  = new JPanel(cardLayout);
         cardPanel.setBackground(Color.BLACK);
+        
 
         // ── Register every screen ─────────────────────────────────────────────
         // NOTE TO TEAM:
@@ -83,8 +88,8 @@ public class Wordtropolis {
         register(new PlaceholderPanel("Fix the Bridge\nComing Soon!",
                 new Color(0x118AB2)), SCREEN_BRIDGE_GAME);
 
-        register(new PlaceholderPanel("Burglar Chase\nComing Soon!",
-                new Color(0x6B4C9A)), SCREEN_BURGLAR_GAME);
+        //Added robber game
+        register(new BurglarGamePanel(), SCREEN_BURGLAR_GAME);
 
         register(new PlaceholderPanel("Final Boss Fight\nComing Soon!",
                 new Color(0xC0392B)), SCREEN_BOSS_GAME);
