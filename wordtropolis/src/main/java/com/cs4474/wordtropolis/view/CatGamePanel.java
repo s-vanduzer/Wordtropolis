@@ -102,7 +102,7 @@ public class CatGamePanel extends JPanel {
 
     @Override public void removeNotify() {
         super.removeNotify();
-        CatSoundManager.stopMusic();
+        SoundManager.stopMusic();
         stopAll();
     }
 
@@ -177,11 +177,11 @@ public class CatGamePanel extends JPanel {
                 if (key == KeyEvent.CHAR_UNDEFINED || key < 32) return;
                 switch (model.typeKey(key)) {
                     case TYPED_OK:
-                        CatSoundManager.play(CatSoundManager.SFX_TILE_CLICK);
+                        SoundManager.play(SoundManager.CAT_TILE_CLICK);
                         triggerSparkle(getWidth()/2, getHeight()/2 - 60);
                         repaint(); break;
                     case TYPED_NOT_AVAILABLE:
-                        CatSoundManager.play(CatSoundManager.SFX_ERROR);
+                        SoundManager.play(SoundManager.CAT_ERROR);
                         shakeEffect();
                         showFeedback("'" + Character.toUpperCase(key) + "' is not available!", UITheme.ACCENT_RED); break;
                     case TYPED_FULL:
@@ -192,7 +192,7 @@ public class CatGamePanel extends JPanel {
                 if (currentScreen != Screen.GAME || waitingForNext) return;
                 int c = e.getKeyCode();
                 if (c == KeyEvent.VK_BACK_SPACE && model.backspace()) {
-                    CatSoundManager.play(CatSoundManager.SFX_TILE_CLICK); repaint();
+                    SoundManager.play(SoundManager.CAT_TILE_CLICK); repaint();
                 } else if (c == KeyEvent.VK_ENTER) {
                     handleSubmit();
                 } else if (c == KeyEvent.VK_ESCAPE) {
@@ -243,12 +243,12 @@ public class CatGamePanel extends JPanel {
             if (--timeLeft <= 0) {
                 countdownTimer.stop();
                 showFeedback("Time's up! Try again.", UITheme.ACCENT_RED);
-                CatSoundManager.play(CatSoundManager.SFX_ERROR);
+                SoundManager.play(SoundManager.CAT_ERROR);
                 model.clearArrangement();
                 startCountdown();
                 repaint();
             } else if (timeLeft == T_WARN && !warnPlayed) {
-                CatSoundManager.play(CatSoundManager.SFX_MEOW_MAD);
+                SoundManager.play(SoundManager.CAT_MEOW_MAD);
                 warnPlayed = true;
             }
             repaint();
@@ -260,10 +260,10 @@ public class CatGamePanel extends JPanel {
         if (windTimer != null) windTimer.stop();
 
         // FIX 3a: play wind sound every time tile drifting starts
-        int prevVol = CatSoundManager.getSfxVolume();
-        CatSoundManager.setSfxVolume(30);                           // quiet wind
-        CatSoundManager.playFrom(CatSoundManager.SFX_WIND, 0.0, 1.5);
-        CatSoundManager.setSfxVolume(prevVol);
+        int prevVol = SoundManager.getSfxVolume();
+        SoundManager.setSfxVolume(30);                           // quiet wind
+        SoundManager.playFrom(SoundManager.CAT_WIND, 0.0, 1.5);
+        SoundManager.setSfxVolume(prevVol);
 
         java.util.Random rand = new java.util.Random();
         int DMAX = 55, DSTEP = 7;
@@ -294,8 +294,8 @@ public class CatGamePanel extends JPanel {
         boolean correct = model.submitAnswer();
         if (correct) {
             showFeedback("Great spelling! The ladder is growing!", UITheme.ACCENT_TEAL);
-            CatSoundManager.playFrom(CatSoundManager.SFX_CORRECT, 1.0, 1.5);
-            CatSoundManager.play(CatSoundManager.SFX_MEOW_HAPPY);
+            SoundManager.playFrom(SoundManager.CAT_CORRECT, 1.0, 1.5);
+            SoundManager.play(SoundManager.CAT_MEOW_HAPPY);
             triggerSparkle(getWidth()/2, getHeight()/2);
             if (countdownTimer != null) countdownTimer.stop();
             stopWindEffect();
@@ -312,8 +312,8 @@ public class CatGamePanel extends JPanel {
             }
         } else {
             showFeedback("Incorrect. Please try again!", UITheme.ACCENT_RED);
-            CatSoundManager.play(CatSoundManager.SFX_MEOW_MAD);
-            CatSoundManager.play(CatSoundManager.SFX_ERROR);
+            SoundManager.play(SoundManager.CAT_MEOW_MAD);
+            SoundManager.play(SoundManager.CAT_ERROR);
             shakeEffect();
             repaint();
         }
@@ -336,7 +336,7 @@ public class CatGamePanel extends JPanel {
 
     private void rescueComplete() {
         showFeedback("Cat Rescued! Mission Complete!", UITheme.ACCENT_TEAL);
-        CatSoundManager.play(CatSoundManager.SFX_LEVEL_COMPLETE);
+        SoundManager.play(SoundManager.CAT_LEVEL_DONE);
         Game.getInstance().setCatCompleted(true);
         currentScreen = Screen.RESCUE;
         catRescueY = 0.0f;   // start at bottom of tree, move upward
@@ -354,7 +354,7 @@ public class CatGamePanel extends JPanel {
     
     private void showResultDialog() {
         // FIX 3c: stop music immediately before dialog and before navigating
-        CatSoundManager.stopMusic();
+        SoundManager.stopMusic();
         stopAll();  // stop all timers too so nothing runs in background
         JOptionPane.showMessageDialog(this,
             "<html><div style='font-size:14px;text-align:center;padding:10px'>"
@@ -418,10 +418,10 @@ public class CatGamePanel extends JPanel {
         if (shakeTimer != null && shakeTimer.isRunning()) return;
 
         // FIX 3b: play wind sound at the start of every shake/wrong-answer effect
-        int prevVol = CatSoundManager.getSfxVolume();
-        CatSoundManager.setSfxVolume(25);                           // very subtle wind
-        CatSoundManager.playFrom(CatSoundManager.SFX_WIND, 0.0, 0.8);
-        CatSoundManager.setSfxVolume(prevVol);
+        int prevVol = SoundManager.getSfxVolume();
+        SoundManager.setSfxVolume(25);                           // very subtle wind
+        SoundManager.playFrom(SoundManager.CAT_WIND, 0.0, 0.8);
+        SoundManager.setSfxVolume(prevVol);
 
         shakeTick = 0;
         shakeTimer = new Timer(40, e -> {
@@ -714,7 +714,9 @@ public class CatGamePanel extends JPanel {
     private void paintTimerBar(Graphics2D g2, int W) {
         // FIX 2: taller bar + zoom into ONE bar from the sprite sheet
         int tbX = 160, tbY = 8;
-        int tbW = W - 320, tbH = 40;   // taller so sprite is bigger
+        int tbH = 40;
+        // Leave 160px on the right for the score box (140px wide + 10px gap + 10px margin)
+        int tbW = W - 320;   // reduced to make room for score box on the right
 
         int maxTime;
         switch (model.getCurrentDifficulty()) {
@@ -764,9 +766,18 @@ public class CatGamePanel extends JPanel {
             g2.fillRoundRect(tbX, tbY, fillW, tbH, 8, 8);
         }
         
-        // Time label centred on the bar inside an outer_box
+        // Time label centred on the bar
         paintLabelBox(g2, tbX + tbW / 2 - 36, tbY + tbH / 2 - 14, 72, 28,
                 timeLeft + "s", UITheme.FONT_HEADING, Color.WHITE);
+
+        // ── Score box: same height as timer, flush to the RIGHT edge ──────────
+        // Uses paintOuterBoxButton so it gets the same outer_box.png border
+        // as the Back button — cream fill + top/bottom strip borders
+        int scoreW = 140, scoreH = tbH;
+        int scoreX = tbX + tbW + 20;   // 10px gap after timer bar right edge
+        int scoreY = tbY;
+        paintOuterBoxButton(g2, scoreX, scoreY, scoreW, scoreH,
+                "Score: " + model.getTotalScore(), "");
     }
 
     // ── Intro screen ──────────────────────────────────────────────────────────
@@ -878,10 +889,7 @@ public class CatGamePanel extends JPanel {
         int checkY  = backY;
         paintIconBox(g2, checkX, checkY, btnSize, imgCheck, "check_btn");
 
-        // ── Score box bottom right ─────────────────────────────────────────────
-        paintLabelBox(g2, W - 130, H - 44, 120, 30,
-                "Score: " + model.getTotalScore(), UITheme.FONT_SMALL, UITheme.ACCENT_YELLOW);
-    }
+    }  // end paintGameUI
 
     private void paintRescueOverlay(Graphics2D g2, int W, int H) {
         g2.setColor(new Color(0f, 0f, 0f, 0.4f));
@@ -1160,7 +1168,7 @@ public class CatGamePanel extends JPanel {
                 // Named zone clicks (always checked, even without dragging)
                 Rectangle backToMap = clickZones.get("back_to_map");
                 if (backToMap != null && backToMap.contains(mx, my) && !isDragging) {
-                    CatSoundManager.stopMusic();
+                    SoundManager.stopMusic();
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
                 }
@@ -1190,13 +1198,13 @@ public class CatGamePanel extends JPanel {
  
                 if (!dragFromArr && inBox) {
                     // Available tile dropped into word box → place it
-                    CatSoundManager.play(CatSoundManager.SFX_TILE_CLICK);
+                    SoundManager.play(SoundManager.CAT_TILE_CLICK);
                     model.selectLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
                 } else if (dragFromArr && !inBox) {
                     // Arrangement tile dragged out → return to pool
-                    CatSoundManager.play(CatSoundManager.SFX_TILE_CLICK);
+                    SoundManager.play(SoundManager.CAT_TILE_CLICK);
                     model.removeLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
@@ -1281,9 +1289,9 @@ public class CatGamePanel extends JPanel {
     }
 
     private void startGame() {
-        CatSoundManager.play(CatSoundManager.SFX_GAME_START);
+        SoundManager.play(SoundManager.CAT_GAME_START);
         // FIX 3d: music starts when user clicks Start Rescue — not before
-        CatSoundManager.startMusic();
+        SoundManager.startMusic(SoundManager.CAT_BGM);
         // Show instruction dialog
 //        JOptionPane.showMessageDialog(this,
 //            "<html><div style='font-size:14px;text-align:center;padding:10px'>"
