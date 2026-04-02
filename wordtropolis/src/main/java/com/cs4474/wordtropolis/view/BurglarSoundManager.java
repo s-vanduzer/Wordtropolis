@@ -51,7 +51,7 @@ public final class BurglarSoundManager {
     public static void play(String filename) {
         if (sfxVolume == 0) return;
         try {
-            URL res = CatSoundManager.class.getResource("/sounds/cat_game/" + filename);
+            URL res = SoundManager.class.getResource("/sounds/cat_game/" + filename);
             if (res == null) {
                 System.out.println("[CatSoundManager] Not found: " + filename);
                 return;
@@ -74,7 +74,7 @@ public final class BurglarSoundManager {
         stopMusic();
         if (musicVolume == 0) return;
         try {
-            URL res = CatSoundManager.class.getResource("/sounds/burglar_game/" + BGM_BACKGROUND);
+            URL res = SoundManager.class.getResource("/sounds/burglar_game/" + BGM_BACKGROUND);
             if (res == null) {
                 System.out.println("[BurglarSoundManager] BGM not found: " + BGM_BACKGROUND);
                 return;
@@ -190,7 +190,7 @@ public final class BurglarSoundManager {
    public static void playFrom(String filename, double startSec, double endSec) {
        if (sfxVolume == 0) return;
        try {
-           URL res = CatSoundManager.class.getResource("/sounds/cat_game/" + filename);
+           URL res = SoundManager.class.getResource("/sounds/cat_game/" + filename);
            if (res == null) {
                System.out.println("[CatSoundManager] Not found: " + filename);
                return;
