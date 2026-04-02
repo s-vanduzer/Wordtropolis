@@ -32,11 +32,20 @@ public class CatGamePanel extends JPanel {
     private BufferedImage imgLightPole, imgProgressBar;
     private BufferedImage imgLetterBox, imgOuterBox, imgBanner;
     private BufferedImage imgBack, imgCheck, imgSparkle;
+    private BufferedImage imgHero;   // selected hero sprite sheet
 
     // ── Sprite constants ──────────────────────────────────────────────────────
     private static final int CAT_FRAMES   = 10,  CAT_FW = 32, CAT_FH = 32;
     private static final int NPC_COLS     = 6,  NPC_FW = 32, NPC_FH = 32;
     private static final int SPKL_FRAMES  = 14, SPKL_W = 32, SPKL_H = 32;
+    // Hero sprite sheet: 4 cols × 4 rows, each frame ~210×316px
+    // Row 3 (last row, 0-indexed) = back-facing → hero looks toward tree
+    private static final int HERO_COLS    = 4;
+    private static final int HERO_FW      = 210;   // frame width  (843 / 4)
+    private static final int HERO_FH      = 316;   // frame height (1264 / 4)
+    private static final int HERO_BACK_ROW = 3;    // last row = back-facing walk
+    private int   heroFrame = 0;
+    private Timer heroTimer;
 
     // ── Progress bar from progress_bar.png ───────────────────────────────────
     // Row 1 (y=24) is the cyan/filled bar — we rotate it 90° to use vertically
@@ -128,6 +137,18 @@ public class CatGamePanel extends JPanel {
         imgBack        = img("/images/cat_game/back.png");
         imgCheck       = img("/images/cat_game/check.png");
         imgSparkle     = img("/images/cat_game/blue_sparkle.png");
+
+        // Pick hero sprite sheet based on what PickHeroPanel saved via setAvatarPath().
+        // HERO_LABELS are "Mia" (girl), "Alex" (boy), "Zyx" (alien).
+        String avatarPath = Game.getInstance().getAvatarPath();
+        if ("Mia".equalsIgnoreCase(avatarPath)) {
+            imgHero = img("/images/general/hero1_standing.png");
+        } else if ("Zyx".equalsIgnoreCase(avatarPath)) {
+            imgHero = img("/images/general/alien_standing.png");
+        } else {
+            // Default: Alex / boy hero
+            imgHero = img("/images/general/hero2_standing.png");
+        }
     }
 
     private BufferedImage img(String path) {
@@ -141,11 +162,12 @@ public class CatGamePanel extends JPanel {
     // ═══════════════════════════════ ANIMATIONS ══════════════════════════════
 
     private void startAnimations() {
-        
-        catTimer = new Timer(150, e -> { catFrame = (catFrame+1)%CAT_FRAMES; repaint(); });
+        catTimer  = new Timer(150, e -> { catFrame  = (catFrame +1)%CAT_FRAMES; repaint(); });
         catTimer.start();
-        npcTimer = new Timer(200, e -> { npcFrame = (npcFrame+1)%NPC_COLS; repaint(); });
+        npcTimer  = new Timer(200, e -> { npcFrame  = (npcFrame +1)%NPC_COLS;   repaint(); });
         npcTimer.start();
+        heroTimer = new Timer(180, e -> { heroFrame = (heroFrame+1)%HERO_COLS;  repaint(); });
+        heroTimer.start();
     }
 
     private void triggerSparkle(int x, int y) {
@@ -159,7 +181,7 @@ public class CatGamePanel extends JPanel {
     }
 
     private void stopAll() {
-        for (Timer t : new Timer[]{catTimer,npcTimer,sparkleTimer,rescueTimer,
+        for (Timer t : new Timer[]{catTimer,npcTimer,heroTimer,sparkleTimer,rescueTimer,
                                     windTimer,countdownTimer,feedbackTimer})
             if (t != null) t.stop();
     }
@@ -448,6 +470,9 @@ public class CatGamePanel extends JPanel {
         // ── 3. NPCs at the bottom ─────────────────────────────────────────────
         paintNpcs(g2, W, H);
 
+        // ── 3b. Hero — centre-right, back-facing so they look toward the tree ─
+        paintHero(g2, W, H);
+
         // ── 4. Tree centred ───────────────────────────────────────────────────
         int treeW = (int)(W * 0.28), treeH = (int)(H * 0.55);
         int treeX = (W - treeW) / 2, treeY = (int)(H * 0.20);
@@ -577,6 +602,38 @@ public class CatGamePanel extends JPanel {
                 null);
     }
 }
+
+    // ── Hero ──────────────────────────────────────────────────────────────────
+    /**
+     * Draw the selected hero at ground level, slightly right of centre,
+     * using the back-facing row so they appear to be looking at the tree.
+     *
+     * Sprite sheet layout: 4 cols × 4 rows, each frame HERO_FW × HERO_FH px.
+     * Row 3 (HERO_BACK_ROW) = back-facing walk cycle.
+     */
+    private void paintHero(Graphics2D g2, int W, int H) {
+        if (imgHero == null) return;
+
+        // Drawn size — scale down to look proportional next to NPCs
+        int drawW = 160;
+        int drawH = (int)((double) HERO_FH / HERO_FW * drawW);  // keep aspect ratio
+
+        // Ground line matches NPC ground Y
+        int groundY = (int)(H * 0.87) - drawH;
+
+        // Position: just right of the tree centre
+        int heroX = (int)(W * 0.50);
+
+        // Source rectangle: back-facing row, current animation frame
+        int srcX1 = heroFrame * HERO_FW;
+        int srcY1 = HERO_BACK_ROW * HERO_FH;
+        int srcX2 = srcX1 + HERO_FW;
+        int srcY2 = srcY1 + HERO_FH;
+
+        g2.drawImage(imgHero,
+                heroX, groundY, heroX + drawW, groundY + drawH,
+                srcX1, srcY1 + 70, srcX2, srcY2, null);
+    }
 
     // ── Tree ─────────────────────────────────────────────────────────────────
 
