@@ -72,7 +72,7 @@ public class Game {
     List<String> loadedWords = new ArrayList<>();
 
     try (Scanner sc = new Scanner(
-            getClass().getResourceAsStream("/wordlists/" + filename))) {
+            getClass().getResourceAsStream("/wordlist/" + filename))) {
 
         while (sc.hasNextLine()) {
             String word = sc.nextLine().trim().toUpperCase();
