@@ -116,8 +116,11 @@ private Screen currentScreen = Screen.INTRO;
     // ═══════════════════════════════ LOADING ═════════════════════════════════
     
     private void loadImages() {
-        imgBg          = img("/images/burglar_game/street.png");
-        imgHero        = img("/images/burglar_game/hero1_running.png");
+        
+        try {
+        
+        imgRobber = img("/images/burglar_game/robber.png");
+        imgBg          = img("/images/burglar_game/street.png");//        
         imgRobber      = img("/images/burglar_game/robber.png");
         imgProgressBar = img("/images/cat_game/progress_bar.png");
         imgLetterBox   = img("/images/cat_game/individual_box.png");
@@ -125,6 +128,23 @@ private Screen currentScreen = Screen.INTRO;
         imgCheck       = img("/images/cat_game/check.png");
         imgBack        = img("/images/cat_game/back.png");
         imgSparkle     = img("/images/cat_game/blue_sparkle.png");
+        
+        // Pick hero sprite sheet based on what PickHeroPanel saved via setAvatarPath().
+        // HERO_LABELS are "Mia" (girl), "Alex" (boy), "Zyx" (alien).
+        String avatarPath = Game.getInstance().getAvatarPath();
+        if ("Mia".equalsIgnoreCase(avatarPath)) {
+            imgHero = img("/images/burglar_game/hero1_running.png");
+        } else if ("Zyx".equalsIgnoreCase(avatarPath)) {
+            imgHero = img("/images/burglar_game/alien_running.png");
+        } else {
+            // Default: Alex / boy hero
+            imgHero = img("/images/burglar_game/hero2_running.png");
+        }
+        
+        } catch (Exception e){
+        System.err.println("Error loading Burglar Game sprites: " + e.getMessage());
+    }
+        
     }
     
     private BufferedImage img(String path) {
@@ -276,7 +296,9 @@ private Screen currentScreen = Screen.INTRO;
         if (correct) {
             showFeedback("Correct! The hero moves forward!", UITheme.ACCENT_TEAL);
             BurglarSoundManager.playFrom(BurglarSoundManager.SFX_CORRECT, 1.0, 1.5);
- 
+            System.out.println("Hero position: " + model.getHeroPosition());
+            int points = BurglarGameModel.POINTS_PER_CORRECT;
+            Game.getInstance().addScore(points);
             triggerSparkle(getWidth() / 2, getHeight() / 2);
             repaint();
             
@@ -308,6 +330,19 @@ private Screen currentScreen = Screen.INTRO;
                 }).start();
             }
         }
+        
+        if (model.isComplete()) {
+       // 1. Mark as completed in the global state
+       Game.getInstance().setBurgularCompleted(true); // This enables the "OK" badge on the map
+    
+
+       // 2. Play a win sound or show a "Mission Accomplished" screen
+       // BurglarSoundManager.play(BurglarSoundManager.SFX_WIN);
+
+       // 3. Return to the Map (which will now show the "OK" badge)
+//       JOptionPane.showMessageDialog(this, "You caught the burglar! City safe!");
+       Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
+}
     }
     
     private void refreshGame() {
@@ -316,11 +351,14 @@ private Screen currentScreen = Screen.INTRO;
         speakWord();
         repaint();
     }
-    
+
     private void gameComplete() {
-        showFeedback("Hero caught the burglar! Mission Complete!", UITheme.ACCENT_TEAL);
+        // 1. Mark as completed in the global singleton
+        Game.getInstance().setBurgularCompleted(true); 
+
+//        showFeedback("Hero caught the burglar! Mission Complete!", UITheme.ACCENT_TEAL);
         BurglarSoundManager.play(BurglarSoundManager.SFX_LEVEL_COMPLETE);
-        
+
         new Timer(3000, e -> {
             showResultDialog(true);
             ((Timer)e.getSource()).stop();
