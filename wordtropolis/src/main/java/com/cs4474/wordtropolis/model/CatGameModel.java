@@ -26,7 +26,7 @@ public class CatGameModel {
     // ── Constants ─────────────────────────────────────────────────────────────
     public static final int TOTAL_WORDS        = 6;
     public static final int POINTS_PER_CORRECT = 50;
-    public static final int PENALTY_INCORRECT  = 10;
+//    public static final int PENALTY_INCORRECT  = 10;
 
     private static final char[] DISTRACTOR_POOL = "XQZVWBJK".toCharArray();
 
@@ -282,7 +282,6 @@ public class CatGameModel {
             return true;
         } else {
             incorrectAttempts++;
-            totalScore = Math.max(0, totalScore - PENALTY_INCORRECT);
             Game.getInstance().addMisspelledWord(answer);
             availableLetters.addAll(playerArrangement);
             playerArrangement.clear();
