@@ -291,7 +291,7 @@ private Screen currentScreen = Screen.INTRO;
                 }).start();
             }
         } else {
-            showFeedback("Incorrect! The robber moves back!", UITheme.ACCENT_RED);
+            showFeedback("Incorrect! The he's is getting away!", UITheme.ACCENT_RED);
 
             BurglarSoundManager.play(BurglarSoundManager.SFX_ERROR);
             shakeEffect();
@@ -530,6 +530,7 @@ g2.setFont(UITheme.FONT_SMALL);
     // Change "START" and "CATCH!" to reflect the chase
     drawCentredString(g2, "CHASE START", barX + 40, barY + barH + 15);
     drawCentredString(g2, "CAUGHT!", barX + barW - 40, barY + barH + 15);
+    
     }
     
         // Inside paintCharacters(Graphics2D g2, int W, int H)
@@ -756,23 +757,46 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
     }
     
     private void paintScoreBox(Graphics2D g2, int W) {
-        paintLabelBox(g2, W - 130, 12, 120, 30,
-                "Score: " + model.getTotalScore(), UITheme.FONT_SMALL, UITheme.ACCENT_YELLOW);
+        
+         // FIX 2: taller bar + zoom into ONE bar from the sprite sheet
+        int tbX = 160, tbY = 8;
+        int tbH = 40;
+        // Leave 160px on the right for the score box (140px wide + 10px gap + 10px margin)
+        int tbW = W - 320;
+             // ── Score box: same height as timer, flush to the RIGHT edge ──────────
+        // Uses paintOuterBoxButton so it gets the same outer_box.png border
+        // as the Back button — cream fill + top/bottom strip borders
+        int scoreW = 140, scoreH = tbH;
+        int scoreX = tbX + tbW + 20;   // 10px gap after timer bar right edge
+        int scoreY = tbY;
+        paintOuterBoxButton(g2, scoreX, scoreY, scoreW, scoreH,
+                "Score: " + model.getTotalScore(), "");
+        
     }
     
     private void paintBackButton(Graphics2D g2) {
         int btnSize = 56;
+        int panelX = 14;
         int x = 14;
         int y = 12;
         
-        if (imgBack != null) {
-            int pad = 6;
-            g2.drawImage(imgBack,
-                    x + pad + (btnSize - pad * 2), y + pad,
-                    x + pad, y + pad + (btnSize - pad * 2),
-                    0, 0, imgBack.getWidth(), imgBack.getHeight(), null);
-        }
-        clickZones.put("back_btn", new Rectangle(x, y, btnSize, btnSize));
+//        if (imgBack != null) {
+//            int pad = 6;
+//            g2.drawImage(imgBack,
+//                    x + pad + (btnSize - pad * 2), y + pad,
+//                    x + pad, y + pad + (btnSize - pad * 2),
+//                    0, 0, imgBack.getWidth(), imgBack.getHeight(), null);
+//        }
+//        clickZones.put("back_btn", new Rectangle(x, y, btnSize, btnSize));
+        
+                        
+ 
+        // NEW CHANGE B: replace banner with outer_box "Back" button
+        // Uses only the outer_box.png image (top + bottom strips, centre filled)
+        // Clicking it returns the player to the map screen
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
+        clickZones.put("back_btn", new Rectangle(x, y, backBtnW, backBtnW));
     }
     
     private void paintCheckButton(Graphics2D g2, int W, int H) {
