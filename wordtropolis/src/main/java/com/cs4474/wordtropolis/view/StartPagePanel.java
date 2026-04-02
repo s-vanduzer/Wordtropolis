@@ -1,129 +1,284 @@
 package com.cs4474.wordtropolis.view;
 
 import com.cs4474.wordtropolis.Wordtropolis;
-import com.cs4474.wordtropolis.model.Game;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.RoundRectangle2D;
-import java.util.Random;
+import java.awt.event.*;
+import java.io.IOException;
 
-/**
- * Start page – player chooses "I am a Student" or "I am a Teacher".
- * Features an animated city skyline with twinkling stars.
- */
 public class StartPagePanel extends JPanel {
 
-    private final float[] starX;
-    private final float[] starY;
-    private final float[] starSize;
-    private float shimmer = 0f;
-    private Timer animTimer;
+    private int baseTitleY = 120;
+    private double time = 0;
+    private JLabel titleLabel;
 
     public StartPagePanel() {
-        setLayout(new BorderLayout());
-        setBackground(UITheme.BG_DARK);
 
-        starX    = new float[60];
-        starY    = new float[60];
-        starSize = new float[60];
-        Random rnd = new Random(42);
-        for (int i = 0; i < 60; i++) {
-            starX[i]    = rnd.nextFloat() * 900;
-            starY[i]    = rnd.nextFloat() * 280;
-            starSize[i] = 1f + rnd.nextFloat() * 2.5f;
-        }
+        setLayout(null);
+        setPreferredSize(new Dimension(920, 700));
 
-        buildUI();
+        // Background
+        Image bg = new ImageIcon(getClass().getResource("/images/general/BG.png")).getImage();
+        Image scaledBg = bg.getScaledInstance(920, 700, Image.SCALE_SMOOTH);
 
-        animTimer = new Timer(50, e -> { shimmer += 0.05f; repaint(); });
-        animTimer.start();
-    }
+        JLabel background = new JLabel(new ImageIcon(scaledBg));
+        background.setBounds(0, 0, 920, 700);
+        background.setLayout(null);
+        add(background);
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // Clouds
+        Image cloudRaw = new ImageIcon(getClass().getResource("/images/general/cloud.png")).getImage();
+        Image cloudScaled = cloudRaw.getScaledInstance(360, 190, Image.SCALE_SMOOTH);
+        ImageIcon cloudImg = new ImageIcon(cloudScaled);
 
-        // Sky gradient
-        g2.setPaint(new GradientPaint(0, 0, UITheme.SKY_TOP, 0, getHeight() * 0.65f, UITheme.SKY_BOT));
-        g2.fillRect(0, 0, getWidth(), getHeight());
+        JLabel cloudA = new JLabel(cloudImg);
+        cloudA.setBounds(-360, 10, 360, 190);
+        background.add(cloudA);
 
-        // Stars
-        for (int i = 0; i < 60; i++) {
-            float alpha = 0.4f + 0.6f * Math.abs((float) Math.sin(shimmer + i * 0.3f));
-            g2.setColor(new Color(1f, 1f, 1f, alpha));
-            g2.fill(new Ellipse2D.Float(starX[i] % getWidth(), starY[i], starSize[i], starSize[i]));
-        }
-
-        // City silhouette
-        int baseY = getHeight() - 55;
-        g2.setColor(new Color(0x0A1628));
-        int[] bw = {55, 75, 45, 85, 65, 50, 70, 80, 60, 95, 50, 65};
-        int[] bh = {90, 130, 75, 150, 115, 85, 125, 145, 105, 170, 90, 110};
-        int bx = 0;
-        for (int i = 0; i < bw.length; i++) {
-            g2.fillRect(bx, baseY - bh[i], bw[i], bh[i]);
-            bx += bw[i] + 6;
-        }
-
-        // Grass strip
-        g2.setColor(UITheme.GRASS_COLOR);
-        g2.fillRect(0, baseY, getWidth(), getHeight() - baseY);
-
-        g2.dispose();
-    }
-
-    private void buildUI() {
-        JPanel overlay = new JPanel(new GridBagLayout());
-        overlay.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets   = new Insets(10, 20, 10, 20);
-        gbc.gridx    = 0;
-        gbc.fill     = GridBagConstraints.NONE;
-        gbc.anchor   = GridBagConstraints.CENTER;
+        JLabel cloudB = new JLabel(cloudImg);
+        cloudB.setBounds(920, 140, 360, 190);
+        background.add(cloudB);
 
         // Title
-        JLabel title = new JLabel("WORDTROPOLIS", SwingConstants.CENTER);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 46));
-        title.setForeground(UITheme.ACCENT_YELLOW);
-        gbc.gridy = 0; gbc.gridwidth = 2;
-        overlay.add(title, gbc);
+        Image title = new ImageIcon(getClass().getResource("/images/general/wordtropiatitle2.png")).getImage();
+        Image scaledTitle = title.getScaledInstance(700, -1, Image.SCALE_SMOOTH);
 
-        // Subtitle
-        JLabel sub = UITheme.makeLabel("Save the City from the Word Tangle Spell!",
-                UITheme.FONT_HEADING, UITheme.TEXT_DIM);
-        gbc.gridy = 1;
-        overlay.add(sub, gbc);
+        titleLabel = new JLabel(new ImageIcon(scaledTitle));
+        int titleWidth = scaledTitle.getWidth(null);
+        int titleHeight = scaledTitle.getHeight(null);
+        int titleX = (920 - titleWidth) / 2;
 
-        // Spacer
-        gbc.gridy = 2;
-        overlay.add(Box.createVerticalStrut(28), gbc);
+        titleLabel.setBounds(titleX, baseTitleY, titleWidth, titleHeight);
+        background.add(titleLabel);
 
-        // Buttons side by side
-        JButton studentBtn = UITheme.makePrimaryButton("  I am a Student");
-        studentBtn.setPreferredSize(new Dimension(250, 56));
-        studentBtn.addActionListener(e -> {
-            Game.resetInstance();
-            Wordtropolis.showScreen(Wordtropolis.SCREEN_STUDENT);
+        // Floating title animation
+        Timer floatTimer = new Timer(60, e -> floatTitle());
+        floatTimer.start();
+
+        // Cloud animation
+        Timer cloudTimer = new Timer(30, e -> {
+            int ax = cloudA.getX() + 2;
+            if (ax > 920) ax = -360;
+            cloudA.setLocation(ax, cloudA.getY());
+
+            int bx = cloudB.getX() - 2;
+            if (bx < -360) bx = 920;
+            cloudB.setLocation(bx, cloudB.getY());
+        });
+        cloudTimer.start();
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(null);
+        buttonPanel.setOpaque(false);
+        buttonPanel.setBounds(210, 350, 500, 150);
+        background.add(buttonPanel);
+
+        // Create custom buttons with stroke
+        JButton teacherBtn = new JButton("I am a Teacher") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Draw stroke (outline)
+                g2d.setColor(new Color(0x0F, 0x4D, 0x58)); // #0F4D58
+                g2d.setStroke(new BasicStroke(3));
+                FontMetrics fm = g2d.getFontMetrics();
+                String text = getText();
+                int textWidth = fm.stringWidth(text);
+                int textHeight = fm.getHeight();
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() - textHeight) / 2 + fm.getAscent();
+                
+                // Draw stroke by drawing the text multiple times
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (dx != 0 || dy != 0) {
+                            g2d.drawString(text, x + dx, y + dy);
+                        }
+                    }
+                }
+                
+                // Draw the actual text
+                g2d.setColor(getForeground());
+                g2d.drawString(text, x, y);
+                
+                g2d.dispose();
+            }
+        };
+        
+        JButton studentBtn = new JButton("I am a Student") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Draw stroke (outline)
+                g2d.setColor(new Color(0x0F, 0x4D, 0x58)); // #0F4D58
+                g2d.setStroke(new BasicStroke(3));
+                FontMetrics fm = g2d.getFontMetrics();
+                String text = getText();
+                int textWidth = fm.stringWidth(text);
+                int textHeight = fm.getHeight();
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() - textHeight) / 2 + fm.getAscent();
+                
+                // Draw stroke by drawing the text multiple times
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (dx != 0 || dy != 0) {
+                            g2d.drawString(text, x + dx, y + dy);
+                        }
+                    }
+                }
+                
+                // Draw the actual text
+                g2d.setColor(getForeground());
+                g2d.drawString(text, x, y);
+                
+                g2d.dispose();
+            }
+        };
+
+        teacherBtn.setBounds(80, -20, 400, 70);
+        studentBtn.setBounds(80, 60, 400, 70);
+
+        teacherBtn.setFont(loadGameFont(24));
+        studentBtn.setFont(loadGameFont(24));
+
+        teacherBtn.setContentAreaFilled(false);
+        teacherBtn.setBorderPainted(false);
+        teacherBtn.setFocusPainted(false);
+
+        studentBtn.setContentAreaFilled(false);
+        studentBtn.setBorderPainted(false);
+        studentBtn.setFocusPainted(false);
+
+        Color gold = new Color(0xEC, 0xCB, 0x2D);
+        teacherBtn.setForeground(gold);
+        studentBtn.setForeground(gold);
+
+        buttonPanel.add(teacherBtn);
+        buttonPanel.add(studentBtn);
+
+        // Triangle selector - teacher triangle moved up another 5 pixels
+        Image triangleRaw = new ImageIcon(
+                getClass().getResource("/images/general/triangle.png")
+        ).getImage();
+
+        Image triangleScaled = triangleRaw.getScaledInstance(28, 28, Image.SCALE_SMOOTH);
+        ImageIcon triangleIcon = new ImageIcon(triangleScaled);
+
+        JLabel selector = new JLabel(triangleIcon);
+        selector.setBounds(149, 5, 28, 28); // Teacher triangle moved up to y=5 (was 10)
+        selector.setVisible(false);
+        buttonPanel.add(selector);
+
+        // Hover Teacher
+        teacherBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                // Teacher triangle moved up higher on hover
+                selector.setLocation(149, 0); // y=0 for hover state (was 5)
+                teacherBtn.setLocation(80, -25);
+                selector.setVisible(true);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                teacherBtn.setLocation(80, -20);
+                selector.setVisible(false);
+            }
         });
 
-        JButton teacherBtn = UITheme.makeSecondaryButton("  I am a Teacher");
-        teacherBtn.setPreferredSize(new Dimension(250, 56));
-        teacherBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_TEACHER));
+        // Hover Student
+        studentBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                // Student triangle stays at original position
+                selector.setLocation(149, 76);
+                studentBtn.setLocation(80, 55);
+                selector.setVisible(true);
+            }
 
-        gbc.gridy = 3; gbc.gridwidth = 1;
-        overlay.add(studentBtn, gbc);
-        gbc.gridx = 1;
-        overlay.add(teacherBtn, gbc);
+            @Override
+            public void mouseExited(MouseEvent e) {
+                studentBtn.setLocation(80, 60);
+                selector.setVisible(false);
+            }
+        });
 
-        gbc.gridy = 4; gbc.gridx = 0; gbc.gridwidth = 2;
-        JLabel ver = UITheme.makeLabel("CS 4474 Group Project  |  v1.0",
-                UITheme.FONT_SMALL, new Color(0x445566));
-        overlay.add(ver, gbc);
+        buttonPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                selector.setVisible(false);
+            }
+        });
 
-        add(overlay, BorderLayout.CENTER);
+        // Navigation
+        teacherBtn.addActionListener(e ->
+                Wordtropolis.showScreen(Wordtropolis.SCREEN_TEACHER));
+
+        studentBtn.addActionListener(e ->
+                Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK));
+
+        // Volume icon
+        Image speakerRaw = new ImageIcon(getClass().getResource("/images/general/speaker.png")).getImage();
+        Image speakerScaled = speakerRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+        ImageIcon speakerImg = new ImageIcon(speakerScaled);
+
+        Image muteRaw = new ImageIcon(getClass().getResource("/images/general/nospeaker.png")).getImage();
+        Image muteScaled = muteRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+        ImageIcon muteImg = new ImageIcon(muteScaled);
+
+        JLabel volumeIcon = new JLabel(speakerImg);
+        volumeIcon.setBounds(840, 610, 40, 40);
+        background.add(volumeIcon);
+
+        JSlider volumeSlider = new JSlider(JSlider.VERTICAL, 0, 100, 50);
+        volumeSlider.setBounds(880, 520, 20, 120);
+        volumeSlider.setOpaque(false);
+        volumeSlider.setForeground(gold);
+        background.add(volumeSlider);
+
+        volumeSlider.setVisible(false);
+
+        volumeIcon.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                volumeSlider.setVisible(!volumeSlider.isVisible());
+            }
+        });
+
+        volumeSlider.addChangeListener(e -> {
+            int value = volumeSlider.getValue();
+            if (value == 0)
+                volumeIcon.setIcon(muteImg);
+            else
+                volumeIcon.setIcon(speakerImg);
+        });
+    }
+
+    private void floatTitle() {
+        int bounceRange = 10;
+        double speed = 0.15;
+
+        time += speed;
+        int newY = baseTitleY + (int)(Math.sin(time) * bounceRange);
+        titleLabel.setLocation(titleLabel.getX(), newY);
+    }
+
+    private Font loadGameFont(int size) {
+        try {
+            Font font = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    getClass().getResourceAsStream(
+                            "/assets/fonts/PressStart2P-Regular.ttf")
+            );
+            return font.deriveFont(Font.PLAIN, size);
+        } catch (FontFormatException | IOException e) {
+            return new Font("Arial", Font.PLAIN, size);
+        }
     }
 }

@@ -100,7 +100,7 @@ public class Wordtropolis {
 
         mainFrame.add(cardPanel);
         mainFrame.setVisible(true);
-        showScreen(SCREEN_CAT_GAME);
+        showScreen(SCREEN_START);
     }
 
     // ── Navigation API ────────────────────────────────────────────────────────
