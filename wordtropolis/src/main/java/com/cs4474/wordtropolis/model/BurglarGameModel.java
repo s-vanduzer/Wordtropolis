@@ -261,11 +261,18 @@ public boolean checkAnswer() {
     char[] arr = answer.toCharArray();
     Arrays.sort(arr);
     boolean correct = new String(arr).equals(currentQuestion.missingLetters);
+    
+
 
     if (correct) {
-        heroPosition++; // Hero moves one step right toward the robber
-        totalScore += POINTS_PER_CORRECT;
+        heroPosition++; // MOVE HERO
+
         wordsCompleted++;
+        totalScore += POINTS_PER_CORRECT;
+
+        // update global score
+        Game.getInstance().addScore(POINTS_PER_CORRECT);
+        
     } else {
         robberPosition++; // Robber moves one step further right (away)
         incorrectAttempts++;
@@ -315,6 +322,13 @@ public double getProgress() {
     double progress = 1.0 - ((double) currentGap / totalInitialDistance);
     
     return Math.max(0.0, Math.min(1.0, progress)); 
+}
+
+public void finishGame() {
+    this.gameActive = false;
+    // Update the global singleton
+    Game.getInstance().setBurgularCompleted(true);
+    // The score is already added to Game.getInstance() via your handleCorrectAnswer logic
 }
     
     // ── Resets ────────────────────────────────────────────────────────────────

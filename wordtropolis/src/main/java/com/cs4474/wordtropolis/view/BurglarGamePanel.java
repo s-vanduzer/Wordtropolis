@@ -116,8 +116,11 @@ private Screen currentScreen = Screen.INTRO;
     // ═══════════════════════════════ LOADING ═════════════════════════════════
     
     private void loadImages() {
-        imgBg          = img("/images/burglar_game/street.png");
-        imgHero        = img("/images/burglar_game/hero1_running.png");
+        
+        try {
+        
+        imgRobber = img("/images/burglar_game/robber.png");
+        imgBg          = img("/images/burglar_game/street.png");//        
         imgRobber      = img("/images/burglar_game/robber.png");
         imgProgressBar = img("/images/cat_game/progress_bar.png");
         imgLetterBox   = img("/images/cat_game/individual_box.png");
@@ -125,6 +128,23 @@ private Screen currentScreen = Screen.INTRO;
         imgCheck       = img("/images/cat_game/check.png");
         imgBack        = img("/images/cat_game/back.png");
         imgSparkle     = img("/images/cat_game/blue_sparkle.png");
+        
+        // Pick hero sprite sheet based on what PickHeroPanel saved via setAvatarPath().
+        // HERO_LABELS are "Mia" (girl), "Alex" (boy), "Zyx" (alien).
+        String avatarPath = Game.getInstance().getAvatarPath();
+        if ("Mia".equalsIgnoreCase(avatarPath)) {
+            imgHero = img("/images/burglar_game/hero1_running.png");
+        } else if ("Zyx".equalsIgnoreCase(avatarPath)) {
+            imgHero = img("/images/burglar_game/alien_running.png");
+        } else {
+            // Default: Alex / boy hero
+            imgHero = img("/images/burglar_game/hero2_running.png");
+        }
+        
+        } catch (Exception e){
+        System.err.println("Error loading Burglar Game sprites: " + e.getMessage());
+    }
+        
     }
     
     private BufferedImage img(String path) {
@@ -276,7 +296,9 @@ private Screen currentScreen = Screen.INTRO;
         if (correct) {
             showFeedback("Correct! The hero moves forward!", UITheme.ACCENT_TEAL);
             BurglarSoundManager.playFrom(BurglarSoundManager.SFX_CORRECT, 1.0, 1.5);
- 
+            System.out.println("Hero position: " + model.getHeroPosition());
+            int points = BurglarGameModel.POINTS_PER_CORRECT;
+            Game.getInstance().addScore(points);
             triggerSparkle(getWidth() / 2, getHeight() / 2);
             repaint();
             
@@ -291,7 +313,7 @@ private Screen currentScreen = Screen.INTRO;
                 }).start();
             }
         } else {
-            showFeedback("Incorrect! The robber moves back!", UITheme.ACCENT_RED);
+            showFeedback("Incorrect! The he's is getting away!", UITheme.ACCENT_RED);
 
             BurglarSoundManager.play(BurglarSoundManager.SFX_ERROR);
             shakeEffect();
@@ -308,6 +330,19 @@ private Screen currentScreen = Screen.INTRO;
                 }).start();
             }
         }
+        
+        if (model.isComplete()) {
+       // 1. Mark as completed in the global state
+       Game.getInstance().setBurgularCompleted(true); // This enables the "OK" badge on the map
+    
+
+       // 2. Play a win sound or show a "Mission Accomplished" screen
+       // BurglarSoundManager.play(BurglarSoundManager.SFX_WIN);
+
+       // 3. Return to the Map (which will now show the "OK" badge)
+//       JOptionPane.showMessageDialog(this, "You caught the burglar! City safe!");
+       Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
+}
     }
     
     private void refreshGame() {
@@ -316,11 +351,14 @@ private Screen currentScreen = Screen.INTRO;
         speakWord();
         repaint();
     }
-    
+
     private void gameComplete() {
-        showFeedback("Hero caught the burglar! Mission Complete!", UITheme.ACCENT_TEAL);
+        // 1. Mark as completed in the global singleton
+        Game.getInstance().setBurgularCompleted(true); 
+
+//        showFeedback("Hero caught the burglar! Mission Complete!", UITheme.ACCENT_TEAL);
         BurglarSoundManager.play(BurglarSoundManager.SFX_LEVEL_COMPLETE);
-        
+
         new Timer(3000, e -> {
             showResultDialog(true);
             ((Timer)e.getSource()).stop();
@@ -530,6 +568,7 @@ g2.setFont(UITheme.FONT_SMALL);
     // Change "START" and "CATCH!" to reflect the chase
     drawCentredString(g2, "CHASE START", barX + 40, barY + barH + 15);
     drawCentredString(g2, "CAUGHT!", barX + barW - 40, barY + barH + 15);
+    
     }
     
         // Inside paintCharacters(Graphics2D g2, int W, int H)
@@ -756,23 +795,46 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
     }
     
     private void paintScoreBox(Graphics2D g2, int W) {
-        paintLabelBox(g2, W - 130, 12, 120, 30,
-                "Score: " + model.getTotalScore(), UITheme.FONT_SMALL, UITheme.ACCENT_YELLOW);
+        
+         // FIX 2: taller bar + zoom into ONE bar from the sprite sheet
+        int tbX = 160, tbY = 8;
+        int tbH = 40;
+        // Leave 160px on the right for the score box (140px wide + 10px gap + 10px margin)
+        int tbW = W - 320;
+             // ── Score box: same height as timer, flush to the RIGHT edge ──────────
+        // Uses paintOuterBoxButton so it gets the same outer_box.png border
+        // as the Back button — cream fill + top/bottom strip borders
+        int scoreW = 140, scoreH = tbH;
+        int scoreX = tbX + tbW + 20;   // 10px gap after timer bar right edge
+        int scoreY = tbY;
+        paintOuterBoxButton(g2, scoreX, scoreY, scoreW, scoreH,
+                "Score: " + model.getTotalScore(), "");
+        
     }
     
     private void paintBackButton(Graphics2D g2) {
         int btnSize = 56;
+        int panelX = 14;
         int x = 14;
         int y = 12;
         
-        if (imgBack != null) {
-            int pad = 6;
-            g2.drawImage(imgBack,
-                    x + pad + (btnSize - pad * 2), y + pad,
-                    x + pad, y + pad + (btnSize - pad * 2),
-                    0, 0, imgBack.getWidth(), imgBack.getHeight(), null);
-        }
-        clickZones.put("back_btn", new Rectangle(x, y, btnSize, btnSize));
+//        if (imgBack != null) {
+//            int pad = 6;
+//            g2.drawImage(imgBack,
+//                    x + pad + (btnSize - pad * 2), y + pad,
+//                    x + pad, y + pad + (btnSize - pad * 2),
+//                    0, 0, imgBack.getWidth(), imgBack.getHeight(), null);
+//        }
+//        clickZones.put("back_btn", new Rectangle(x, y, btnSize, btnSize));
+        
+                        
+ 
+        // NEW CHANGE B: replace banner with outer_box "Back" button
+        // Uses only the outer_box.png image (top + bottom strips, centre filled)
+        // Clicking it returns the player to the map screen
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
+        clickZones.put("back_btn", new Rectangle(x, y, backBtnW, backBtnW));
     }
     
     private void paintCheckButton(Graphics2D g2, int W, int H) {
