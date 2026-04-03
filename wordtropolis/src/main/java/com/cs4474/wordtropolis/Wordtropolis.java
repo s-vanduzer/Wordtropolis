@@ -78,7 +78,7 @@ public class Wordtropolis {
         register(new PickHeroPanel(),     SCREEN_HERO_PICK);
         register(new MapPagePanel(),      SCREEN_MAP);
 
-        // ── Your part (Cat Game) ──────────────────────────────────────────────
+        // ── (Cat Game) ──────────────────────────────────────────────
         register(new CatGamePanel(), SCREEN_CAT_GAME);
 
         // ── Teammates' panels  (replace PlaceholderPanel when ready) ─────────
@@ -88,11 +88,11 @@ public class Wordtropolis {
         register(new PlaceholderPanel("Fix the Bridge\nComing Soon!",
                 new Color(0x118AB2)), SCREEN_BRIDGE_GAME);
 
-        //Added robber game
+        //Added Robber game
         register(new BurglarGamePanel(), SCREEN_BURGLAR_GAME);
 
-        register(new PlaceholderPanel("Final Boss Fight\nComing Soon!",
-                new Color(0xC0392B)), SCREEN_BOSS_GAME);
+        //Added Boss game
+        register(new BossGamePanel(), SCREEN_BOSS_GAME);
 
         register(new FinishPanel(), SCREEN_FINISH);
 
@@ -118,6 +118,8 @@ public class Wordtropolis {
         }
     }
 
+    
+    
     /**
      * Replace a panel entirely and navigate to it.
      * Used by MapPagePanel to rebuild CatGamePanel with a fresh model on each play.

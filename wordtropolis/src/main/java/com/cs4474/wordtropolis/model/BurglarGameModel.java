@@ -272,10 +272,11 @@ public boolean checkAnswer() {
 
         // update global score
         Game.getInstance().addScore(POINTS_PER_CORRECT);
-        
+       
     } else {
         robberPosition++; // Robber moves one step further right (away)
         incorrectAttempts++;
+        Game.getInstance().addMisspelledWord(answer);
         totalScore = Math.max(0, totalScore - PENALTY_INCORRECT);
     }
     return correct;

@@ -72,19 +72,26 @@ public class MapPagePanel extends JPanel implements Refreshable {
             final int idx = i;
             actButtons[i] = makeActivityButton(idx);
             actButtons[i].addActionListener(e -> {
+                // Play click sound conditionally (only if we're on map screen)
+                SoundManager.playConditional(SoundManager.BOSS_HINT_PLACE, 
+                    SoundManager.GameActivity.MAP);
+                
                 if (idx == 0) {
-                            // Rebuild Cat Game when the first button is clicked
-                            Wordtropolis.replaceScreen(Wordtropolis.SCREEN_CAT_GAME, new CatGamePanel());
-                        } 
-                        else if (idx == 3) {
-                            // Rebuild Burglar Game when the fourth button is clicked
-                            Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BURGLAR_GAME, new BurglarGamePanel());
-                        } 
-                        else {
-                            // For other games that don't need a full rebuild yet
-                            Wordtropolis.showScreen(ACT_SCREENS[idx]);
-                        }
-                    });
+                    // Rebuild Cat Game when the first button is clicked
+                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_CAT_GAME, new CatGamePanel());
+                } 
+                else if (idx == 3) {
+                    // Rebuild Burglar Game when the fourth button is clicked
+                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BURGLAR_GAME, new BurglarGamePanel());
+                } 
+                else if (idx == 2){
+                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
+                }
+                else {
+                    // For other games that don't need a full rebuild yet
+                    Wordtropolis.showScreen(ACT_SCREENS[idx]);
+                }
+            });
             grid.add(actButtons[i]);
         }
         add(grid, BorderLayout.CENTER);
@@ -96,7 +103,12 @@ public class MapPagePanel extends JPanel implements Refreshable {
         bossBtn = UITheme.makeDangerButton("Fight the Final Boss!");
         bossBtn.setPreferredSize(new Dimension(270, 52));
         bossBtn.setEnabled(false);
-        bossBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_BOSS_GAME));
+        bossBtn.addActionListener(e -> {
+            // Play boss fight click sound conditionally
+            SoundManager.playConditional(SoundManager.BOSS_HINT_PLACE, 
+                SoundManager.GameActivity.MAP);
+            Wordtropolis.showScreen(Wordtropolis.SCREEN_BOSS_GAME);
+        });
         bottom.add(bossBtn);
         bottom.add(UITheme.makeLabel("Complete all 4 missions to unlock",
                 UITheme.FONT_SMALL, UITheme.TEXT_DIM));
@@ -152,6 +164,13 @@ public class MapPagePanel extends JPanel implements Refreshable {
             default: return false;
         }
     }
+    
+    private void endGame(boolean win) {
+        if (win) {
+            JOptionPane.showMessageDialog(this, "City Saved! Final Score: " + Game.getInstance().getScore());
+        }
+        Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
+    }
 
     @Override
     public void refresh() {
@@ -160,5 +179,19 @@ public class MapPagePanel extends JPanel implements Refreshable {
         if (scoreLabel  != null) scoreLabel .setText("Score: " + g.getScore());
         if (bossBtn     != null) bossBtn    .setEnabled(g.allActivitiesCompleted());
         for (JButton b : actButtons) if (b != null) b.repaint();
+        
+        if (bossBtn != null) {
+            boolean unlocked = g.allActivitiesCompleted();
+            bossBtn.setEnabled(unlocked);
+            bossBtn.setText(unlocked ? "FIGHT BOSS" : "LOCKED");
+            
+            // Add the listener if unlocked
+            if (unlocked && bossBtn.getActionListeners().length == 0) {
+                bossBtn.addActionListener(e -> {
+                    // Rebuild the Boss panel to ensure it has the latest missed words
+                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
+                });
+            }
+        }
     }
 }

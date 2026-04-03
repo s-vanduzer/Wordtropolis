@@ -40,10 +40,23 @@ public final class SoundManager {
 
     private SoundManager() {}   // static-only class
 
+    // ═══════════════════════════════ GAME ACTIVITY ENUM ════════════════════════
+    /**
+     * Enum representing all possible game activities.
+     * Used to conditionally play sounds based on current active game.
+     */
+    public enum GameActivity {
+        MAP, CAT_GAME, BOSS_GAME, BURGLAR_GAME
+    }
+
+    // Current active game state - defaults to MAP
+    private static GameActivity currentActivity = GameActivity.MAP;
+
     // ═══════════════════════════════ SOUND FILE CONSTANTS ════════════════════
     //
     // ── Cat Game ─────────────────────────────────────────────────────────────
     // All files live in:  resources/sounds/cat_game/
+    
     public static final String CAT_MEOW_HAPPY    = "cat_game/cat_meow.wav";
     public static final String CAT_MEOW_MAD      = "cat_game/cat_meow_mad.wav";
     public static final String CAT_CORRECT       = "cat_game/magical_soft_chime.wav";
@@ -52,12 +65,54 @@ public final class SoundManager {
     public static final String CAT_TILE_CLICK    = "cat_game/box_effect.wav";
     public static final String CAT_LEVEL_DONE    = "cat_game/completion_sound.wav";
     public static final String CAT_GAME_START    = "cat_game/game_start.wav";
-    public static final String CAT_BGM           = "cat_game/background_music.wav";
+    public static final String CAT_BGM           = "cat_game/background_music.wav"; 
+    
+    
+       // ── Burglar Game ─────────────────────────────────────────────────────────────
+    public static final String SFX_CORRECT        = "cat_game/magical_soft_chime.wav";
+    public static final String SFX_ERROR          = "cat_game/gentle_error_tone.wav";
+    public static final String SFX_TILE_CLICK     = "cat_game/box_effect.wav";
+    public static final String SFX_LEVEL_COMPLETE = "cat_game/completion_sound.wav";
+    public static final String SFX_GAME_START     = "cat_game/game_start.wav";
+    public static final String BGM_BACKGROUND     = "burglar_game/chase.wav";
 
+    // ── Boss Game sounds ─────────────────────────────────────────────────────
+    public static final String BOSS_ATTACK_HIT = "boss_game/attack_hit.wav";
+    public static final String BOSS_HERO_HURT = "boss_game/hero_hurt.wav";
+    public static final String BOSS_SHIELD_ACTIVATE = "boss_game/shield_activate.wav";
+    public static final String BOSS_SHIELD_BREAK = "boss_game/shield_break.wav";
+    public static final String BOSS_VICTORY = "boss_game/victory.wav";
+    public static final String BOSS_DEFEAT = "boss_game/defeat.wav";
+    public static final String BOSS_TIMER_TICKING = "boss_game/timer_ticking.wav";
+    public static final String BOSS_BGM           = "boss_game/Boss_Battle.wav"; 
+    public static final String BOSS_HINT_ACTIVATE = "boss_game/hint_activate.wav";
+    public static final String BOSS_HINT_PLACE = "boss_game/click.wav";
+    
     // ── Add other activity sounds here following the same pattern ─────────────
     // Example:
     // public static final String FIRE_CORRECT  = "fire_game/correct.wav";
     // public static final String FIRE_BGM      = "fire_game/background_music.wav";
+
+    // ═══════════════════════════════ ACTIVITY MANAGEMENT ══════════════════════
+
+    /**
+     * Set the currently active game activity.
+     * Call this when transitioning between games or panels.
+     * 
+     * @param activity The new active game activity
+     */
+    public static void setActivity(GameActivity activity) {
+        currentActivity = activity;
+    }
+
+    /**
+     * Get the currently active game activity.
+     * 
+     * @return The current active game activity
+     */
+    public static GameActivity getActivity() {
+        return currentActivity;
+    }
 
     // ═══════════════════════════════ ONE-SHOT SFX ════════════════════════════
 
@@ -68,6 +123,14 @@ public final class SoundManager {
      */
     public static void play(String filename) {
         if (sfxVolume == 0 || filename == null || filename.isEmpty()) return;
+        
+            // DEBUG: Print where the sound is being called from
+    if (filename.contains("MEOW_MAD") || filename.contains("ERROR")) {
+        System.out.println("[DEBUG] Sound called: " + filename + " from " + 
+            Thread.currentThread().getStackTrace()[2]);
+        System.out.println("[DEBUG] Current activity: " + currentActivity);
+    }
+        
         new Thread(() -> {
             try {
                 Clip clip = openClip(filename);
@@ -81,6 +144,33 @@ public final class SoundManager {
                 System.out.println("[SoundManager] Cannot play: " + filename);
             }
         }, "sfx-thread").start();
+    }
+
+    /**
+     * Plays a sound only if the required activity matches the current active game.
+     * This prevents sounds from playing when the user is in a different game.
+     * 
+     * @param filename The sound file to play
+     * @param required The activity that this sound belongs to
+     */
+    public static void playConditional(String filename, GameActivity required) {
+        if (required == currentActivity) {
+            play(filename);
+        }
+    }
+
+    /**
+     * Plays a sound only if the required activity matches the provided current activity.
+     * Alternative overload for cases where you want to pass the activity explicitly.
+     * 
+     * @param filename The sound file to play
+     * @param required The activity that this sound belongs to
+     * @param current The current active activity
+     */
+    public static void playConditional(String filename, GameActivity required, GameActivity current) {
+        if (required == current) {
+            play(filename);
+        }
     }
 
     /**
@@ -119,6 +209,20 @@ public final class SoundManager {
                 System.out.println("[SoundManager] Cannot playFrom: " + filename);
             }
         }, "sfx-thread").start();
+    }
+
+    /**
+     * Play only a portion of a sound file, conditionally based on current activity.
+     *
+     * @param filename  sound file constant (e.g. SoundManager.CAT_WIND)
+     * @param startSec  start time in seconds
+     * @param endSec    end time in seconds
+     * @param required  The activity that this sound belongs to
+     */
+    public static void playFromConditional(String filename, double startSec, double endSec, GameActivity required) {
+        if (required == currentActivity) {
+            playFrom(filename, startSec, endSec);
+        }
     }
 
     // ═══════════════════════════════ BACKGROUND MUSIC ════════════════════════
@@ -169,6 +273,19 @@ public final class SoundManager {
 
         } catch (Exception ex) {
             System.out.println("[SoundManager] Cannot start BGM: " + filename);
+        }
+    }
+
+    /**
+     * Start background music only if the provided activity matches the current one.
+     * Useful for auto-starting music when entering a game.
+     *
+     * @param filename  BGM file constant
+     * @param required  The activity that this BGM belongs to
+     */
+    public static void startMusicConditional(String filename, GameActivity required) {
+        if (required == currentActivity) {
+            startMusic(filename);
         }
     }
 
