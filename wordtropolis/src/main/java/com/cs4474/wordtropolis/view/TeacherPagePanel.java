@@ -22,13 +22,40 @@ public class TeacherPagePanel extends JPanel {
     private JTextField               wordInput;
     private JLabel                   statusLabel;
     private JLabel                   duplicateWarningLabel;
+    private Image backgroundImage;
 
     public TeacherPagePanel() {
-        setBackground(UITheme.BG_DARK);
+        loadBackgroundImage();
         setLayout(new BorderLayout(16, 16));
         setBorder(BorderFactory.createEmptyBorder(28, 36, 28, 36));
         loadWordsFromFile();
         buildUI();
+    }
+
+    private void loadBackgroundImage() {
+        try {
+            java.net.URL imgUrl = getClass().getResource("/images/general/BG.png");
+            if (imgUrl != null) {
+                ImageIcon icon = new ImageIcon(imgUrl);
+                backgroundImage = icon.getImage();
+            }
+        } catch (Exception e) {
+            System.out.println("Could not load background image: " + e.getMessage());
+        }
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (backgroundImage != null) {
+            // Draw background image
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            // Draw dark opacity layer (grey/black with 60% opacity)
+            g.setColor(new Color(0, 0, 0, 150)); // RGBA: black with 150/255 opacity
+            g.fillRect(0, 0, getWidth(), getHeight());
+        } else {
+            setBackground(UITheme.BG_DARK);
+        }
     }
 
     private void loadWordsFromFile() {
@@ -55,7 +82,7 @@ public class TeacherPagePanel extends JPanel {
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setOpaque(false);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
         // Wordtropolis Title Image (centered, larger)
         JLabel wordtropolisTitle = new JLabel();
@@ -70,7 +97,7 @@ public class TeacherPagePanel extends JPanel {
         }
         wordtropolisTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         headerPanel.add(wordtropolisTitle);
-        headerPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        headerPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
         // Teacher Custom Word List Title (yellow with stroke, centered)
         JLabel teacherTitle = new JLabel("Teacher Custom Word List") {
@@ -103,13 +130,13 @@ public class TeacherPagePanel extends JPanel {
         };
         teacherTitle.setFont(UITheme.FONT_TITLE);
         teacherTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        teacherTitle.setPreferredSize(new Dimension(500, 50));
-        teacherTitle.setMaximumSize(new Dimension(500, 50));
+        teacherTitle.setPreferredSize(new Dimension(500, 40));
+        teacherTitle.setMaximumSize(new Dimension(500, 40));
         headerPanel.add(teacherTitle);
         
         add(headerPanel, BorderLayout.NORTH);
 
-        // ── Centre: list + input ─────────────────────────────────────────────
+        // ── Centre: list + input (made smaller to push buttons up) ────────────
         JPanel centre = new JPanel(new BorderLayout(8, 8));
         centre.setOpaque(false);
 
@@ -118,10 +145,11 @@ public class TeacherPagePanel extends JPanel {
         wordListView.setBackground(UITheme.BG_CARD);
         wordListView.setForeground(UITheme.TEXT_BRIGHT);
         wordListView.setSelectionBackground(UITheme.ACCENT_BLUE);
-        wordListView.setFixedCellHeight(38);
+        wordListView.setFixedCellHeight(30);
 
         JScrollPane scroll = new JScrollPane(wordListView);
         scroll.setBorder(BorderFactory.createLineBorder(UITheme.ACCENT_BLUE, 1));
+        scroll.setPreferredSize(new Dimension(500, 120));
         centre.add(scroll, BorderLayout.CENTER);
 
         // Input row
@@ -139,15 +167,15 @@ public class TeacherPagePanel extends JPanel {
         wordInput.addActionListener(e -> addWord());
 
         JButton addBtn    = UITheme.makeSuccessButton("+ Add");
-        addBtn.setPreferredSize(new Dimension(110, 40));
+        addBtn.setPreferredSize(new Dimension(110, 35));
         addBtn.addActionListener(e -> addWord());
 
         JButton removeBtn = UITheme.makeDangerButton("Remove");
-        removeBtn.setPreferredSize(new Dimension(110, 40));
+        removeBtn.setPreferredSize(new Dimension(110, 35));
         removeBtn.addActionListener(e -> removeWord());
 
         JButton clearBtn  = UITheme.makeSecondaryButton("Clear All");
-        clearBtn.setPreferredSize(new Dimension(110, 40));
+        clearBtn.setPreferredSize(new Dimension(110, 35));
         clearBtn.addActionListener(e -> { wordListModel.clear(); syncToGame(); duplicateWarningLabel.setText(" "); });
 
         inputRow.add(wordInput);
@@ -158,9 +186,10 @@ public class TeacherPagePanel extends JPanel {
 
         add(centre, BorderLayout.CENTER);
 
-        // ── Bottom: duplicate warning + status + nav ─────────────────────────
-        JPanel bottom = new JPanel(new BorderLayout(0, 6));
+        // ── Bottom: duplicate warning + status + nav (buttons moved way up) ────
+        JPanel bottom = new JPanel(new BorderLayout(0, 4));
         bottom.setOpaque(false);
+        bottom.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
         duplicateWarningLabel = new JLabel(" ");
         duplicateWarningLabel.setFont(UITheme.FONT_BODY);
@@ -176,10 +205,11 @@ public class TeacherPagePanel extends JPanel {
         navRow.setOpaque(false);
 
         JButton backBtn = UITheme.makeSecondaryButton("Back");
+        backBtn.setPreferredSize(new Dimension(160, 40));
         backBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_START));
 
         JButton saveBtn = UITheme.makePrimaryButton("Save & Return");
-        saveBtn.setPreferredSize(new Dimension(200, 46));
+        saveBtn.setPreferredSize(new Dimension(200, 40));
         saveBtn.addActionListener(e -> {
             syncToGame();
             Wordtropolis.showScreen(Wordtropolis.SCREEN_START);
