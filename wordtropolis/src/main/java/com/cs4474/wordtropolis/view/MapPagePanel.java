@@ -85,11 +85,18 @@ public class MapPagePanel extends JPanel implements Refreshable {
                     Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BURGLAR_GAME, new BurglarGamePanel());
                 } 
                 else if (idx == 2){
-                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
+                    // link the brige game here
+                    // replace with this: Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BRIDGE_GAME, new BossGamePanel());
+                    Wordtropolis.showScreen(ACT_SCREENS[idx]);
+                    
+                   // if u want to try the boss game uncomment this and click the brige game placeholder
+                   //Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
                 }
                 else {
-                    // For other games that don't need a full rebuild yet
+                    // link the fire game here
+                    // replace with this: Wordtropolis.replaceScreen(Wordtropolis.SCREEN_FIRE_GAME, new BossGamePanel());
                     Wordtropolis.showScreen(ACT_SCREENS[idx]);
+                    
                 }
             });
             grid.add(actButtons[i]);
