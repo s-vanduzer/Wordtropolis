@@ -241,38 +241,6 @@ public class PickHeroPanel extends JPanel {
         bottomPanel.add(startBtn);
         background.add(bottomPanel);
         
-        // Volume controls (same as start page)
-        Image speakerRaw = new ImageIcon(getClass().getResource("/images/general/speaker.png")).getImage();
-        Image speakerScaled = speakerRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-        ImageIcon speakerImg = new ImageIcon(speakerScaled);
-        
-        Image muteRaw = new ImageIcon(getClass().getResource("/images/general/nospeaker.png")).getImage();
-        Image muteScaled = muteRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-        ImageIcon muteImg = new ImageIcon(muteScaled);
-        
-        JLabel volumeIcon = new JLabel(speakerImg);
-        volumeIcon.setBounds(840, 610, 40, 40);
-        background.add(volumeIcon);
-        
-        JSlider volumeSlider = new JSlider(JSlider.VERTICAL, 0, 100, 50);
-        volumeSlider.setBounds(880, 520, 20, 120);
-        volumeSlider.setOpaque(false);
-        volumeSlider.setForeground(new Color(0xEC, 0xCB, 0x2D));
-        volumeSlider.setVisible(false);
-        background.add(volumeSlider);
-        
-        volumeIcon.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                volumeSlider.setVisible(!volumeSlider.isVisible());
-            }
-        });
-        
-        volumeSlider.addChangeListener(e -> {
-            int value = volumeSlider.getValue();
-            volumeIcon.setIcon(value == 0 ? muteImg : speakerImg);
-        });
-        
         // Set initial selection
         selectHero(0);
     }
