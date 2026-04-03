@@ -5,6 +5,8 @@ import com.cs4474.wordtropolis.view.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * ╔══════════════════════════════════════════════════════════╗
@@ -36,6 +38,13 @@ public class Wordtropolis {
     private static JFrame     mainFrame;
     private static CardLayout cardLayout;
     private static JPanel     cardPanel;
+    
+    // ── Global volume controls ────────────────────────────────────────────────
+    private static JPanel volumePanel;
+    private static JLabel volumeIcon;
+    private static JSlider volumeSlider;
+    private static ImageIcon speakerImg;
+    private static ImageIcon muteImg;
 
     // ── Entry point ───────────────────────────────────────────────────────────
 
@@ -65,18 +74,25 @@ public class Wordtropolis {
         cardPanel  = new JPanel(cardLayout);
         cardPanel.setBackground(Color.BLACK);
         
+        // Use a JLayeredPane to overlay volume control on top of everything
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setPreferredSize(new Dimension(920, 700));
+        
+        cardPanel.setBounds(0, 0, 920, 700);
+        layeredPane.add(cardPanel, JLayeredPane.DEFAULT_LAYER);
 
         // ── Register every screen ─────────────────────────────────────────────
-        // NOTE TO TEAM:
-        //   Replace any PlaceholderPanel below with your real activity panel.
-        //   Make sure your panel is in the com.cs4474.wordtropolis.view package.
-        // ─────────────────────────────────────────────────────────────────────
-
         register(new StartPagePanel(),    SCREEN_START);
         register(new TeacherPagePanel(),  SCREEN_TEACHER);
         register(new StudentPagePanel(),  SCREEN_STUDENT);
         register(new PickHeroPanel(),     SCREEN_HERO_PICK);
         register(new MapPagePanel(),      SCREEN_MAP);
+        register(new CatGamePanel(),      SCREEN_CAT_GAME);
+        register(new PlaceholderPanel("Fire Rescue\nComing Soon!", new Color(0xFF6B35)), SCREEN_FIRE_GAME);
+        register(new PlaceholderPanel("Fix the Bridge\nComing Soon!", new Color(0x118AB2)), SCREEN_BRIDGE_GAME);
+        register(new BurglarGamePanel(),  SCREEN_BURGLAR_GAME);
+        register(new PlaceholderPanel("Final Boss Fight\nComing Soon!", new Color(0xC0392B)), SCREEN_BOSS_GAME);
+        register(new FinishPanel(),       SCREEN_FINISH);
 
         // ── (Cat Game) ──────────────────────────────────────────────
         register(new CatGamePanel(), SCREEN_CAT_GAME);
@@ -99,9 +115,70 @@ public class Wordtropolis {
         // ─────────────────────────────────────────────────────────────────────
 
         mainFrame.add(cardPanel);
+        // ── Global Volume Control (added to layered pane on top) ───────────────
+        setupGlobalVolumeControl();
+        layeredPane.add(volumePanel, JLayeredPane.PALETTE_LAYER);
+
+        mainFrame.add(layeredPane);
         mainFrame.setVisible(true);
         showScreen(SCREEN_START);
     }
+    
+    // ── Global Volume Control Setup ───────────────────────────────────────────
+    
+ private static void setupGlobalVolumeControl() {
+    // panel for volume control
+    volumePanel = new JPanel(null);
+    volumePanel.setOpaque(false);
+    volumePanel.setBounds(830, 520, 100, 180);
+    
+    
+    try {
+        Image speakerRaw = new ImageIcon(Wordtropolis.class.getResource("/images/general/speaker.png")).getImage();
+        Image speakerScaled = speakerRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+        speakerImg = new ImageIcon(speakerScaled);
+
+        Image muteRaw = new ImageIcon(Wordtropolis.class.getResource("/images/general/nospeaker.png")).getImage();
+        Image muteScaled = muteRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+        muteImg = new ImageIcon(muteScaled);
+    } catch (Exception e) {
+        System.out.println("Could not load speaker images");
+        speakerImg = null;
+        muteImg = null;
+    }
+
+    volumeIcon = new JLabel(speakerImg != null ? speakerImg : new ImageIcon());
+    volumeIcon.setBounds(10, 70, 40, 40);
+    volumeIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    volumePanel.add(volumeIcon);
+
+   
+    volumeSlider = new JSlider(JSlider.VERTICAL, 0, 100, 50);
+    volumeSlider.setBounds(48, -10, 25, 120); 
+    volumeSlider.setOpaque(false);
+    volumeSlider.setForeground(new Color(0xECCB2D));
+    volumeSlider.setVisible(false);
+    volumePanel.add(volumeSlider);
+
+    volumeIcon.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            volumeSlider.setVisible(!volumeSlider.isVisible());
+            volumePanel.repaint();
+        }
+    });
+
+    volumeSlider.addChangeListener(e -> {
+        int value = volumeSlider.getValue();
+        if (value == 0 && muteImg != null) {
+            volumeIcon.setIcon(muteImg);
+        } else if (speakerImg != null) {
+            volumeIcon.setIcon(speakerImg);
+        }
+       
+    });
+}
+
 
     // ── Navigation API ────────────────────────────────────────────────────────
 

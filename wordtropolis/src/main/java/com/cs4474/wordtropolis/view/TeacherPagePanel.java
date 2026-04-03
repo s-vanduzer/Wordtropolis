@@ -5,8 +5,10 @@ import com.cs4474.wordtropolis.model.Game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -19,41 +21,139 @@ public class TeacherPagePanel extends JPanel {
     private JList<String>            wordListView;
     private JTextField               wordInput;
     private JLabel                   statusLabel;
+    private JLabel                   duplicateWarningLabel;
+    private Image backgroundImage;
 
     public TeacherPagePanel() {
-        setBackground(UITheme.BG_DARK);
+        loadBackgroundImage();
         setLayout(new BorderLayout(16, 16));
         setBorder(BorderFactory.createEmptyBorder(28, 36, 28, 36));
+        loadWordsFromFile();
         buildUI();
     }
 
-    private void buildUI() {
-        // ── Header ──────────────────────────────────────────
-        JLabel title = UITheme.makeLabel("Teacher Word List Manager",
-                UITheme.FONT_TITLE, UITheme.ACCENT_YELLOW);
-        title.setHorizontalAlignment(SwingConstants.LEFT);
-        add(title, BorderLayout.NORTH);
+    private void loadBackgroundImage() {
+        try {
+            java.net.URL imgUrl = getClass().getResource("/images/general/BG.png");
+            if (imgUrl != null) {
+                ImageIcon icon = new ImageIcon(imgUrl);
+                backgroundImage = icon.getImage();
+            }
+        } catch (Exception e) {
+            System.out.println("Could not load background image: " + e.getMessage());
+        }
+    }
 
-        // ── Centre: list + input ─────────────────────────────
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (backgroundImage != null) {
+            // Draw background image
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            // Draw dark opacity layer (grey/black with 60% opacity)
+            g.setColor(new Color(0, 0, 0, 150)); // RGBA: black with 150/255 opacity
+            g.fillRect(0, 0, getWidth(), getHeight());
+        } else {
+            setBackground(UITheme.BG_DARK);
+        }
+    }
+
+    private void loadWordsFromFile() {
+        wordListModel = new DefaultListModel<>();
+        try (InputStream is = getClass().getResourceAsStream("/wordlist/WordListGr1.txt")) {
+            if (is != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String word = line.trim().toUpperCase();
+                    if (!word.isEmpty() && word.matches("[A-Z]+")) {
+                        wordListModel.addElement(word);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        syncToGame();
+    }
+
+    private void buildUI() {
+        // ── Header with Centered Wordtropolis Title and Teacher Title ──────────
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
+        // Wordtropolis Title Image (centered, larger)
+        JLabel wordtropolisTitle = new JLabel();
+        try {
+            ImageIcon titleIcon = new ImageIcon(getClass().getResource("/images/general/wordtropiatitle2.png"));
+            Image scaledImg = titleIcon.getImage().getScaledInstance(500, 100, Image.SCALE_SMOOTH);
+            wordtropolisTitle.setIcon(new ImageIcon(scaledImg));
+        } catch (Exception e) {
+            wordtropolisTitle.setText("WORDTROPOLIS");
+            wordtropolisTitle.setForeground(Color.WHITE);
+            wordtropolisTitle.setFont(new Font("Arial", Font.BOLD, 24));
+        }
+        wordtropolisTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        headerPanel.add(wordtropolisTitle);
+        headerPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+
+        // Teacher Custom Word List Title (yellow with stroke, centered)
+        JLabel teacherTitle = new JLabel("Teacher Custom Word List") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                String text = getText();
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(text);
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                
+                g2d.setColor(new Color(0x0F4D58));
+                g2d.setStroke(new BasicStroke(3));
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (dx != 0 || dy != 0) {
+                            g2d.drawString(text, x + dx, y + dy);
+                        }
+                    }
+                }
+                
+                g2d.setColor(new Color(0xECCB2D));
+                g2d.drawString(text, x, y);
+                g2d.dispose();
+            }
+        };
+        teacherTitle.setFont(UITheme.FONT_TITLE);
+        teacherTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        teacherTitle.setPreferredSize(new Dimension(500, 40));
+        teacherTitle.setMaximumSize(new Dimension(500, 40));
+        headerPanel.add(teacherTitle);
+        
+        add(headerPanel, BorderLayout.NORTH);
+
+        // ── Centre: list + input (made smaller to push buttons up) ────────────
         JPanel centre = new JPanel(new BorderLayout(8, 8));
         centre.setOpaque(false);
-
-        wordListModel = new DefaultListModel<>();
-        for (String w : Game.getInstance().getWordList()) wordListModel.addElement(w);
 
         wordListView = new JList<>(wordListModel);
         wordListView.setFont(UITheme.FONT_LETTER);
         wordListView.setBackground(UITheme.BG_CARD);
         wordListView.setForeground(UITheme.TEXT_BRIGHT);
         wordListView.setSelectionBackground(UITheme.ACCENT_BLUE);
-        wordListView.setFixedCellHeight(38);
+        wordListView.setFixedCellHeight(30);
 
         JScrollPane scroll = new JScrollPane(wordListView);
         scroll.setBorder(BorderFactory.createLineBorder(UITheme.ACCENT_BLUE, 1));
+        scroll.setPreferredSize(new Dimension(500, 120));
         centre.add(scroll, BorderLayout.CENTER);
 
         // Input row
-        JPanel inputRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
+        JPanel inputRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 4));
         inputRow.setOpaque(false);
 
         wordInput = new JTextField(14);
@@ -67,16 +167,16 @@ public class TeacherPagePanel extends JPanel {
         wordInput.addActionListener(e -> addWord());
 
         JButton addBtn    = UITheme.makeSuccessButton("+ Add");
-        addBtn.setPreferredSize(new Dimension(110, 40));
+        addBtn.setPreferredSize(new Dimension(110, 35));
         addBtn.addActionListener(e -> addWord());
 
         JButton removeBtn = UITheme.makeDangerButton("Remove");
-        removeBtn.setPreferredSize(new Dimension(110, 40));
+        removeBtn.setPreferredSize(new Dimension(110, 35));
         removeBtn.addActionListener(e -> removeWord());
 
         JButton clearBtn  = UITheme.makeSecondaryButton("Clear All");
-        clearBtn.setPreferredSize(new Dimension(110, 40));
-        clearBtn.addActionListener(e -> { wordListModel.clear(); syncToGame(); });
+        clearBtn.setPreferredSize(new Dimension(110, 35));
+        clearBtn.addActionListener(e -> { wordListModel.clear(); syncToGame(); duplicateWarningLabel.setText(" "); });
 
         inputRow.add(wordInput);
         inputRow.add(addBtn);
@@ -86,21 +186,30 @@ public class TeacherPagePanel extends JPanel {
 
         add(centre, BorderLayout.CENTER);
 
-        // ── Bottom: status + nav ──────────────────────────────
-        JPanel bottom = new JPanel(new BorderLayout(0, 6));
+        // ── Bottom: duplicate warning + status + nav (buttons moved way up) ────
+        JPanel bottom = new JPanel(new BorderLayout(0, 4));
         bottom.setOpaque(false);
+        bottom.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+        duplicateWarningLabel = new JLabel(" ");
+        duplicateWarningLabel.setFont(UITheme.FONT_BODY);
+        duplicateWarningLabel.setForeground(UITheme.ACCENT_YELLOW);
+        duplicateWarningLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        bottom.add(duplicateWarningLabel, BorderLayout.NORTH);
 
         statusLabel = UITheme.makeLabel(" ", UITheme.FONT_BODY, UITheme.ACCENT_TEAL);
-        bottom.add(statusLabel, BorderLayout.NORTH);
+        statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        bottom.add(statusLabel, BorderLayout.CENTER);
 
         JPanel navRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 0));
         navRow.setOpaque(false);
 
         JButton backBtn = UITheme.makeSecondaryButton("Back");
+        backBtn.setPreferredSize(new Dimension(160, 40));
         backBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_START));
 
         JButton saveBtn = UITheme.makePrimaryButton("Save & Return");
-        saveBtn.setPreferredSize(new Dimension(200, 46));
+        saveBtn.setPreferredSize(new Dimension(200, 40));
         saveBtn.addActionListener(e -> {
             syncToGame();
             Wordtropolis.showScreen(Wordtropolis.SCREEN_START);
@@ -108,19 +217,32 @@ public class TeacherPagePanel extends JPanel {
 
         navRow.add(backBtn);
         navRow.add(saveBtn);
-        bottom.add(navRow, BorderLayout.CENTER);
+        bottom.add(navRow, BorderLayout.SOUTH);
 
         add(bottom, BorderLayout.SOUTH);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private void addWord() {
         String word = wordInput.getText().trim().toUpperCase();
-        if (word.isEmpty())              { status("Please enter a word.",            UITheme.ACCENT_RED);    return; }
-        if (word.length() < 2)           { status("Word must be at least 2 letters.",UITheme.ACCENT_RED);    return; }
-        if (!word.matches("[A-Z]+"))      { status("Letters only — no numbers/symbols.",UITheme.ACCENT_RED); return; }
-        if (wordListModel.contains(word)){ status("Word already in the list.",       UITheme.ACCENT_YELLOW); return; }
+        
+        duplicateWarningLabel.setText(" ");
+        
+        if (word.isEmpty()) { 
+            status("Please enter a word.", UITheme.ACCENT_RED);    
+            return; 
+        }
+        if (word.length() < 2) { 
+            status("Word must be at least 2 letters.", UITheme.ACCENT_RED);    
+            return; 
+        }
+        if (!word.matches("[A-Z]+")) { 
+            status("Letters only — no numbers/symbols.", UITheme.ACCENT_RED); 
+            return; 
+        }
+        if (wordListModel.contains(word)) {
+            duplicateWarningLabel.setText("That word has already been added!");
+            return; 
+        }
         wordListModel.addElement(word);
         wordInput.setText("");
         syncToGame();
@@ -128,8 +250,12 @@ public class TeacherPagePanel extends JPanel {
     }
 
     private void removeWord() {
+        duplicateWarningLabel.setText(" ");
         int idx = wordListView.getSelectedIndex();
-        if (idx < 0) { status("Select a word to remove.", UITheme.ACCENT_RED); return; }
+        if (idx < 0) { 
+            status("Select a word to remove.", UITheme.ACCENT_RED); 
+            return; 
+        }
         String removed = wordListModel.remove(idx);
         syncToGame();
         status("Removed: " + removed, UITheme.ACCENT_YELLOW);
@@ -137,12 +263,8 @@ public class TeacherPagePanel extends JPanel {
 
     private void syncToGame() {
         List<String> list = new ArrayList<>();
-        for (int i = 0; i < wordListModel.size(); i++) list.add(wordListModel.get(i));
-        if (list.isEmpty()) {
-            // Restore defaults if teacher cleared everything
-            list = new ArrayList<>(Arrays.asList(
-                    "CAT","TREE","JUMP","CITY","HERO","BRAVE","CLIMB","SPELL","MAGIC","RESCUE"));
-            list.forEach(wordListModel::addElement);
+        for (int i = 0; i < wordListModel.size(); i++) {
+            list.add(wordListModel.get(i));
         }
         Game.getInstance().setWordList(list);
     }

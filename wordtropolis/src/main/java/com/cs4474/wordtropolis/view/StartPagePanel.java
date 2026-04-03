@@ -171,7 +171,7 @@ public class StartPagePanel extends JPanel {
         ImageIcon triangleIcon = new ImageIcon(triangleScaled);
 
         JLabel selector = new JLabel(triangleIcon);
-        selector.setBounds(149, 5, 28, 28); // Teacher triangle moved up to y=5 (was 10)
+        selector.setBounds(149, 5, 28, 28);
         selector.setVisible(false);
         buttonPanel.add(selector);
 
@@ -179,8 +179,7 @@ public class StartPagePanel extends JPanel {
         teacherBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                // Teacher triangle moved up higher on hover
-                selector.setLocation(149, 0); // y=0 for hover state (was 5)
+                selector.setLocation(149, 0);
                 teacherBtn.setLocation(80, -25);
                 selector.setVisible(true);
             }
@@ -196,7 +195,6 @@ public class StartPagePanel extends JPanel {
         studentBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                // Student triangle stays at original position
                 selector.setLocation(149, 76);
                 studentBtn.setLocation(80, 55);
                 selector.setVisible(true);
@@ -222,42 +220,6 @@ public class StartPagePanel extends JPanel {
 
         studentBtn.addActionListener(e ->
                 Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK));
-
-        // Volume icon
-        Image speakerRaw = new ImageIcon(getClass().getResource("/images/general/speaker.png")).getImage();
-        Image speakerScaled = speakerRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-        ImageIcon speakerImg = new ImageIcon(speakerScaled);
-
-        Image muteRaw = new ImageIcon(getClass().getResource("/images/general/nospeaker.png")).getImage();
-        Image muteScaled = muteRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-        ImageIcon muteImg = new ImageIcon(muteScaled);
-
-        JLabel volumeIcon = new JLabel(speakerImg);
-        volumeIcon.setBounds(840, 610, 40, 40);
-        background.add(volumeIcon);
-
-        JSlider volumeSlider = new JSlider(JSlider.VERTICAL, 0, 100, 50);
-        volumeSlider.setBounds(880, 520, 20, 120);
-        volumeSlider.setOpaque(false);
-        volumeSlider.setForeground(gold);
-        background.add(volumeSlider);
-
-        volumeSlider.setVisible(false);
-
-        volumeIcon.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                volumeSlider.setVisible(!volumeSlider.isVisible());
-            }
-        });
-
-        volumeSlider.addChangeListener(e -> {
-            int value = volumeSlider.getValue();
-            if (value == 0)
-                volumeIcon.setIcon(muteImg);
-            else
-                volumeIcon.setIcon(speakerImg);
-        });
     }
 
     private void floatTitle() {
