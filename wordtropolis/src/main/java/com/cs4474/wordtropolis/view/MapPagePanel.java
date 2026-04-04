@@ -86,8 +86,8 @@ public class MapPagePanel extends JPanel implements Refreshable {
                 } 
                 else if (idx == 2){
                     // link the brige game here
-                    // replace with this: Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BRIDGE_GAME, new BossGamePanel());
-                    Wordtropolis.showScreen(ACT_SCREENS[idx]);
+                   Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BRIDGE_GAME, new BossGamePanel());
+                
                     
                    // if u want to try the boss game uncomment this and click the brige game placeholder
                    //Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
