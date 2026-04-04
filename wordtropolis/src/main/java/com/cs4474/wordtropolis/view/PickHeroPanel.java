@@ -40,7 +40,7 @@ public class PickHeroPanel extends JPanel {
         setPreferredSize(new Dimension(920, 700));
         setBackground(Color.BLACK);
         
-        // Background
+        // BG
         Image bg = new ImageIcon(getClass().getResource("/images/general/BG.png")).getImage();
         Image scaledBg = bg.getScaledInstance(920, 700, Image.SCALE_SMOOTH);
         JLabel background = new JLabel(new ImageIcon(scaledBg));
@@ -48,14 +48,14 @@ public class PickHeroPanel extends JPanel {
         background.setLayout(null);
         add(background);
         
-        // Wordtropolis title image
+        
         Image titleImg = new ImageIcon(getClass().getResource("/images/general/wordtropiatitle2.png")).getImage();
         Image scaledTitle = titleImg.getScaledInstance(600, -1, Image.SCALE_SMOOTH);
         JLabel gameTitle = new JLabel(new ImageIcon(scaledTitle));
         gameTitle.setBounds((920 - 600) / 2, 10, 600, 200);
         background.add(gameTitle);
         
-        // Choose your hero title with stroke effect
+        
         JLabel title = new JLabel("Choose Your Hero!") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -67,11 +67,11 @@ public class PickHeroPanel extends JPanel {
                 int x = (getWidth() - fm.stringWidth(text)) / 2;
                 int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
                 
-                // Draw stroke (outline) with the same color as name field border
-                g2d.setColor(new Color(0x0F, 0x4D, 0x58)); // #0F4D58 - matching teal color
+                
+                g2d.setColor(new Color(0x0F, 0x4D, 0x58)); 
                 g2d.setStroke(new BasicStroke(3));
                 
-                // Draw stroke by drawing text multiple times with offsets
+                
                 for (int dx = -2; dx <= 2; dx++) {
                     for (int dy = -2; dy <= 2; dy++) {
                         if (dx != 0 || dy != 0) {
@@ -80,7 +80,7 @@ public class PickHeroPanel extends JPanel {
                     }
                 }
                 
-                // Draw the actual text
+                
                 g2d.setColor(getForeground());
                 g2d.drawString(text, x, y);
                 
@@ -93,7 +93,7 @@ public class PickHeroPanel extends JPanel {
         title.setHorizontalAlignment(SwingConstants.CENTER);
         background.add(title);
         
-        // Create hero cards with images
+        
         for (int i = 0; i < HERO_LABELS.length; i++) {
             final int idx = i;
             JPanel card = createHeroCard(i);
@@ -101,12 +101,12 @@ public class PickHeroPanel extends JPanel {
             card.addMouseListener(new CardMouseAdapter(card, idx));
             background.add(card);
             
-            // Store for animation
+           
             heroLabels[i] = new JLabel();
             heroLabels[i].setBounds(xPositions[i], 270, 180, 220);
         }
         
-        // Floating animation for heroes
+        
         Timer floatTimer = new Timer(60, e -> {
             floatY += floatDir;
             if (floatY > 6 || floatY < -6) floatDir *= -1;
@@ -122,18 +122,18 @@ public class PickHeroPanel extends JPanel {
         });
         floatTimer.start();
         
-        // Name entry field with styled border
+      
         nameField = new JTextField("Enter Name Here...") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Draw background with rounded rectangle
+             
                 g2d.setColor(new Color(0x2C2C2C));
                 g2d.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
                 
-                // Draw border with teal color (#0F4D58)
+               
                 g2d.setColor(new Color(0x0F, 0x4D, 0x58));
                 g2d.setStroke(new BasicStroke(2));
                 g2d.draw(new RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 15, 15));
@@ -170,7 +170,7 @@ public class PickHeroPanel extends JPanel {
         
         background.add(nameField);
         
-        // Confirmation label
+        
         confirmLabel = new JLabel("Selected: " + HERO_LABELS[0]);
         confirmLabel.setFont(loadGameFont(14));
         confirmLabel.setForeground(new Color(0xEC, 0xCB, 0x2D));
@@ -178,27 +178,64 @@ public class PickHeroPanel extends JPanel {
         confirmLabel.setHorizontalAlignment(SwingConstants.CENTER);
         background.add(confirmLabel);
         
-        // Bottom buttons panel (original style)
+        
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
         bottomPanel.setOpaque(false);
         bottomPanel.setBounds(0, 590, 920, 80);
         
-        // Back button - original style
-        JButton backBtn = new JButton("Back");
+        
+        
+        JButton backBtn = new JButton("Back") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                
+                g2d.setColor(getBackground());
+                g2d.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
+                
+                
+                g2d.setColor(new Color(0x0F4D58));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.draw(new RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 15, 15));
+                
+                
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                String text = getText();
+                int textWidth = fm.stringWidth(text);
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2d.setColor(getForeground());
+                g2d.drawString(text, x, y);
+                
+                g2d.dispose();
+            }
+            
+            @Override
+            protected void paintBorder(Graphics g) {
+                
+            }
+        };
         backBtn.setFont(loadGameFont(18));
         backBtn.setForeground(Color.WHITE);
-        backBtn.setBackground(new Color(0x4A4A4A));
+        backBtn.setBackground(new Color(0x4A4A4A)); // Dark gray
         backBtn.setFocusPainted(false);
-        backBtn.setBorder(BorderFactory.createLineBorder(new Color(0xEC, 0xCB, 0x2D), 2));
+        backBtn.setBorderPainted(false);
+        backBtn.setContentAreaFilled(false);
+        backBtn.setOpaque(false);
         backBtn.setPreferredSize(new Dimension(150, 45));
         backBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         
         backBtn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
                 backBtn.setBackground(new Color(0x6A6A6A));
+                backBtn.repaint();
             }
             public void mouseExited(MouseEvent e) {
                 backBtn.setBackground(new Color(0x4A4A4A));
+                backBtn.repaint();
             }
         });
         
@@ -207,22 +244,58 @@ public class PickHeroPanel extends JPanel {
             Wordtropolis.showScreen(Wordtropolis.SCREEN_START);
         });
         
-        // Start Adventure button - original style
-        JButton startBtn = new JButton("Start Adventure");
+        // Start Adventure button - yellow with rounded corners, WHITE text
+        JButton startBtn = new JButton("Start Adventure") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                
+                g2d.setColor(getBackground());
+                g2d.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
+                
+                
+                g2d.setColor(new Color(0x0F4D58));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.draw(new RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 15, 15));
+                
+                
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                String text = getText();
+                int textWidth = fm.stringWidth(text);
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2d.setColor(getForeground());
+                g2d.drawString(text, x, y);
+                
+                g2d.dispose();
+            }
+            
+            @Override
+            protected void paintBorder(Graphics g) {
+                
+            }
+        };
         startBtn.setFont(loadGameFont(18));
-        startBtn.setForeground(Color.WHITE);
-        startBtn.setBackground(new Color(0x4A90D9));
+        startBtn.setForeground(Color.WHITE); // Changed to WHITE
+        startBtn.setBackground(new Color(0xECCB2D)); // Yellow/gold color
         startBtn.setFocusPainted(false);
-        startBtn.setBorder(BorderFactory.createLineBorder(new Color(0xEC, 0xCB, 0x2D), 2));
+        startBtn.setBorderPainted(false);
+        startBtn.setContentAreaFilled(false);
+        startBtn.setOpaque(false);
         startBtn.setPreferredSize(new Dimension(200, 45));
         startBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         
         startBtn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
-                startBtn.setBackground(new Color(0x6A90D9));
+                startBtn.setBackground(new Color(0xFFD700));
+                startBtn.repaint();
             }
             public void mouseExited(MouseEvent e) {
-                startBtn.setBackground(new Color(0x4A90D9));
+                startBtn.setBackground(new Color(0xECCB2D));
+                startBtn.repaint();
             }
         });
         
@@ -241,7 +314,7 @@ public class PickHeroPanel extends JPanel {
         bottomPanel.add(startBtn);
         background.add(bottomPanel);
         
-        // Set initial selection
+       
         selectHero(0);
     }
     
@@ -253,11 +326,11 @@ public class PickHeroPanel extends JPanel {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Draw rounded background
+                
                 g2d.setColor(HERO_COLORS[idx]);
                 g2d.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
                 
-                // Draw border if selected
+                
                 if (selectedHero == idx) {
                     g2d.setColor(new Color(0xEC, 0xCB, 0x2D));
                     g2d.setStroke(new BasicStroke(4));
@@ -270,14 +343,14 @@ public class PickHeroPanel extends JPanel {
         card.setOpaque(false);
         card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         
-        // Hero image
+        //the heros images
         Image img = new ImageIcon(getClass().getResource(HERO_IMAGES[idx])).getImage();
         Image scaledImg = img.getScaledInstance(120, 120, Image.SCALE_SMOOTH);
         JLabel heroImage = new JLabel(new ImageIcon(scaledImg));
         heroImage.setBounds(30, 20, 120, 120);
         card.add(heroImage);
         
-        // Hero name
+        // the heroes names
         JLabel nameLabel = new JLabel(HERO_LABELS[idx]);
         nameLabel.setFont(loadGameFont(18));
         nameLabel.setForeground(Color.WHITE);
@@ -285,7 +358,7 @@ public class PickHeroPanel extends JPanel {
         nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
         card.add(nameLabel);
         
-        // Hero description
+        // the heroes description
         String[] desc = { "Brave Warrior", "Wise Mage", "Swift Rogue" };
         JLabel descLabel = new JLabel(desc[idx]);
         descLabel.setFont(loadGameFont(12));
@@ -328,7 +401,6 @@ public class PickHeroPanel extends JPanel {
         selectedHero = index;
         confirmLabel.setText("Selected: " + HERO_LABELS[index]);
         
-        // Refresh all cards to update border
         Container parent = getParent();
         if (parent != null) {
             parent.repaint();

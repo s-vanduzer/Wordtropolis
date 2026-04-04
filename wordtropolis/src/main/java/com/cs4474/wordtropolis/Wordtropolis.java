@@ -21,7 +21,7 @@ import java.awt.event.MouseEvent;
  */
 public class Wordtropolis {
 
-    // ── Screen name constants (used everywhere to navigate) ───────────────────
+    // ── Screen name constants ───────────────────────────────────────────────────
     public static final String SCREEN_START        = "START";
     public static final String SCREEN_TEACHER      = "TEACHER";
     public static final String SCREEN_STUDENT      = "STUDENT";
@@ -49,37 +49,31 @@ public class Wordtropolis {
     // ── Entry point ───────────────────────────────────────────────────────────
 
     public static void main(String[] args) {
-        // Always create/modify Swing components on the Event Dispatch Thread
         SwingUtilities.invokeLater(Wordtropolis::initAndShow);
     }
 
     // ── Initialise ────────────────────────────────────────────────────────────
 
     private static void initAndShow() {
-        // Enable anti-aliased text system-wide
         System.setProperty("swing.aatext", "true");
         System.setProperty("awt.useSystemAAFontSettings", "on");
         
         Game game = Game.getInstance();
-        game.setDifficulty(Game.Difficulty.HARD);   // change to MEDIUM / HARD
+        game.setDifficulty(Game.Difficulty.HARD);
         game.loadWordsForDifficulty();
 
-        mainFrame = new JFrame("Wordtropolis \u2013 Save the City!");
+        mainFrame = new JFrame("Wordtropolis – Save the City!");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setSize(920, 700);
         mainFrame.setMinimumSize(new Dimension(800, 600));
         mainFrame.setLocationRelativeTo(null);
+        mainFrame.setLayout(null); // Use null layout for absolute positioning
 
         cardLayout = new CardLayout();
-        cardPanel  = new JPanel(cardLayout);
+        cardPanel = new JPanel(cardLayout);
         cardPanel.setBackground(Color.BLACK);
-        
-        // Use a JLayeredPane to overlay volume control on top of everything
-        JLayeredPane layeredPane = new JLayeredPane();
-        layeredPane.setPreferredSize(new Dimension(920, 700));
-        
         cardPanel.setBounds(0, 0, 920, 700);
-        layeredPane.add(cardPanel, JLayeredPane.DEFAULT_LAYER);
+        mainFrame.add(cardPanel);
 
         // ── Register every screen ─────────────────────────────────────────────
         register(new StartPagePanel(),    SCREEN_START);
@@ -89,36 +83,26 @@ public class Wordtropolis {
         register(new MapPagePanel(),      SCREEN_MAP);
         register(new CatGamePanel(),      SCREEN_CAT_GAME);
         register(new PlaceholderPanel("Fire Rescue\nComing Soon!", new Color(0xFF6B35)), SCREEN_FIRE_GAME);
-        register(new PlaceholderPanel("Fix the Bridge\nComing Soon!", new Color(0x118AB2)), SCREEN_BRIDGE_GAME);
+        register(new BrokenBridgeGamePanel(), SCREEN_BRIDGE_GAME);
         register(new BurglarGamePanel(),  SCREEN_BURGLAR_GAME);
-        register(new PlaceholderPanel("Final Boss Fight\nComing Soon!", new Color(0xC0392B)), SCREEN_BOSS_GAME);
+        register(new BossGamePanel(),     SCREEN_BOSS_GAME);
         register(new FinishPanel(),       SCREEN_FINISH);
 
-        // ── (Cat Game) ──────────────────────────────────────────────
-        register(new CatGamePanel(), SCREEN_CAT_GAME);
-
-        // ── Teammates' panels  (replace PlaceholderPanel when ready) ─────────
-        register(new PlaceholderPanel("Fire Rescue\nComing Soon!",
-                new Color(0xFF6B35)), SCREEN_FIRE_GAME);
-
-        register(new PlaceholderPanel("Fix the Bridge\nComing Soon!",
-                new Color(0x118AB2)), SCREEN_BRIDGE_GAME);
-
-        //Added Robber game
-        register(new BurglarGamePanel(), SCREEN_BURGLAR_GAME);
-
-        //Added Boss game
-        register(new BossGamePanel(), SCREEN_BOSS_GAME);
-
-        register(new FinishPanel(), SCREEN_FINISH);
-
-        // ─────────────────────────────────────────────────────────────────────
-
-        mainFrame.add(cardPanel);
-        // ── Global Volume Control (added to layered pane on top) ───────────────
+        // ── Global Volume Control (added ON TOP of everything using JLayeredPane) ──
         setupGlobalVolumeControl();
+        
+        // Use JLayeredPane to ensure volume control is on top
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setBounds(0, 0, 920, 700);
+        
+        // Remove cardPanel from mainFrame and add to layeredPane
+        mainFrame.remove(cardPanel);
+        cardPanel.setBounds(0, 0, 920, 700);
+        layeredPane.add(cardPanel, JLayeredPane.DEFAULT_LAYER);
+        
+        // Add volume panel to the top layer
         layeredPane.add(volumePanel, JLayeredPane.PALETTE_LAYER);
-
+        
         mainFrame.add(layeredPane);
         mainFrame.setVisible(true);
         showScreen(SCREEN_START);
@@ -126,12 +110,11 @@ public class Wordtropolis {
     
     // ── Global Volume Control Setup ───────────────────────────────────────────
     
- private static void setupGlobalVolumeControl() {
-    // panel for volume control
+    private static void setupGlobalVolumeControl() {
+    // Panel for volume control - moved down 5 pixels (y from 520 to 525)
     volumePanel = new JPanel(null);
     volumePanel.setOpaque(false);
-    volumePanel.setBounds(830, 520, 100, 180);
-    
+    volumePanel.setBounds(830, 525, 100, 180);  // Changed y from 520 to 525
     
     try {
         Image speakerRaw = new ImageIcon(Wordtropolis.class.getResource("/images/general/speaker.png")).getImage();
@@ -152,9 +135,8 @@ public class Wordtropolis {
     volumeIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     volumePanel.add(volumeIcon);
 
-   
     volumeSlider = new JSlider(JSlider.VERTICAL, 0, 100, 50);
-    volumeSlider.setBounds(48, -10, 25, 120); 
+    volumeSlider.setBounds(48, -10, 25, 120);
     volumeSlider.setOpaque(false);
     volumeSlider.setForeground(new Color(0xECCB2D));
     volumeSlider.setVisible(false);
@@ -175,17 +157,12 @@ public class Wordtropolis {
         } else if (speakerImg != null) {
             volumeIcon.setIcon(speakerImg);
         }
-       
+        
     });
 }
 
-
     // ── Navigation API ────────────────────────────────────────────────────────
 
-    /**
-     * Navigate to the named screen.
-     * If the panel implements Refreshable its refresh() method is called automatically.
-     */
     public static void showScreen(String screenName) {
         cardLayout.show(cardPanel, screenName);
         for (Component comp : cardPanel.getComponents()) {
@@ -195,17 +172,7 @@ public class Wordtropolis {
         }
     }
 
-    
-    
-    /**
-     * Replace a panel entirely and navigate to it.
-     * Used by MapPagePanel to rebuild CatGamePanel with a fresh model on each play.
-     *
-     * Example:
-     *   Wordtropolis.replaceScreen(SCREEN_CAT_GAME, new CatGamePanel());
-     */
     public static void replaceScreen(String screenName, JPanel newPanel) {
-        // Remove the old panel that has this name
         for (Component comp : cardPanel.getComponents()) {
             if (screenName.equals(comp.getName())) {
                 cardPanel.remove(comp);
@@ -218,9 +185,6 @@ public class Wordtropolis {
         cardPanel.repaint();
     }
 
-    // ── Internal helpers ──────────────────────────────────────────────────────
-
-    /** Add a panel to the card deck and tag it with its key as the component name. */
     private static void register(JPanel panel, String key) {
         panel.setName(key);
         cardPanel.add(panel, key);
