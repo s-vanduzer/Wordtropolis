@@ -1,4 +1,5 @@
 package com.cs4474.wordtropolis.model;
+package com.cs4474.wordtropolis.view;
 
 import java.util.*;
 import java.util.stream.Collectors;
