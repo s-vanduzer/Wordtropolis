@@ -376,7 +376,7 @@ private Screen currentScreen = Screen.INTRO;
         currentScreen = BurglarGamePanel.Screen.WIN;
 
         feedbackTimer.start();
-        new Timer(5000, e -> {
+        new Timer(500, e -> {
             showResultDialog();
             ((Timer)e.getSource()).stop();
         }).start();

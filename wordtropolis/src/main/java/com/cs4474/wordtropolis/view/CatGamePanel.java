@@ -360,7 +360,7 @@ public class CatGamePanel extends JPanel {
         showFeedback("Cat Rescued! Mission Complete!", UITheme.ACCENT_TEAL);
         SoundManager.play(SoundManager.CAT_LEVEL_DONE);
         Game.getInstance().setCatCompleted(true);
-        currentScreen = Screen.RESCUE;
+    currentScreen = Screen.RESCUE;
         catRescueY = 0.0f;   // start at bottom of tree, move upward
         rescueTimer = new Timer(55, e -> {
             catRescueY += 0.015f;
