@@ -101,8 +101,7 @@ public class Wordtropolis {
         register(new PlaceholderPanel("Fire Rescue\nComing Soon!",
                 new Color(0xFF6B35)), SCREEN_FIRE_GAME);
 
-        register(new PlaceholderPanel("Fix the Bridge\nComing Soon!",
-                new Color(0x118AB2)), SCREEN_BRIDGE_GAME);
+        register(new BrokenBridgeGamePanel(), SCREEN_BRIDGE_GAME);
 
         //Added Robber game
         register(new BurglarGamePanel(), SCREEN_BURGLAR_GAME);
