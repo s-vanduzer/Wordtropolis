@@ -252,7 +252,7 @@ public class TeacherPagePanel extends JPanel {
 
         duplicateWarningLabel = new JLabel(" ");
         duplicateWarningLabel.setFont(UITheme.FONT_BODY);
-        duplicateWarningLabel.setForeground(UITheme.ACCENT_YELLOW);
+        duplicateWarningLabel.setForeground(new Color(0xECCB2D)); // Yellow color
         duplicateWarningLabel.setHorizontalAlignment(SwingConstants.CENTER);
         bottom.add(duplicateWarningLabel, BorderLayout.NORTH);
 
