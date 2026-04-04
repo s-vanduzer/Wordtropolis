@@ -93,9 +93,10 @@ public class MapPagePanel extends JPanel implements Refreshable {
                    //Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
                 }
                 else {
+                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_FIRE_GAME, new testFire());
                     // link the fire game here
                     // replace with this: Wordtropolis.replaceScreen(Wordtropolis.SCREEN_FIRE_GAME, new BossGamePanel());
-                    Wordtropolis.showScreen(ACT_SCREENS[idx]);
+                    //Wordtropolis.showScreen(ACT_SCREENS[idx]);
                     
                 }
             });
