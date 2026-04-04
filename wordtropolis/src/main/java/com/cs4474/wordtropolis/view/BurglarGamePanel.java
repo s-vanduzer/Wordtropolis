@@ -84,7 +84,6 @@ private Screen currentScreen = Screen.INTRO;
         setupKeyboard();
         setupMouseInteraction();
         computeTilePositions();
-        speakWord();
         new Timer(16, e -> {
     updateCamera();
     repaint();
@@ -346,7 +345,6 @@ private Screen currentScreen = Screen.INTRO;
     private void refreshGame() {
         waitingForNext = false;
         computeTilePositions();
-        speakWord();
         repaint();
     }
     
@@ -414,36 +412,8 @@ private Screen currentScreen = Screen.INTRO;
     repaint();
 }
     
-    private void speakWord() {
-        BurglarGameModel.WordQuestion q = model.getCurrentQuestion();
-        if (q == null) return;
-        
-        // Speak the word with missing letters as blanks
-        String speakText = q.displayWord.replace('_', '?');
-        
-        new Thread(() -> {
-            try {
-                String os = System.getProperty("os.name", "").toLowerCase();
-                
-                if (os.contains("mac")) {
-                    new ProcessBuilder("say", "-v", "Alex", "-r", "110", 
-                        "Spell the word: " + speakText).start().waitFor();
-                } else if (os.contains("win")) {
-                    String ps = "Add-Type -AssemblyName System.Speech;"
-                              + "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;"
-                              + "$s.Rate = -2;"
-                              + "$s.Volume = 100;"
-                              + "$s.Speak('Spell the word: " + speakText.replace("'", "") + "');";
-                    new ProcessBuilder("powershell", "-Command", ps).start().waitFor();
-                } else {
-                    new ProcessBuilder("espeak", "-s", "120", "-a", "200", 
-                        "Spell the word: " + speakText).start().waitFor();
-                }
-            } catch (Exception e) {
-                System.out.println("[Burglar] TTS not available: " + e.getMessage());
-            }
-        }, "tts-thread").start();
-    }
+    // TTS removed — only CatGamePanel uses TTS
+
     
     private void showFeedback(String msg, Color c) {
         feedbackMsg = msg;

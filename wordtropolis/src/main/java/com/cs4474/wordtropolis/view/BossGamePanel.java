@@ -672,7 +672,6 @@ private void refreshGame() {
     hintModeActive = false;
     if (hintTimer != null) hintTimer.stop();
     computeTilePositions();
-    speakWord();
     startCountdown();
     BossGameModel.Difficulty d = model.getCurrentDifficulty();
     if (d != lastDiff) {
@@ -715,43 +714,7 @@ private void refreshGame() {
         Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
     }
 
-    private void speakWord() {
-        String w = model.getCurrentWord();
-        if (w == null || w.isEmpty()) return;
- 
-        new Thread(() -> {
-            try {
-                String os = System.getProperty("os.name", "").toLowerCase();
- 
-                if (os.contains("mac")) {
-                    // macOS — built-in say command, Alex voice at clear speed
-                    // [[volm 1.0]] sets TTS engine volume to maximum
-                    new ProcessBuilder(
-                            "say", "-v", "Alex", "-r", "110",
-                            "[[volm 1.0]] " + w)
-                            .start().waitFor();
- 
-                } else if (os.contains("win")) {
-                    // Windows — PowerShell SpeechSynthesizer (built-in, no install)
-                    String ps = "Add-Type -AssemblyName System.Speech;"
-                              + "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;"
-                              + "$s.Rate = -2;"        // -10 slowest, 10 fastest; -2 = clear
-                              + "$s.Volume = 100;"     // 0-100
-                              + "$s.Speak('" + w.replace("'", "") + "');";
-                    new ProcessBuilder("powershell", "-Command", ps)
-                            .start().waitFor();
- 
-                } else {
-                    // Linux — espeak (install: sudo apt-get install espeak)
-                    new ProcessBuilder("espeak", "-s", "120", "-a", "200", w)
-                            .start().waitFor();
-                }
-            } catch (Exception e) {
-                // TTS not available on this machine — silent fail, game continues
-                System.out.println("[Cat] TTS not available: " + e.getMessage());
-            }
-        }, "tts-thread").start();
-    }
+    // TTS removed — only CatGamePanel uses TTS
 
     private void showFeedback(String msg, Color c) {
         feedbackMsg = msg; feedbackColor = c;
@@ -1870,7 +1833,6 @@ private void handleSkipWord() {
         // Show instruction dialog
         currentScreen = Screen.GAME;
         computeTilePositions();
-        speakWord();
         startCountdown();
         repaint();
     }
