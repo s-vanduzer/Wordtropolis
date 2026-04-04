@@ -632,7 +632,7 @@ public class CatGamePanel extends JPanel {
 
         g2.drawImage(imgHero,
                 heroX, groundY, heroX + drawW, groundY + drawH,
-                srcX1, srcY1 + 70, srcX2, srcY2, null);
+                srcX1, srcY1 + 100, srcX2, srcY2 + 50, null);
     }
 
     // ── Tree ─────────────────────────────────────────────────────────────────
