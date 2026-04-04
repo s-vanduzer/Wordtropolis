@@ -26,11 +26,9 @@ import java.net.URL;
 public final class SoundManager {
 
     // ── Base volumes — these are the defaults you set ─────────────────────────
-    // Change these two numbers if you want a different default level
-    private static final int DEFAULT_SFX_VOL   = 80;   // 0-100
-    private static final int DEFAULT_MUSIC_VOL = 25;   // 0-100
+    private static final int DEFAULT_SFX_VOL   = 80;
+    private static final int DEFAULT_MUSIC_VOL = 25;
 
-    // Runtime volumes — start at defaults, user can change via sliders
     private static int sfxVolume   = DEFAULT_SFX_VOL;
     private static int musicVolume = DEFAULT_MUSIC_VOL;
 
@@ -38,12 +36,11 @@ public final class SoundManager {
     private static Clip  bgMusicClip;
     private static Timer bgLoopTimer;
 
-    private SoundManager() {}   // static-only class
+    private SoundManager() {}
 
     // ═══════════════════════════════ SOUND FILE CONSTANTS ════════════════════
-    //
+
     // ── Cat Game ─────────────────────────────────────────────────────────────
-    // All files live in:  resources/sounds/cat_game/
     public static final String CAT_MEOW_HAPPY    = "cat_game/cat_meow.wav";
     public static final String CAT_MEOW_MAD      = "cat_game/cat_meow_mad.wav";
     public static final String CAT_CORRECT       = "cat_game/magical_soft_chime.wav";
@@ -54,18 +51,15 @@ public final class SoundManager {
     public static final String CAT_GAME_START    = "cat_game/game_start.wav";
     public static final String CAT_BGM           = "cat_game/background_music.wav";
 
-    // ── Add other activity sounds here following the same pattern ─────────────
-    // Example:
-    // public static final String FIRE_CORRECT  = "fire_game/correct.wav";
-    // public static final String FIRE_BGM      = "fire_game/background_music.wav";
+    // ── Bridge Game ───────────────────────────────────────────────────────────
+    // All files live in:  resources/sounds/bridge_game/
+    public static final String BRIDGE_BGM        = "bridge_game/background.wav";
+    public static final String BRIDGE_BOX        = "bridge_game/box_effect.wav";
+    public static final String BRIDGE_ERROR      = "bridge_game/gentle_error_tone.wav";
+    public static final String BRIDGE_WIN        = "bridge_game/chaching.wav";
 
     // ═══════════════════════════════ ONE-SHOT SFX ════════════════════════════
 
-    /**
-     * Play a sound effect once.
-     * Pass one of the constants above, e.g. SoundManager.CAT_CORRECT
-     * File must be in resources/sounds/<filename>
-     */
     public static void play(String filename) {
         if (sfxVolume == 0 || filename == null || filename.isEmpty()) return;
         new Thread(() -> {
@@ -83,14 +77,6 @@ public final class SoundManager {
         }, "sfx-thread").start();
     }
 
-    /**
-     * Play only a portion of a sound file.
-     * Useful for trimming long files or playing a specific stab.
-     *
-     * @param filename  sound file constant (e.g. SoundManager.CAT_WIND)
-     * @param startSec  start time in seconds
-     * @param endSec    end time in seconds
-     */
     public static void playFrom(String filename, double startSec, double endSec) {
         if (sfxVolume == 0 || filename == null || filename.isEmpty()) return;
         new Thread(() -> {
@@ -123,12 +109,6 @@ public final class SoundManager {
 
     // ═══════════════════════════════ BACKGROUND MUSIC ════════════════════════
 
-    /**
-     * Start looping background music.
-     * Fades out near the end of the track then restarts smoothly.
-     *
-     * @param filename  BGM file constant (e.g. SoundManager.CAT_BGM)
-     */
     public static void startMusic(String filename) {
         stopMusic();
         if (musicVolume == 0 || filename == null || filename.isEmpty()) return;
@@ -138,7 +118,6 @@ public final class SoundManager {
             bgMusicClip = clip;
             applyVolume(bgMusicClip, musicVolume);
 
-            // Fade out 1s before end so loop is seamless
             double cutOffSec    = 1.0;
             double fadeSec      = 0.8;
             long   clipLen      = bgMusicClip.getMicrosecondLength();
@@ -172,7 +151,6 @@ public final class SoundManager {
         }
     }
 
-    /** Stop background music and clean up resources. */
     public static void stopMusic() {
         if (bgLoopTimer != null) { bgLoopTimer.stop(); bgLoopTimer = null; }
         if (bgMusicClip != null && bgMusicClip.isOpen()) {
@@ -199,20 +177,10 @@ public final class SoundManager {
 
     // ═══════════════════════════════ VOLUME CONTROL ═══════════════════════════
 
-    /**
-     * Set SFX volume at runtime.
-     * Called by the settings/volume panel slider.
-     * @param v  0 (silent) to 100 (full)
-     */
     public static void setSfxVolume(int v) {
         sfxVolume = Math.max(0, Math.min(100, v));
     }
 
-    /**
-     * Set music volume at runtime.
-     * Also updates the currently-playing BGM clip immediately.
-     * @param v  0 (silent) to 100 (full)
-     */
     public static void setMusicVolume(int v) {
         musicVolume = Math.max(0, Math.min(100, v));
         if (bgMusicClip != null && bgMusicClip.isOpen()) {
@@ -220,7 +188,6 @@ public final class SoundManager {
         }
     }
 
-    /** Reset both volumes back to the baked-in defaults. */
     public static void resetToDefaults() {
         setSfxVolume(DEFAULT_SFX_VOL);
         setMusicVolume(DEFAULT_MUSIC_VOL);
