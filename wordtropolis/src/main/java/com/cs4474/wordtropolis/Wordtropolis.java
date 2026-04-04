@@ -94,6 +94,27 @@ public class Wordtropolis {
         register(new PlaceholderPanel("Final Boss Fight\nComing Soon!", new Color(0xC0392B)), SCREEN_BOSS_GAME);
         register(new FinishPanel(),       SCREEN_FINISH);
 
+        // ── (Cat Game) ──────────────────────────────────────────────
+        register(new CatGamePanel(), SCREEN_CAT_GAME);
+
+        // ── Teammates' panels  (replace PlaceholderPanel when ready) ─────────
+        register(new PlaceholderPanel("Fire Rescue\nComing Soon!",
+                new Color(0xFF6B35)), SCREEN_FIRE_GAME);
+
+        register(new PlaceholderPanel("Fix the Bridge\nComing Soon!",
+                new Color(0x118AB2)), SCREEN_BRIDGE_GAME);
+
+        //Added Robber game
+        register(new BurglarGamePanel(), SCREEN_BURGLAR_GAME);
+
+        //Added Boss game
+        register(new BossGamePanel(), SCREEN_BOSS_GAME);
+
+        register(new FinishPanel(), SCREEN_FINISH);
+
+        // ─────────────────────────────────────────────────────────────────────
+
+        mainFrame.add(cardPanel);
         // ── Global Volume Control (added to layered pane on top) ───────────────
         setupGlobalVolumeControl();
         layeredPane.add(volumePanel, JLayeredPane.PALETTE_LAYER);
@@ -174,6 +195,8 @@ public class Wordtropolis {
         }
     }
 
+    
+    
     /**
      * Replace a panel entirely and navigate to it.
      * Used by MapPagePanel to rebuild CatGamePanel with a fresh model on each play.

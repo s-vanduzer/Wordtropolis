@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.*;
@@ -85,7 +84,6 @@ private Screen currentScreen = Screen.INTRO;
         setupKeyboard();
         setupMouseInteraction();
         computeTilePositions();
-        speakWord();
         new Timer(16, e -> {
     updateCamera();
     repaint();
@@ -224,7 +222,7 @@ private Screen currentScreen = Screen.INTRO;
                 for (int i = 0; i < model.getAvailableLetters().size(); i++) {
                     if (model.getAvailableLetters().get(i) == key) {
                         model.selectLetter(i);
-                        BurglarSoundManager.play(BurglarSoundManager.SFX_TILE_CLICK);
+                        SoundManager.play(SoundManager.SFX_TILE_CLICK);
                         triggerSparkle(getWidth() / 2, getHeight() / 2 - 60);
                         computeTilePositions();
                         repaint();
@@ -233,7 +231,7 @@ private Screen currentScreen = Screen.INTRO;
                 }
                 
                 // Letter not available
-                BurglarSoundManager.play(BurglarSoundManager.SFX_ERROR);
+                SoundManager.play(SoundManager.SFX_ERROR);
                 showFeedback("'" + key + "' is not available!", UITheme.ACCENT_RED);
                 shakeEffect();
             }
@@ -245,7 +243,7 @@ private Screen currentScreen = Screen.INTRO;
                 int c = e.getKeyCode();
                 if (c == KeyEvent.VK_BACK_SPACE && model.getPlayerArrangement().size() > 0) {
                     model.removeLetter(model.getPlayerArrangement().size() - 1);
-                    BurglarSoundManager.play(BurglarSoundManager.SFX_TILE_CLICK);
+                    SoundManager.play(SoundManager.SFX_TILE_CLICK);
                     computeTilePositions();
                     repaint();
                 } else if (c == KeyEvent.VK_ENTER) {
@@ -295,7 +293,7 @@ private Screen currentScreen = Screen.INTRO;
         
         if (correct) {
             showFeedback("Correct! The hero moves forward!", UITheme.ACCENT_TEAL);
-            BurglarSoundManager.playFrom(BurglarSoundManager.SFX_CORRECT, 1.0, 1.5);
+            SoundManager.playFrom(SoundManager.SFX_CORRECT, 1.0, 1.5);
             System.out.println("Hero position: " + model.getHeroPosition());
             int points = BurglarGameModel.POINTS_PER_CORRECT;
             Game.getInstance().addScore(points);
@@ -303,7 +301,7 @@ private Screen currentScreen = Screen.INTRO;
             repaint();
             
             if (model.isComplete()) {
-                gameComplete();
+                chaseComplete();
             } else if (model.isGameActive()) {
                 waitingForNext = true;
                 new Timer(1400, e -> {
@@ -315,7 +313,7 @@ private Screen currentScreen = Screen.INTRO;
         } else {
             showFeedback("Incorrect! The he's is getting away!", UITheme.ACCENT_RED);
 
-            BurglarSoundManager.play(BurglarSoundManager.SFX_ERROR);
+            SoundManager.play(SoundManager.SFX_ERROR);
             shakeEffect();
             repaint();
             
@@ -335,7 +333,6 @@ private Screen currentScreen = Screen.INTRO;
        // 1. Mark as completed in the global state
        Game.getInstance().setBurgularCompleted(true); // This enables the "OK" badge on the map
     
-
        // 2. Play a win sound or show a "Mission Accomplished" screen
        // BurglarSoundManager.play(BurglarSoundManager.SFX_WIN);
 
@@ -348,79 +345,75 @@ private Screen currentScreen = Screen.INTRO;
     private void refreshGame() {
         waitingForNext = false;
         computeTilePositions();
-        speakWord();
         repaint();
     }
+    
+    
+//private void gameComplete() {
+//    SoundManager.stopMusic(); // Stop game music
+//    stopAll();                // Stop animation timers
+//    
+//    // 1. Show the "Success" feedback on the game screen
+//    showFeedback("Hero caught the burglar! Mission Complete!", UITheme.ACCENT_TEAL);
+//    SoundManager.play(SoundManager.SFX_LEVEL_COMPLETE); //
+//    Game.getInstance().setBurgularCompleted(true); 
+//
+//    // 2. Wait 1.5 seconds so the user can actually see the feedback message
+//    new Timer(1500, e -> {
+//       showResultDialog(true);
+//       ((Timer)e.getSource()).stop();
+//    }).start();
+//    
+//    repaint();
+//}
 
-    private void gameComplete() {
-        // 1. Mark as completed in the global singleton
-        Game.getInstance().setBurgularCompleted(true); 
+    private void chaseComplete() {
+        showFeedback("You caught the burglar! City safe!", UITheme.ACCENT_TEAL);
+        SoundManager.play(SoundManager.SFX_LEVEL_COMPLETE);
+        Game.getInstance().setBurgularCompleted(true);
+        currentScreen = BurglarGamePanel.Screen.WIN;
 
-//        showFeedback("Hero caught the burglar! Mission Complete!", UITheme.ACCENT_TEAL);
-        BurglarSoundManager.play(BurglarSoundManager.SFX_LEVEL_COMPLETE);
-
-        new Timer(3000, e -> {
-            showResultDialog(true);
+        feedbackTimer.start();
+        new Timer(5000, e -> {
+            showResultDialog();
             ((Timer)e.getSource()).stop();
         }).start();
     }
     
-    private void gameFailed() {
-        showFeedback("The burglar escaped! Game Over!", UITheme.ACCENT_RED);
-        BurglarSoundManager.play(BurglarSoundManager.SFX_ERROR);
-        
-        new Timer(3000, e -> {
-            showResultDialog(false);
-            ((Timer)e.getSource()).stop();
-        }).start();
-    }
-    
-    private void showResultDialog(boolean won) {
-       BurglarSoundManager.stopMusic();
-        stopAll();
-        
-        String title = won ? "Victory!" : "Game Over!";
-        String message = "<html><div style='font-size:14px;text-align:center;padding:10px'>"
-            + "<b>" + title + "</b><br><br>"
+    private void showResultDialog() {
+        // FIX 3c: stop music immediately before dialog and before navigating
+        SoundManager.stopMusic();
+        stopAll();  // stop all timers too so nothing runs in background
+        JOptionPane.showMessageDialog(this,
+            "<html><div style='font-size:14px;text-align:center;padding:10px'>"
+            + "<b>Vicotry!</b><br><br>"
             + "Score: <b>" + model.getTotalScore() + "</b><br>"
-            + "Words completed: " + model.getWordsCompleted()  + "<br>"
             + "Wrong attempts: " + model.getIncorrectAttempts()
-            + "</div></html>";
-        
-        JOptionPane.showMessageDialog(this, message, title, JOptionPane.PLAIN_MESSAGE);
+            + "</div></html>",
+            "Mission Complete!", JOptionPane.PLAIN_MESSAGE);
         Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
     }
     
-    private void speakWord() {
-        BurglarGameModel.WordQuestion q = model.getCurrentQuestion();
-        if (q == null) return;
-        
-        // Speak the word with missing letters as blanks
-        String speakText = q.displayWord.replace('_', '?');
-        
-        new Thread(() -> {
-            try {
-                String os = System.getProperty("os.name", "").toLowerCase();
-                
-                if (os.contains("mac")) {
-                    new ProcessBuilder("say", "-v", "Alex", "-r", "110", 
-                        "Spell the word: " + speakText).start().waitFor();
-                } else if (os.contains("win")) {
-                    String ps = "Add-Type -AssemblyName System.Speech;"
-                              + "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;"
-                              + "$s.Rate = -2;"
-                              + "$s.Volume = 100;"
-                              + "$s.Speak('Spell the word: " + speakText.replace("'", "") + "');";
-                    new ProcessBuilder("powershell", "-Command", ps).start().waitFor();
-                } else {
-                    new ProcessBuilder("espeak", "-s", "120", "-a", "200", 
-                        "Spell the word: " + speakText).start().waitFor();
-                }
-            } catch (Exception e) {
-                System.out.println("[Burglar] TTS not available: " + e.getMessage());
-            }
-        }, "tts-thread").start();
-    }
+    
+    private void gameFailed() {
+    SoundManager.stopMusic(); //
+    stopAll();                //
+    
+    // 1. Show "Failure" feedback
+    showFeedback("The burglar escaped! Game Over!", UITheme.ACCENT_RED);
+    SoundManager.play(SoundManager.SFX_ERROR); //
+    
+    // 2. Wait 1.5 seconds before showing the dialog
+    new Timer(1500, e -> {
+        showResultDialog();
+        ((Timer)e.getSource()).stop();
+    }).start();
+    
+    repaint();
+}
+    
+    // TTS removed — only CatGamePanel uses TTS
+
     
     private void showFeedback(String msg, Color c) {
         feedbackMsg = msg;
@@ -646,7 +639,7 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
         int btnW = 260, btnH = 58;
         int btnX = W / 2 - btnW / 2;
         int btnY = cardY + cardH - btnH - 20;
-        paintClickBox(g2, btnX, btnY, btnW, btnH, "Start Rescue!", UITheme.FONT_HEADING,
+        paintClickBox(g2, btnX, btnY, btnW, btnH, "Start chase!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_rescue");
     }
     
@@ -813,21 +806,9 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
     }
     
     private void paintBackButton(Graphics2D g2) {
-        int btnSize = 56;
         int panelX = 14;
         int x = 14;
-        int y = 12;
-        
-//        if (imgBack != null) {
-//            int pad = 6;
-//            g2.drawImage(imgBack,
-//                    x + pad + (btnSize - pad * 2), y + pad,
-//                    x + pad, y + pad + (btnSize - pad * 2),
-//                    0, 0, imgBack.getWidth(), imgBack.getHeight(), null);
-//        }
-//        clickZones.put("back_btn", new Rectangle(x, y, btnSize, btnSize));
-        
-                        
+        int y = 12;             
  
         // NEW CHANGE B: replace banner with outer_box "Back" button
         // Uses only the outer_box.png image (top + bottom strips, centre filled)
@@ -1024,7 +1005,7 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
                 // Button clicks
                 Rectangle back = clickZones.get("back_btn");
                 if (back != null && back.contains(mx, my) && !isDragging) {
-                    BurglarSoundManager.stopMusic();
+                    SoundManager.stopMusic();
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
                 }
@@ -1049,13 +1030,13 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
                 
                 if (!dragFromArr && inBox) {
                     // Available tile dropped into word box
-                    BurglarSoundManager.play(BurglarSoundManager.SFX_TILE_CLICK);
+                    SoundManager.play(SoundManager.SFX_TILE_CLICK);
                     model.selectLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
                 } else if (dragFromArr && !inBox) {
                     // Arrangement tile dragged out
-                    BurglarSoundManager.play(BurglarSoundManager.SFX_TILE_CLICK);
+                    SoundManager.play(SoundManager.SFX_TILE_CLICK);
                     model.removeLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
@@ -1157,8 +1138,8 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
 
     
     private void startGame() {
-    BurglarSoundManager.play(BurglarSoundManager.SFX_GAME_START);
-    BurglarSoundManager.startMusic();
+    SoundManager.play(SoundManager.SFX_GAME_START);
+    SoundManager.startMusic(SoundManager.BGM_BACKGROUND);
     
     currentScreen = Screen.GAME;
         // Show instruction dialog

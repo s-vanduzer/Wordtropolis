@@ -5,6 +5,7 @@ import com.cs4474.wordtropolis.model.Game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -48,10 +49,8 @@ public class TeacherPagePanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
-            // Draw background image
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-            // Draw dark opacity layer (grey/black with 60% opacity)
-            g.setColor(new Color(0, 0, 0, 150)); // RGBA: black with 150/255 opacity
+            g.setColor(new Color(0, 0, 0, 150));
             g.fillRect(0, 0, getWidth(), getHeight());
         } else {
             setBackground(UITheme.BG_DARK);
@@ -77,6 +76,65 @@ public class TeacherPagePanel extends JPanel {
         syncToGame();
     }
 
+    // Helper method to create rounded buttons
+    private JButton createStyledButton(String text, Color bgColor, Color hoverColor, Color textColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                
+                g2d.setColor(getBackground());
+                g2d.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
+                
+                
+                g2d.setColor(new Color(0x0F4D58));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.draw(new RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 15, 15));
+                
+                
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                String btnText = getText();
+                int textWidth = fm.stringWidth(btnText);
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2d.setColor(getForeground());
+                g2d.drawString(btnText, x, y);
+                
+                g2d.dispose();
+            }
+            
+            @Override
+            protected void paintBorder(Graphics g) {
+               
+            }
+        };
+        
+        button.setFont(UITheme.FONT_BUTTON);
+        button.setForeground(textColor);
+        button.setBackground(bgColor);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverColor);
+                button.repaint();
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+                button.repaint();
+            }
+        });
+        
+        return button;
+    }
+
     private void buildUI() {
         // ── Header with Centered Wordtropolis Title and Teacher Title ──────────
         JPanel headerPanel = new JPanel();
@@ -84,7 +142,6 @@ public class TeacherPagePanel extends JPanel {
         headerPanel.setOpaque(false);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
-        // Wordtropolis Title Image (centered, larger)
         JLabel wordtropolisTitle = new JLabel();
         try {
             ImageIcon titleIcon = new ImageIcon(getClass().getResource("/images/general/wordtropiatitle2.png"));
@@ -99,7 +156,6 @@ public class TeacherPagePanel extends JPanel {
         headerPanel.add(wordtropolisTitle);
         headerPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
-        // Teacher Custom Word List Title (yellow with stroke, centered)
         JLabel teacherTitle = new JLabel("Teacher Custom Word List") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -136,7 +192,7 @@ public class TeacherPagePanel extends JPanel {
         
         add(headerPanel, BorderLayout.NORTH);
 
-        // ── Centre: list + input (made smaller to push buttons up) ────────────
+        // ── Centre: list + input ─────────────────────────────────────────────
         JPanel centre = new JPanel(new BorderLayout(8, 8));
         centre.setOpaque(false);
 
@@ -152,7 +208,7 @@ public class TeacherPagePanel extends JPanel {
         scroll.setPreferredSize(new Dimension(500, 120));
         centre.add(scroll, BorderLayout.CENTER);
 
-        // Input row
+        
         JPanel inputRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 4));
         inputRow.setOpaque(false);
 
@@ -166,15 +222,18 @@ public class TeacherPagePanel extends JPanel {
                 BorderFactory.createEmptyBorder(4, 8, 4, 8)));
         wordInput.addActionListener(e -> addWord());
 
-        JButton addBtn    = UITheme.makeSuccessButton("+ Add");
+        
+        JButton addBtn = createStyledButton("+ Add", new Color(0x4CAF50), new Color(0x66BB6A), Color.WHITE);
         addBtn.setPreferredSize(new Dimension(110, 35));
         addBtn.addActionListener(e -> addWord());
 
-        JButton removeBtn = UITheme.makeDangerButton("Remove");
+       
+        JButton removeBtn = createStyledButton("Remove", new Color(0xFF6B6B), new Color(0xFF8888), Color.WHITE);
         removeBtn.setPreferredSize(new Dimension(110, 35));
         removeBtn.addActionListener(e -> removeWord());
 
-        JButton clearBtn  = UITheme.makeSecondaryButton("Clear All");
+        
+        JButton clearBtn = createStyledButton("Clear All", new Color(0x4A4A4A), new Color(0x6A6A6A), Color.WHITE);
         clearBtn.setPreferredSize(new Dimension(110, 35));
         clearBtn.addActionListener(e -> { wordListModel.clear(); syncToGame(); duplicateWarningLabel.setText(" "); });
 
@@ -186,7 +245,7 @@ public class TeacherPagePanel extends JPanel {
 
         add(centre, BorderLayout.CENTER);
 
-        // ── Bottom: duplicate warning + status + nav (buttons moved way up) ────
+        // ── Bottom: duplicate warning + status + nav ──────────────────────────
         JPanel bottom = new JPanel(new BorderLayout(0, 4));
         bottom.setOpaque(false);
         bottom.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
@@ -204,11 +263,13 @@ public class TeacherPagePanel extends JPanel {
         JPanel navRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 0));
         navRow.setOpaque(false);
 
-        JButton backBtn = UITheme.makeSecondaryButton("Back");
+        // Back button - Grey
+        JButton backBtn = createStyledButton("Back", new Color(0x4A4A4A), new Color(0x6A6A6A), Color.WHITE);
         backBtn.setPreferredSize(new Dimension(160, 40));
         backBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_START));
 
-        JButton saveBtn = UITheme.makePrimaryButton("Save & Return");
+        // Save & Return button - Yellow
+        JButton saveBtn = createStyledButton("Save & Return", new Color(0xECCB2D), new Color(0xFFD700), new Color(0x5D4E37));
         saveBtn.setPreferredSize(new Dimension(200, 40));
         saveBtn.addActionListener(e -> {
             syncToGame();
@@ -258,7 +319,7 @@ public class TeacherPagePanel extends JPanel {
         }
         String removed = wordListModel.remove(idx);
         syncToGame();
-        status("Removed: " + removed, UITheme.ACCENT_YELLOW);
+        status("Removed: " + removed, Color.RED);
     }
 
     private void syncToGame() {
@@ -272,5 +333,8 @@ public class TeacherPagePanel extends JPanel {
     private void status(String msg, Color color) {
         statusLabel.setText(msg);
         statusLabel.setForeground(color);
+        Timer timer = new Timer(2000, e -> statusLabel.setText(" "));
+        timer.setRepeats(false);
+        timer.start();
     }
 }

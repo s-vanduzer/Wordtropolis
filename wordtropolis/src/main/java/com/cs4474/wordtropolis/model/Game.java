@@ -144,6 +144,10 @@ public class Game {
 
     public boolean isBridgeCompleted()                   { return bridgeCompleted; }
     public void    setBridgeCompleted(boolean v)         { this.bridgeCompleted = v; }
+    
+    public List<String> getMisspelledWordList() {
+    return misspelledWorldList != null ? new ArrayList<>(misspelledWorldList) : new ArrayList<>();
+}
 
     public boolean allActivitiesCompleted() {
         return catCompleted && burgularCompleted && fireCompleted && bridgeCompleted;
