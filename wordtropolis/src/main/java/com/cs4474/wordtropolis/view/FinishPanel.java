@@ -5,6 +5,7 @@ import com.cs4474.wordtropolis.model.Game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -79,6 +80,65 @@ public class FinishPanel extends JPanel implements Refreshable {
         }
     }
 
+   
+    private JButton createRoundedButton(String text, Color bgColor, Color hoverColor, Color textColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Draw rounded background
+                g2d.setColor(getBackground());
+                g2d.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
+                
+                // Draw border
+                g2d.setColor(new Color(0x0F4D58));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.draw(new RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 15, 15));
+                
+                // Draw text
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                String btnText = getText();
+                int textWidth = fm.stringWidth(btnText);
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2d.setColor(getForeground());
+                g2d.drawString(btnText, x, y);
+                
+                g2d.dispose();
+            }
+            
+            @Override
+            protected void paintBorder(Graphics g) {
+                // Empty
+            }
+        };
+        
+        button.setFont(UITheme.FONT_BUTTON);
+        button.setForeground(textColor);
+        button.setBackground(bgColor);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverColor);
+                button.repaint();
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+                button.repaint();
+            }
+        });
+        
+        return button;
+    }
+
     private void buildUI() {
         int W = 920, H = 700;
 
@@ -88,7 +148,7 @@ public class FinishPanel extends JPanel implements Refreshable {
         background.setLayout(null);
         add(background);
 
-        // ── Clouds (same as StartPagePanel) ────────────────────────────────────
+        // ── Clouds ─────────────────────────────────────────────────────────────
         if (cloudImage != null) {
             Image cloudScaled = cloudImage.getScaledInstance(360, 190, Image.SCALE_SMOOTH);
             ImageIcon cloudImg = new ImageIcon(cloudScaled);
@@ -102,7 +162,7 @@ public class FinishPanel extends JPanel implements Refreshable {
             background.add(cloudB);
         }
 
-        // ── Wordtropolis Title Image (big and centered at the top) ─────────────
+        // ── Wordtropolis Title Image ──────────────────────────────────────────
         titleLabel = new JLabel();
         try {
             ImageIcon titleIcon = new ImageIcon(getClass().getResource("/images/general/wordtropiatitle2.png"));
@@ -119,7 +179,7 @@ public class FinishPanel extends JPanel implements Refreshable {
         titleLabel.setBounds(titleX, 40, titleWidth, titleHeight);
         background.add(titleLabel);
 
-        // ── Trophy Image (bigger) ──────────────────────────────────────────────
+        // ── Trophy Image ───────────────────────────────────────────────────────
         JLabel trophyLabel = new JLabel();
         if (trophyImage != null) {
             Image scaledTrophy = trophyImage.getScaledInstance(160, 160, Image.SCALE_SMOOTH);
@@ -135,7 +195,7 @@ public class FinishPanel extends JPanel implements Refreshable {
         trophyLabel.setBounds(trophyX, 200, trophyWidth, trophyHeight);
         background.add(trophyLabel);
 
-        // ── Game Over Text (yellow with stroke) ────────────────────────────────
+        // ── Game Over Text ─────────────────────────────────────────────────────
         JLabel gameOverLabel = new JLabel("GAME OVER") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -169,7 +229,7 @@ public class FinishPanel extends JPanel implements Refreshable {
         gameOverLabel.setBounds(0, 370, W, 40);
         background.add(gameOverLabel);
 
-        // ── Victory Message (yellow with stroke) ───────────────────────────────
+        // ── Victory Message ────────────────────────────────────────────────────
         JLabel messageLabel = new JLabel("You are a true Spelling Hero!") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -275,52 +335,25 @@ public class FinishPanel extends JPanel implements Refreshable {
         scoreLabel.setBounds(0, 510, W, 30);
         background.add(scoreLabel);
 
-        // ── Buttons (Yellow background, white text, at the bottom) ──────────────
-        // Exit Button
-        JButton exitBtn = new JButton("Exit");
-        exitBtn.setFont(UITheme.FONT_BUTTON);
-        exitBtn.setForeground(Color.WHITE);
-        exitBtn.setBackground(new Color(0xECCB2D));
-        exitBtn.setFocusPainted(false);
-        exitBtn.setBorder(BorderFactory.createLineBorder(new Color(0x0F4D58), 2));
-        exitBtn.setBounds(300, 580, 130, 50);
-        exitBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        exitBtn.addActionListener(e -> System.exit(0));
         
-        exitBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                exitBtn.setBackground(new Color(0xFFD700));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                exitBtn.setBackground(new Color(0xECCB2D));
-            }
-        });
+        JButton exitBtn = createRoundedButton("Exit", new Color(0x4A4A4A), new Color(0x6A6A6A), Color.WHITE);
+        exitBtn.setBounds(300, 580, 130, 50);
+        exitBtn.addActionListener(e -> System.exit(0));
 
-        // Play Again Button
-        JButton replayBtn = new JButton("Play Again");
-        replayBtn.setFont(UITheme.FONT_BUTTON);
-        replayBtn.setForeground(Color.WHITE);
-        replayBtn.setBackground(new Color(0xECCB2D));
-        replayBtn.setFocusPainted(false);
-        replayBtn.setBorder(BorderFactory.createLineBorder(new Color(0x0F4D58), 2));
+        JButton replayBtn = createRoundedButton("Play Again", new Color(0xECCB2D), new Color(0xFFD700), Color.WHITE);
         replayBtn.setBounds(490, 580, 170, 50);
-        replayBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         replayBtn.addActionListener(e -> {
             Game.resetInstance();
             Wordtropolis.showScreen(Wordtropolis.SCREEN_START);
         });
-        
-        replayBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                replayBtn.setBackground(new Color(0xFFD700));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                replayBtn.setBackground(new Color(0xECCB2D));
-            }
-        });
 
         background.add(exitBtn);
         background.add(replayBtn);
+        
+       // the clouds
+        if (cloudB != null) {
+            background.setComponentZOrder(cloudB, background.getComponentCount() - 1);
+        }
     }
 
     private void startCloudAnimation() {
