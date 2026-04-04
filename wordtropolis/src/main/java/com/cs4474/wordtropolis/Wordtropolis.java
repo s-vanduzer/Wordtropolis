@@ -89,7 +89,7 @@ public class Wordtropolis {
         register(new MapPagePanel(),      SCREEN_MAP);
         register(new CatGamePanel(),      SCREEN_CAT_GAME);
         register(new PlaceholderPanel("Fire Rescue\nComing Soon!", new Color(0xFF6B35)), SCREEN_FIRE_GAME);
-        register(new PlaceholderPanel("Fix the Bridge\nComing Soon!", new Color(0x118AB2)), SCREEN_BRIDGE_GAME);
+        register(new BrokenBridgeGamePanel(), SCREEN_BRIDGE_GAME);
         register(new BurglarGamePanel(),  SCREEN_BURGLAR_GAME);
         register(new PlaceholderPanel("Final Boss Fight\nComing Soon!", new Color(0xC0392B)), SCREEN_BOSS_GAME);
         register(new FinishPanel(),       SCREEN_FINISH);
