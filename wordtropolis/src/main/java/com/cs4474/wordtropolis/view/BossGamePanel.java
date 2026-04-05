@@ -93,7 +93,7 @@ public class BossGamePanel extends JPanel {
     private Timer   windTimer;
 
     // ── Countdown timer ───────────────────────────────────────────────────────
-    private static final int T_EASY = 60, T_MEDIUM = 45, T_HARD = 30, T_WARN = 10;
+    private static final int T_EASY = 30, T_MEDIUM = 25, T_HARD = 15, T_WARN = 10;
     private int   timeLeft = T_EASY;
     private boolean warnPlayed = false;
     private Timer countdownTimer;
@@ -378,7 +378,7 @@ private void startCountdown() {
 private void startHintTimer() {
     if (hintTimer != null) hintTimer.stop();
     
-    hintTimer = new Timer(3000, new ActionListener() {
+    hintTimer = new Timer(2000, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (hintModeActive && model.isHintModeActive()) {
@@ -1097,7 +1097,7 @@ private void battleComplete(boolean victory) {
     }
     
     System.out.println("\n▶ PHASE 1C - Final Battle Words (harder difficulty):");
-    String[] finalWords = {"EARTHQUAKE", "TSUNAMI", "VOLCANO", "HURRICANE", "TYPHOON"};
+    String[] finalWords = {"LASER", "BUILD", "LEVEL", "BLUE", "LETTER"};
     for (int i = 0; i < finalWords.length; i++) {
         System.out.printf("   %2d. %s%n", i+1, finalWords[i]);
     }
@@ -1374,7 +1374,7 @@ private void paintTimerBar(Graphics2D g2, int W) {
         g2.fillRect(0, H/2 - 40, W, 80);
         g2.setFont(UITheme.FONT_HEADING);
         g2.setColor(UITheme.TEXT_BRIGHT);
-        drawCentredString(g2, "CAT RESCUED!", W/2, H/2 + 8);
+        drawCentredString(g2, "City is safe!", W/2, H/2 + 8);
     }
 
     // ── Feedback message ──────────────────────────────────────────────────────

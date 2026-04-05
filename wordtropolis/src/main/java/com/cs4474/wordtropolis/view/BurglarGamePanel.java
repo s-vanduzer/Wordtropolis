@@ -222,7 +222,7 @@ private Screen currentScreen = Screen.INTRO;
                 for (int i = 0; i < model.getAvailableLetters().size(); i++) {
                     if (model.getAvailableLetters().get(i) == key) {
                         model.selectLetter(i);
-                        SoundManager.play(SoundManager.SFX_TILE_CLICK);
+                        SoundManager.playConditional(SoundManager.SFX_TILE_CLICK,  SoundManager.GameActivity.BURGLAR_GAME);
                         triggerSparkle(getWidth() / 2, getHeight() / 2 - 60);
                         computeTilePositions();
                         repaint();
@@ -231,7 +231,7 @@ private Screen currentScreen = Screen.INTRO;
                 }
                 
                 // Letter not available
-                SoundManager.play(SoundManager.SFX_ERROR);
+                SoundManager.playConditional(SoundManager.SFX_ERROR,  SoundManager.GameActivity.BURGLAR_GAME);
                 showFeedback("'" + key + "' is not available!", UITheme.ACCENT_RED);
                 shakeEffect();
             }
@@ -243,7 +243,7 @@ private Screen currentScreen = Screen.INTRO;
                 int c = e.getKeyCode();
                 if (c == KeyEvent.VK_BACK_SPACE && model.getPlayerArrangement().size() > 0) {
                     model.removeLetter(model.getPlayerArrangement().size() - 1);
-                    SoundManager.play(SoundManager.SFX_TILE_CLICK);
+                    SoundManager.playConditional(SoundManager.SFX_TILE_CLICK,  SoundManager.GameActivity.BURGLAR_GAME);
                     computeTilePositions();
                     repaint();
                 } else if (c == KeyEvent.VK_ENTER) {
@@ -373,7 +373,7 @@ private Screen currentScreen = Screen.INTRO;
 
     private void chaseComplete() {
         showFeedback("You caught the burglar! City safe!", UITheme.ACCENT_TEAL);
-        SoundManager.play(SoundManager.SFX_LEVEL_COMPLETE);
+        SoundManager.playConditional(SoundManager.SFX_LEVEL_COMPLETE, SoundManager.GameActivity.BURGLAR_GAME);
         Game.getInstance().setBurgularCompleted(true);
         currentScreen = BurglarGamePanel.Screen.WIN;
 
@@ -405,7 +405,7 @@ private Screen currentScreen = Screen.INTRO;
     
     // 1. Show "Failure" feedback
     showFeedback("The burglar escaped! Game Over!", UITheme.ACCENT_RED);
-    SoundManager.play(SoundManager.SFX_ERROR); //
+    SoundManager.playConditional(SoundManager.SFX_ERROR, SoundManager.GameActivity.BURGLAR_GAME); //
     
     // 2. Wait 1.5 seconds before showing the dialog
     new Timer(1500, e -> {
@@ -482,8 +482,8 @@ super.paintComponent(g);
         // 8. Back button
         paintBackButton(g2);
         
-        // 9. Check button
-        paintCheckButton(g2, W, H);
+//        // 9. Check button
+//        paintCheckButton(g2, W, H);
         
         // 10. Feedback message
         if (!feedbackMsg.isEmpty()) paintFeedback(g2, W, H);
@@ -680,6 +680,24 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
         drawCentredString(g2, text, x + w/2, y + h/2 + 5);
         clickZones.put(zoneId, new Rectangle(x, y, w, h));
     }
+            
+    private void paintIconBox(Graphics2D g2, int x, int y, int size,
+                               BufferedImage icon, String zoneId) {
+        // No outer_box background — draw icon directly
+        if (icon != null) {
+            int pad = 6;
+            if ("back_btn".equals(zoneId)) {
+                // Mirror horizontally so the arrow points LEFT
+                g2.drawImage(icon,
+                        x + pad + (size - pad * 2), y + pad,
+                        x + pad,                    y + pad + (size - pad * 2),
+                        0, 0, icon.getWidth(), icon.getHeight(), null);
+            } else {
+                g2.drawImage(icon, x + pad, y + pad, size - pad * 2, size - pad * 2, null);
+            }
+        }
+        clickZones.put(zoneId, new Rectangle(x, y, size, size));
+    }
 
     private void drawCentredString(Graphics2D g2, String s, int cx, int cy) {
         FontMetrics fm = g2.getFontMetrics();
@@ -699,9 +717,22 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
         int boxH = slotSize + boxPad;
         int boxX = (W - boxW) / 2;
         int boxY = 200;
+        int btnSize = 56;
+        int backY   = boxY + boxH/2 - btnSize/2;
+        int backX   = boxX - btnSize - 10;
+        int checkX  = boxX + boxW + 10;
+        int checkY  = backY;
+        
         
         // Draw outer box container
         paintOuterBox(g2, boxX, boxY, boxW, boxH);
+        
+         // ── Check (submit) button to the RIGHT of the box ─────────────────────
+        
+        paintIconBox(g2, checkX, checkY, btnSize, imgCheck, "check_btn");
+        
+        // ── Back (reset) button to the LEFT of the box ─────────────────────
+        paintIconBox(g2, backX, backY, btnSize, imgBack, "back_btn");
         
         // Draw each character slot
         int slotStartX = boxX + boxPad;
@@ -819,20 +850,9 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
         // Clicking it returns the player to the map screen
         int backBtnW = 120, backBtnH = 40;
         paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
-        clickZones.put("back_btn", new Rectangle(x, y, backBtnW, backBtnW));
+        clickZones.put("back_to_map", new Rectangle(x, y, backBtnW, backBtnW));
     }
     
-    private void paintCheckButton(Graphics2D g2, int W, int H) {
-        int btnSize = 56;
-        int x = W - btnSize - 14;
-        int y = H - btnSize - 80;
-        
-        if (imgCheck != null) {
-            int pad = 6;
-            g2.drawImage(imgCheck, x + pad, y + pad, btnSize - pad * 2, btnSize - pad * 2, null);
-        }
-        clickZones.put("check_btn", new Rectangle(x, y, btnSize, btnSize));
-    }
     
     private void paintSparkle(Graphics2D g2) {
         if (imgSparkle == null || !showSparkle) return;
@@ -1006,11 +1026,22 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
             public void mouseReleased(java.awt.event.MouseEvent e) {
                 int mx = e.getX(), my = e.getY();
                 
-                // Button clicks
-                Rectangle back = clickZones.get("back_btn");
-                if (back != null && back.contains(mx, my) && !isDragging) {
+                
+                // Named zone clicks (always checked, even without dragging)
+                Rectangle backToMap = clickZones.get("back_to_map");
+                if (backToMap != null && backToMap.contains(mx, my) && !isDragging) {
                     SoundManager.stopMusic();
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
+                    return;
+                }
+                // Button clicks
+                if (!isDragging) {
+                    Rectangle check = clickZones.get("check_btn");
+                    if (check != null && check.contains(mx, my)) { handleSubmit(); return; }
+                    Rectangle back = clickZones.get("back_btn");
+                    if (back != null && back.contains(mx, my)) {
+                        model.clearArrangement(); computeTilePositions(); repaint(); return;
+                    }
                     return;
                 }
                 
@@ -1034,13 +1065,13 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
                 
                 if (!dragFromArr && inBox) {
                     // Available tile dropped into word box
-                    SoundManager.play(SoundManager.SFX_TILE_CLICK);
+                    SoundManager.playConditional(SoundManager.SFX_TILE_CLICK, SoundManager.GameActivity.BURGLAR_GAME);
                     model.selectLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
                 } else if (dragFromArr && !inBox) {
                     // Arrangement tile dragged out
-                    SoundManager.play(SoundManager.SFX_TILE_CLICK);
+                    SoundManager.playConditional(SoundManager.SFX_TILE_CLICK,  SoundManager.GameActivity.BURGLAR_GAME);
                     model.removeLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
@@ -1142,7 +1173,7 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
 
     
     private void startGame() {
-    SoundManager.play(SoundManager.SFX_GAME_START);
+    SoundManager.playConditional(SoundManager.SFX_GAME_START,  SoundManager.GameActivity.BURGLAR_GAME);
     SoundManager.startMusic(SoundManager.BGM_BACKGROUND);
     
     currentScreen = Screen.GAME;
