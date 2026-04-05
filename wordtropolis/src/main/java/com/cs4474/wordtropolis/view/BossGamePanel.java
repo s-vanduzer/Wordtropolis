@@ -235,11 +235,11 @@ public class BossGamePanel extends JPanel {
                 if (key == KeyEvent.CHAR_UNDEFINED || key < 32) return;
                 switch (model.typeKey(key)) {
                     case TYPED_OK:
-                        SoundManager.play(SoundManager.CAT_TILE_CLICK);
+                        SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.BOSS_GAME);
                         triggerSparkle(getWidth()/2, getHeight()/2 - 60);
                         repaint(); break;
                     case TYPED_NOT_AVAILABLE:
-                        SoundManager.play(SoundManager.CAT_ERROR);
+                        SoundManager.playConditional(SoundManager.CAT_ERROR, SoundManager.GameActivity.BOSS_GAME);
                         shakeEffect();
                         showFeedback("'" + Character.toUpperCase(key) + "' is not available!", UITheme.ACCENT_RED); break;
                     case TYPED_FULL:
@@ -250,7 +250,8 @@ public class BossGamePanel extends JPanel {
                 if (currentScreen != Screen.GAME || waitingForNext) return;
                 int c = e.getKeyCode();
                 if (c == KeyEvent.VK_BACK_SPACE && model.backspace()) {
-                    SoundManager.play(SoundManager.CAT_TILE_CLICK); repaint();
+                    SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.BOSS_GAME);
+                    repaint();
                 } else if (c == KeyEvent.VK_ENTER) {
                     handleSubmit();
                 } else if (c == KeyEvent.VK_ESCAPE) {
@@ -331,7 +332,7 @@ private void startCountdown() {
                                         UITheme.ACCENT_YELLOW);
                         }
                         
-                        SoundManager.play(SoundManager.BOSS_TIMER_TICKING);
+                        SoundManager.playConditional(SoundManager.BOSS_TIMER_TICKING, SoundManager.GameActivity.BOSS_GAME);
                         
                         // Hero takes damage for timeout
                         // You can add this line if you want timeout to hurt
@@ -357,9 +358,9 @@ private void startCountdown() {
                 startHintTimer();
                 showFeedback("HINT MODE ACTIVATED! Letters will auto-fill!", 
                             new Color(252, 201, 0));
-                SoundManager.play(SoundManager.BOSS_HINT_ACTIVATE);
+                SoundManager.playConditional(SoundManager.BOSS_HINT_ACTIVATE, SoundManager.GameActivity.BOSS_GAME);
             } else if (timeLeft == T_WARN && !warnPlayed) {
-                SoundManager.play(SoundManager.BOSS_TIMER_TICKING);
+                SoundManager.playConditional(SoundManager.BOSS_TIMER_TICKING, SoundManager.GameActivity.BOSS_GAME);
                 warnPlayed = true;
                 showFeedback("Hurry! Hint mode activates at 10 seconds!", 
                             UITheme.ACCENT_YELLOW);
@@ -392,7 +393,7 @@ private void startHintTimer() {
                 model.updateHint();
                 
                 // Play hint sound effect
-                SoundManager.play(SoundManager.BOSS_HINT_PLACE);
+                SoundManager.playConditional(SoundManager.BOSS_HINT_PLACE, SoundManager.GameActivity.BOSS_GAME);
                 
                 // Show visual feedback
                 triggerHintGlow();
@@ -405,7 +406,7 @@ private void startHintTimer() {
                 if (model.isWordAutoCompleted()) {
                     showFeedback("Word auto-completed! This will count as incorrect!", 
                                 new Color(255, 100, 100));
-                    SoundManager.play(SoundManager.CAT_ERROR);
+                    SoundManager.playConditional(SoundManager.CAT_ERROR, SoundManager.GameActivity.BOSS_GAME);
                     if (hintTimer != null) hintTimer.stop();
                     
                     // Auto-submit after a short delay
@@ -511,7 +512,7 @@ private void paintLetterTile(Graphics2D g2, int x, int y, int size,
 
     private void heroTimeOut() {
         showFeedback("Time's up! Hero takes damage!", UITheme.ACCENT_RED);
-        SoundManager.play(SoundManager.BOSS_HERO_HURT);
+        SoundManager.playConditional(SoundManager.BOSS_HERO_HURT, SoundManager.GameActivity.BOSS_GAME);
         // Apply timeout penalty here
         if (model.getHeroHealth() <= 0) {
             battleComplete(false);
@@ -528,7 +529,7 @@ private void paintLetterTile(Graphics2D g2, int x, int y, int size,
         // FIX 3a: play wind sound every time tile drifting starts
         int prevVol = SoundManager.getSfxVolume();
         SoundManager.setSfxVolume(30);                           // quiet wind
-        SoundManager.playFrom(SoundManager.CAT_WIND, 0.0, 1.5);
+        SoundManager.playFromConditional(SoundManager.CAT_WIND, 0.0, 1.5, SoundManager.GameActivity.BOSS_GAME);
         SoundManager.setSfxVolume(prevVol);
 
         java.util.Random rand = new java.util.Random();
@@ -570,13 +571,13 @@ private void handleSubmit() {
         
         // Play appropriate sound
         if (result.newPhase == BattlePhase.PHASE_1B && result.effect.equals("SHIELD_ACTIVATED")) {
-            SoundManager.play(SoundManager.BOSS_SHIELD_ACTIVATE); // Add this sound
+            SoundManager.playConditional(SoundManager.BOSS_SHIELD_ACTIVATE, SoundManager.GameActivity.BOSS_GAME);
             showFeedback("Shield Activated! Break through to continue!", UITheme.ACCENT_TEAL);
         } else if (result.newPhase == BattlePhase.PHASE_1C) {
-            SoundManager.play(SoundManager.BOSS_SHIELD_BREAK); // Add this sound
+            SoundManager.playConditional(SoundManager.BOSS_SHIELD_BREAK, SoundManager.GameActivity.BOSS_GAME);
             showFeedback("Shield Broken! Final assault!", UITheme.ACCENT_TEAL);
         } else {
-            SoundManager.play(SoundManager.BOSS_ATTACK_HIT); // Add this sound
+            SoundManager.playConditional(SoundManager.BOSS_ATTACK_HIT, SoundManager.GameActivity.BOSS_GAME);
             showFeedback("Hit! Dealt " + result.damageDealt + " damage!", UITheme.ACCENT_TEAL);
         }
         
@@ -607,7 +608,7 @@ private void handleSubmit() {
     } else {
         // Incorrect answer - hero takes damage
         showFeedback("Misspelled! Hero took " + result.damageTaken + " damage!", UITheme.ACCENT_RED);
-        SoundManager.play(SoundManager.BOSS_HERO_HURT); // Add this sound
+        SoundManager.playConditional(SoundManager.BOSS_HERO_HURT, SoundManager.GameActivity.BOSS_GAME);
         triggerHeroHurtAnimation();
         
         if (result.heroDied) {
@@ -684,7 +685,7 @@ private void refreshGame() {
 
     private void rescueComplete() {
         showFeedback("Mission Complete!", UITheme.ACCENT_TEAL);
-        SoundManager.play(SoundManager.CAT_LEVEL_DONE);
+        SoundManager.playConditional(SoundManager.CAT_LEVEL_DONE, SoundManager.GameActivity.BOSS_GAME);
 //        Game.getInstance().setCatCompleted(true);
         currentScreen = Screen.RESCUE;
         catRescueY = 0.0f;   // start at bottom of tree, move upward
@@ -732,7 +733,7 @@ private void refreshGame() {
         // FIX 3b: play wind sound at the start of every shake/wrong-answer effect
         int prevVol = SoundManager.getSfxVolume();
         SoundManager.setSfxVolume(25);                           // very subtle wind
-        SoundManager.playFrom(SoundManager.CAT_WIND, 0.0, 0.8);
+        SoundManager.playFromConditional(SoundManager.CAT_WIND, 0.0, 0.8, SoundManager.GameActivity.CAT_GAME);
         SoundManager.setSfxVolume(prevVol);
 
         shakeTick = 0;
@@ -938,11 +939,11 @@ private void battleComplete(boolean victory) {
     
     if (victory) {
         showFeedback("VICTORY! Mayor Defeated!", UITheme.ACCENT_TEAL);
-        SoundManager.play(SoundManager.BOSS_VICTORY);
+        SoundManager.playConditional(SoundManager.BOSS_VICTORY, SoundManager.GameActivity.BOSS_GAME);
         Game.getInstance().setCatCompleted(true);
     } else {
         showFeedback("DEFEAT! Hero has fallen!", UITheme.ACCENT_RED);
-        SoundManager.play(SoundManager.BOSS_DEFEAT);
+        SoundManager.playConditional(SoundManager.BOSS_DEFEAT, SoundManager.GameActivity.BOSS_GAME);
     }
     
     new Timer(3000, e -> {
@@ -953,7 +954,7 @@ private void battleComplete(boolean victory) {
             + "Incorrect attempts: " + model.getIncorrectAttempts()
             + "</div></html>",
             victory ? "Battle Won!" : "Battle Lost", JOptionPane.PLAIN_MESSAGE);
-        Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
+        Wordtropolis.showScreen(Wordtropolis.SCREEN_FINISH);
         ((Timer)e.getSource()).stop();
     }).start();
 }
@@ -1646,6 +1647,7 @@ private void paintEmptySlot(Graphics2D g2, int x, int y, int size) {
                         if (backToMap != null && backToMap.contains(mx, my)) {
                             SoundManager.stopMusic();
                             Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
+                            //Wordtropolis.replaceScreen(Wordtropolis.SCREEN_MAP, new MapPagePanel());
                             return;
                         }
 
@@ -1684,13 +1686,13 @@ private void paintEmptySlot(Graphics2D g2, int x, int y, int size) {
 
                         if (!dragFromArr && inBox) {
                             // Available tile dropped into word box
-                            SoundManager.play(SoundManager.CAT_TILE_CLICK);
+                            SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.BOSS_GAME);
                             model.selectLetter(dragTileIndex);
                             computeTilePositions();
                             repaint();
                         } else if (dragFromArr && !inBox) {
                             // Arrangement tile dragged out
-                            SoundManager.play(SoundManager.CAT_TILE_CLICK);
+                            SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.BOSS_GAME);
                             model.removeLetter(dragTileIndex);
                             computeTilePositions();
                             repaint();
@@ -1803,7 +1805,7 @@ private void handleSkipWord() {
         model.addTimeoutWord(skippedWord);
         showFeedback("Skipped! '" + skippedWord + "' added to practice pool!", 
                     UITheme.ACCENT_YELLOW);
-        SoundManager.play(SoundManager.BOSS_TIMER_TICKING);
+        SoundManager.playConditional(SoundManager.BOSS_TIMER_TICKING, SoundManager.GameActivity.BOSS_GAME);
     }
     
     // Stop current timer
@@ -1827,7 +1829,7 @@ private void handleSkipWord() {
 }
 
     private void startGame() {
-        SoundManager.play(SoundManager.CAT_GAME_START);
+        SoundManager.playConditional(SoundManager.CAT_GAME_START, SoundManager.GameActivity.BOSS_GAME);
         // FIX 3d: music starts when user clicks Start Rescue — not before
         SoundManager.startMusic(SoundManager.BOSS_BGM);
         // Show instruction dialog

@@ -64,7 +64,7 @@ public class Wordtropolis {
 
         mainFrame = new JFrame("Wordtropolis – Save the City!");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setSize(920, 700);
+        mainFrame.setSize(920, 720);
         mainFrame.setMinimumSize(new Dimension(800, 600));
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setLayout(null); // Use null layout for absolute positioning
@@ -164,12 +164,43 @@ public class Wordtropolis {
     // ── Navigation API ────────────────────────────────────────────────────────
 
     public static void showScreen(String screenName) {
+        SoundManager.stopMusic();
         cardLayout.show(cardPanel, screenName);
+//        // Tell SoundManager which room we are in so it knows which sounds are allowed
+// Update the SoundManager state
+    if (screenName.equals(SCREEN_MAP)) {
+        SoundManager.setActivity(SoundManager.GameActivity.SCREEN_MAP);
+        SoundManager.stopMusic(); // Stop cat music when returning to map
+    } else if (screenName.equals(SCREEN_CAT_GAME)) {
+        SoundManager.setActivity(SoundManager.GameActivity.CAT_GAME);
+    }
+//        
+//        // Update the SoundManager activity based on the screen being shown
+//    switch (screenName) {
+//        case SCREEN_MAP:
+//            SoundManager.setActivity(SoundManager.GameActivity.SCREEN_MAP);
+//            break;
+//        case SCREEN_CAT_GAME:
+//            SoundManager.setActivity(SoundManager.GameActivity.CAT_GAME);
+//            break;
+//        case SCREEN_BURGLAR_GAME:
+//            SoundManager.setActivity(SoundManager.GameActivity.BURGLAR_GAME);
+//            break;
+//        case SCREEN_BOSS_GAME:
+//            SoundManager.setActivity(SoundManager.GameActivity.BOSS_GAME);
+//            break;
+//        default:
+//            // For start screens or transitions, you can default to MAP or a neutral state
+//            SoundManager.setActivity(SoundManager.GameActivity.SCREEN_MAP);
+//            break;
+//            
+//    }
         for (Component comp : cardPanel.getComponents()) {
             if (comp.isVisible() && comp instanceof Refreshable) {
                 ((Refreshable) comp).refresh();
             }
         }
+        
     }
 
     public static void replaceScreen(String screenName, JPanel newPanel) {
@@ -180,10 +211,23 @@ public class Wordtropolis {
             }
         }
         register(newPanel, screenName);
-        cardLayout.show(cardPanel, screenName);
-        cardPanel.revalidate();
-        cardPanel.repaint();
+// ADD THIS LINE HERE:
+    updateSoundActivity(screenName); 
+    
+    cardLayout.show(cardPanel, screenName);
+    cardPanel.revalidate();
+    cardPanel.repaint();
+}
+
+// Create this helper so you don't have to write the switch twice
+private static void updateSoundActivity(String screenName) {
+    switch (screenName) {
+        case SCREEN_CAT_GAME:     SoundManager.setActivity(SoundManager.GameActivity.CAT_GAME); break;
+        case SCREEN_BURGLAR_GAME: SoundManager.setActivity(SoundManager.GameActivity.BURGLAR_GAME); break;
+        case SCREEN_BOSS_GAME:    SoundManager.setActivity(SoundManager.GameActivity.BOSS_GAME); break;
+        case SCREEN_MAP:          SoundManager.setActivity(SoundManager.GameActivity.SCREEN_MAP); break;
     }
+}
 
     private static void register(JPanel panel, String key) {
         panel.setName(key);

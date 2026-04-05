@@ -92,7 +92,7 @@ public class Game {
     }
 }
     public void loadWordsForDifficulty() {
-    if (difficulty == null) difficulty = Difficulty.EASY;
+    if (difficulty == null) difficulty = Difficulty.HARD;
 
     switch (difficulty) {
         case EASY:
