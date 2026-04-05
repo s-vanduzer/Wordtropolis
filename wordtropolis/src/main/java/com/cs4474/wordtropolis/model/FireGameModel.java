@@ -36,7 +36,7 @@ public class FireGameModel {
     /**
      * Resets the game state.
      */
-    public void resetGame() {
+    public final void resetGame() {
         correctCount = 0;
         wrongCount = 0;
         pickNextWord();
