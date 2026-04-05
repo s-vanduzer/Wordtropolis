@@ -23,7 +23,7 @@ import java.util.Random;
  *
  * @author svand
  */
-public class FireGamePanel extends JPanel {
+public class FireGamePanel extends JPanel implements Refreshable {
 
     private enum Screen {
         INTRO, GAME, FINISH
@@ -48,6 +48,8 @@ public class FireGamePanel extends JPanel {
     private static final int FLAME_H = 100;
 
     private final FireGameModel model;
+
+    private final Game game;
 
     private BufferedImage imgBg, imgHero, imgFireTruck, imgNpc;
     private BufferedImage imgFireStart, imgFireLoop, imgFireEnd;
@@ -81,15 +83,17 @@ public class FireGamePanel extends JPanel {
     private String feedbackMsg = "";
 
     public FireGamePanel() {
-        model = new FireGameModel(Game.getInstance().getWordList());
+
+        this.game = Game.getInstance();
+        model = new FireGameModel(game.getWordList());
+
         loadImages();
-        startAnimations();
         setupKeyboard();
         setupMouseInteraction();
 
         this.addHierarchyListener(e -> {
             if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
-                requestFocusInWindow();
+                grabFocus();
                 int prevVol = SoundManager.getSfxVolume();
                 SoundManager.setSfxVolume(15); // don't scare people
                 SoundManager.play(SoundManager.FIRE_TRUCK);
@@ -98,7 +102,33 @@ public class FireGamePanel extends JPanel {
         });
     }
 
+    @Override
+    public void refresh() {
+        model.resetGame();
+        clickZones.clear();
+        currentScreen = Screen.INTRO;
+        feedbackMsg = "";
+
+        imgHero = loadHeroImage();
+
+        stopAll();
+
+        grabFocus();
+        repaint();
+    }
+
+    @Override
+    public void grabFocus() {
+        // We use invokeLater to ensure the component is fully 
+        // realized in the UI tree before requesting focus
+        SwingUtilities.invokeLater(() -> {
+            this.setFocusable(true);
+            this.requestFocusInWindow();
+        });
+    }
+
     private BufferedImage img(String path) {
+
         try {
             URL r = getClass().getResource(path);
             if (r == null) {
@@ -123,17 +153,23 @@ public class FireGamePanel extends JPanel {
         imgCheck = img("/images/fire_game/check.png");
         imgNpc = img("/images/fire_game/npc.png");
         imgPanel = img("/images/fire_game/panel.png");
+    }
 
-        // Load hero image based on avatar selection
-        String avatarPath = Game.getInstance().getAvatarPath();
-        if ("Mia".equalsIgnoreCase(avatarPath)) {
-            imgHero = img("/images/general/hero1_standing.png");
-        } else if ("Zyx".equalsIgnoreCase(avatarPath)) {
-            imgHero = img("/images/general/alien_standing.png");
-        } else {
-            // Default: Alex / boy hero
-            imgHero = img("/images/general/hero2_standing.png");
+    private BufferedImage loadHeroImage() {
+        try {
+            String avatar = Game.getInstance().getAvatarPath();
+            System.out.println("[Fire] Trying to load: " + avatar);
+            if ("Mia".equalsIgnoreCase(avatar)) {
+                return img("/images/general/hero1_standing.png");
+            }
+            if ("Zyx".equalsIgnoreCase(avatar)) {
+                return img("/images/general/alien_standing.png");
+            }
+            return img("/images/general/hero2_standing.png");
+        } catch (Exception ignored) {
+            System.out.println("[Fire] Error loading hero");
         }
+        return null;
     }
 
     private void initFires() {
@@ -149,7 +185,6 @@ public class FireGamePanel extends JPanel {
 
     private void setupKeyboard() {
         setFocusable(true);
-        requestFocusInWindow();
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -190,7 +225,7 @@ public class FireGamePanel extends JPanel {
             hintCount = 0;
             extinguishFire();
 
-            Game.getInstance().addScore(BASE_SCORE * streakCount);
+            game.addScore(BASE_SCORE * streakCount);
 
             streakCount = (model.getWrongCount() == 0) ? streakCount + 1 : 1;
 
@@ -209,7 +244,7 @@ public class FireGamePanel extends JPanel {
                 SoundManager.startMusic(SoundManager.FIRE_BGM);
                 currentScreen = Screen.FINISH;
                 SoundManager.play(SoundManager.FIRE_END_GAME);
-                Game.getInstance().setFireCompleted(true);
+                game.setFireCompleted(true);
             }
 
         } else {
@@ -235,7 +270,7 @@ public class FireGamePanel extends JPanel {
 
             if (model.getWrongCount() % REIGNITE_LIMIT == 0 && fireCounter > 0) {
                 reigniteFire();
-                Game.getInstance().addMisspelledWord(model.getCurrentWord());
+                game.addMisspelledWord(model.getCurrentWord());
             }
         }
         resetInputWithHints();
@@ -267,10 +302,13 @@ public class FireGamePanel extends JPanel {
             fireCounter--;
         }
 
-        int i = (fireIndex == 5) ? 0 : fireIndex;
-        for (; i < NUMBER_OF_FIRES; i++) {
-            if (flames.get(i).isActive()) {
-                fireIndex = i;
+        int startSearch = (fireIndex + 1) % NUMBER_OF_FIRES;
+
+        for (int i = 0; i < NUMBER_OF_FIRES; i++) {
+            int checkIndex = (startSearch + i) % NUMBER_OF_FIRES;
+
+            if (flames.get(checkIndex).isActive()) {
+                fireIndex = checkIndex;
                 break;
             }
         }
@@ -314,10 +352,11 @@ public class FireGamePanel extends JPanel {
 
     private void startGame() {
         initFires();
+        startAnimations();
         SoundManager.startMusic(SoundManager.FIRE_BGM_FIRE);
 
         currentScreen = Screen.GAME;
-        this.requestFocusInWindow();
+        grabFocus();
 
         showFeedback("Tell the fire truck which window to aim the water at!");
 
@@ -347,7 +386,7 @@ public class FireGamePanel extends JPanel {
         }
         feedbackMsg = "";
         repaint();
-        SoundManager.stopMusic();
+        SoundManager.stopAll();
     }
 
     private void showFeedback(String msg) {
@@ -595,8 +634,10 @@ public class FireGamePanel extends JPanel {
     }
 
     // Paint Hero
+    // Paint Hero
     private void paintHero(Graphics2D g2, int W, int H) {
         if (imgHero == null) {
+            System.out.println("[Fire] Unable to paint hero");
             return;
         }
 
@@ -605,7 +646,7 @@ public class FireGamePanel extends JPanel {
         int drawH = (int) ((double) HERO_FH / HERO_FW * drawW);  // keep aspect ratio
 
         // Ground line matches NPC ground Y
-        int groundY = (int) (H * 0.87) - drawH;
+        int groundY = (int) (H * 0.85) - drawH;
 
         // Position: just right of the tree centre
         int heroX = (int) (W * 0.50);
@@ -700,7 +741,7 @@ public class FireGamePanel extends JPanel {
         FontMetrics fm = g2.getFontMetrics();
 
         // 4. Horizontal Centering Logic
-        String scoreText = "SCORE: " + Game.getInstance().getScore();
+        String scoreText = "SCORE: " + game.getScore();
 
         // Calculate the X coordinate: (Box Width - Text Width) / 2 + Box's X Position
         int textX = boxX + (boxW - fm.stringWidth(scoreText)) / 2;

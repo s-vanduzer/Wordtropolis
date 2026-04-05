@@ -93,10 +93,7 @@ public class Game {
         System.out.println("Error loading word file: " + filename);
         e.printStackTrace();
     }
-}
-    
-    
-    
+}   
     
 public void loadWordsForDifficulty() {
     // If a teacher has provided a custom list, exit immediately to avoid overwriting it

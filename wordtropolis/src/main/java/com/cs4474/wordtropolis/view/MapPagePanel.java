@@ -5,6 +5,7 @@ import com.cs4474.wordtropolis.model.Game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
@@ -19,7 +20,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
     // ============================================================
     private static final boolean LINEAR_PROGRESSION_ENABLED = false;
     // change to true for submission ( linear)
-    
+
     private static final String[] ACT_LABELS = {
         "Cat in Tree", "Burglar Chase", "Fix the Bridge", "Fire Rescue"
     };
@@ -35,14 +36,13 @@ public class MapPagePanel extends JPanel implements Refreshable {
         "/images/general/Bridgeicon.png",
         "/images/general/Fireicon.png"
     };
-    
-    
+
     private static final int[][] BUTTON_POSITIONS = {
-        {150, 250},   // Cat in Tree
-        {200, 450},   // Burglar Chase
-        {550, 200},   // Fix the Bridge
-        {700, 450},   // Fire Rescue
-        {730, 80}     // Final Boss
+        {150, 250}, // Cat in Tree
+        {200, 450}, // Burglar Chase
+        {550, 200}, // Fix the Bridge
+        {700, 450}, // Fire Rescue
+        {730, 80} // Final Boss
     };
 
     private JLabel playerLabel;
@@ -67,7 +67,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
             backgroundImage = new ImageIcon(getClass().getResource("/images/general/city.png")).getImage();
             checkImage = new ImageIcon(getClass().getResource("/images/bridge_game/check.png")).getImage();
             bossIcon = new ImageIcon(getClass().getResource("/images/general/FinalBossicon.png")).getImage();
-            
+
             for (int i = 0; i < ACT_ICONS.length; i++) {
                 iconImages[i] = new ImageIcon(getClass().getResource(ACT_ICONS[i])).getImage();
             }
@@ -75,9 +75,9 @@ public class MapPagePanel extends JPanel implements Refreshable {
             System.out.println("Could not load images: " + e);
         }
     }
-    
+
     private void setupTooltips() {
-        
+
         ToolTipManager.sharedInstance().setInitialDelay(100);
         ToolTipManager.sharedInstance().setDismissDelay(5000);
     }
@@ -96,7 +96,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
     }
 
     private void buildUI() {
-        
+
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
         header.setBounds(0, 0, 920, 80);
@@ -107,15 +107,14 @@ public class MapPagePanel extends JPanel implements Refreshable {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 String text = getText();
                 g2d.setFont(getFont());
                 FontMetrics fm = g2d.getFontMetrics();
                 int textWidth = fm.stringWidth(text);
                 int x = (getWidth() - textWidth) / 2;
                 int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-                
-                
+
                 g2d.setColor(new Color(0x0F4D58));
                 g2d.setStroke(new BasicStroke(3));
                 for (int dx = -1; dx <= 1; dx++) {
@@ -125,8 +124,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
                         }
                     }
                 }
-                
-                
+
                 g2d.setColor(Color.WHITE);
                 g2d.drawString(text, x, y);
                 g2d.dispose();
@@ -138,22 +136,20 @@ public class MapPagePanel extends JPanel implements Refreshable {
 
         JPanel info = new JPanel(new GridLayout(2, 1, 0, 2));
         info.setOpaque(false);
-        
-        
+
         playerLabel = new JLabel("Hero: —") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 String text = getText();
                 g2d.setFont(getFont());
                 FontMetrics fm = g2d.getFontMetrics();
                 int textWidth = fm.stringWidth(text);
                 int x = (getWidth() - textWidth) / 2;
                 int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-                
-                
+
                 g2d.setColor(new Color(0x0F4D58));
                 g2d.setStroke(new BasicStroke(2));
                 for (int dx = -1; dx <= 1; dx++) {
@@ -163,8 +159,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
                         }
                     }
                 }
-                
-                
+
                 g2d.setColor(UITheme.TEXT_BRIGHT);
                 g2d.drawString(text, x, y);
                 g2d.dispose();
@@ -172,22 +167,20 @@ public class MapPagePanel extends JPanel implements Refreshable {
         };
         playerLabel.setFont(UITheme.FONT_BODY);
         playerLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        
-        
+
         scoreLabel = new JLabel("Score: 0") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 String text = getText();
                 g2d.setFont(getFont());
                 FontMetrics fm = g2d.getFontMetrics();
                 int textWidth = fm.stringWidth(text);
                 int x = (getWidth() - textWidth) / 2;
                 int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-                
-                
+
                 g2d.setColor(new Color(0x0F4D58));
                 g2d.setStroke(new BasicStroke(2));
                 for (int dx = -1; dx <= 1; dx++) {
@@ -197,8 +190,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
                         }
                     }
                 }
-                
-                
+
                 g2d.setColor(Color.WHITE);
                 g2d.drawString(text, x, y);
                 g2d.dispose();
@@ -206,7 +198,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
         };
         scoreLabel.setFont(UITheme.FONT_BODY);
         scoreLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        
+
         info.add(playerLabel);
         info.add(scoreLabel);
         header.add(info, BorderLayout.EAST);
@@ -216,10 +208,9 @@ public class MapPagePanel extends JPanel implements Refreshable {
             final int idx = i;
             actButtons[i] = createCircularButton(idx, 80);
             actButtons[i].setBounds(BUTTON_POSITIONS[i][0], BUTTON_POSITIONS[i][1], 80, 80);
-            
-           
+
             updateButtonTooltip(idx);
-            
+
             // SIMPLIFIED: Just call the registered screen
             actButtons[i].addActionListener(e -> {
                 if (isLevelUnlocked(idx)) {
@@ -234,10 +225,9 @@ public class MapPagePanel extends JPanel implements Refreshable {
 
         bossBtn = createCircularBossButton(80);
         bossBtn.setBounds(BUTTON_POSITIONS[4][0], BUTTON_POSITIONS[4][1], 80, 80);
-        
-        
+
         updateBossTooltip();
-        
+
         bossBtn.addActionListener(e -> {
             if (isBossUnlocked()) {
                 Wordtropolis.showScreen(Wordtropolis.SCREEN_BOSS_GAME);
@@ -246,21 +236,20 @@ public class MapPagePanel extends JPanel implements Refreshable {
             }
         });
         add(bossBtn);
-        
-        
+
         backBtn = new JButton("Back") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 g2d.setColor(getBackground());
                 g2d.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
-                
+
                 g2d.setColor(new Color(0x0F4D58));
                 g2d.setStroke(new BasicStroke(2));
                 g2d.draw(new RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 15, 15));
-                
+
                 g2d.setFont(getFont());
                 FontMetrics fm = g2d.getFontMetrics();
                 String text = getText();
@@ -269,7 +258,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
                 int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
                 g2d.setColor(getForeground());
                 g2d.drawString(text, x, y);
-                
+
                 g2d.dispose();
             }
         };
@@ -285,30 +274,32 @@ public class MapPagePanel extends JPanel implements Refreshable {
         backBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         backBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK));
         backBtn.setToolTipText("Return to Hero Selection (progress saved)");
-        
+
         backBtn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent evt) {
                 backBtn.setBackground(new Color(0x6A6A6A));
                 backBtn.repaint();
             }
+
             public void mouseExited(MouseEvent evt) {
                 backBtn.setBackground(new Color(0x4A4A4A));
                 backBtn.repaint();
             }
         });
-        
+
         add(backBtn);
-        
-        
+
         JLabel unlockLabel = UITheme.makeLabel("Complete all 4 missions to unlock",
                 UITheme.FONT_SMALL, UITheme.TEXT_DIM);
         unlockLabel.setBounds(310, 670, 300, 20);
         add(unlockLabel);
     }
-    
+
     private void updateButtonTooltip(int idx) {
-        if (actButtons[idx] == null) return;
-        
+        if (actButtons[idx] == null) {
+            return;
+        }
+
         if (!isLevelUnlocked(idx)) {
             switch (idx) {
                 case 1:
@@ -327,10 +318,12 @@ public class MapPagePanel extends JPanel implements Refreshable {
             actButtons[idx].setToolTipText(null);
         }
     }
-    
+
     private void updateBossTooltip() {
-        if (bossBtn == null) return;
-        
+        if (bossBtn == null) {
+            return;
+        }
+
         if (!isBossUnlocked()) {
             bossBtn.setToolTipText("🔒 Complete all 4 missions to unlock the Final Boss!");
         } else {
@@ -340,27 +333,35 @@ public class MapPagePanel extends JPanel implements Refreshable {
 
     private String getUnlockMessage(int idx) {
         switch (idx) {
-            case 1: return "Complete the Cat in Tree mission first!";
-            case 2: return "Complete the Burglar Chase mission first!";
-            case 3: return "Complete the Fix the Bridge mission first!";
-            default: return "Complete the previous mission first!";
+            case 1:
+                return "Complete the Cat in Tree mission first!";
+            case 2:
+                return "Complete the Burglar Chase mission first!";
+            case 3:
+                return "Complete the Fix the Bridge mission first!";
+            default:
+                return "Complete the previous mission first!";
         }
     }
 
     private boolean isLevelUnlocked(int idx) {
-        
+
         if (!LINEAR_PROGRESSION_ENABLED) {
             return true;
         }
-        
-       
+
         Game g = Game.getInstance();
         switch (idx) {
-            case 0: return true; // Cat always unlocked
-            case 1: return g.isCatCompleted(); // Burglar unlocks after Cat
-            case 2: return g.isBurgularCompleted(); // Bridge unlocks after Burglar
-            case 3: return g.isBridgeCompleted(); // Fire unlocks after Bridge
-            default: return false;
+            case 0:
+                return true; // Cat always unlocked
+            case 1:
+                return g.isCatCompleted(); // Burglar unlocks after Cat
+            case 2:
+                return g.isBurgularCompleted(); // Bridge unlocks after Burglar
+            case 3:
+                return g.isBridgeCompleted(); // Fire unlocks after Bridge
+            default:
+                return false;
         }
     }
 
@@ -369,11 +370,11 @@ public class MapPagePanel extends JPanel implements Refreshable {
         if (!LINEAR_PROGRESSION_ENABLED) {
             return true;
         }
-        
+
         // og linear progression code
         Game g = Game.getInstance();
-        return g.isCatCompleted() && g.isBurgularCompleted() && 
-               g.isBridgeCompleted() && g.isFireCompleted();
+        return g.isCatCompleted() && g.isBurgularCompleted()
+                && g.isBridgeCompleted() && g.isFireCompleted();
     }
 
     private JButton createCircularButton(int idx, int size) {
@@ -382,73 +383,73 @@ public class MapPagePanel extends JPanel implements Refreshable {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 boolean isUnlocked = isLevelUnlocked(idx);
                 boolean isCompleted = isActivityDone(idx);
-                
-                
+
                 if (isCompleted) {
-                    g2.setColor(new Color(0x4CAF50)); 
+                    g2.setColor(new Color(0x4CAF50));
                 } else if (isUnlocked) {
-                    g2.setColor(new Color(0xECCB2D)); 
+                    g2.setColor(new Color(0xECCB2D));
                 } else {
-                    g2.setColor(new Color(0x4A4A4A)); 
+                    g2.setColor(new Color(0x4A4A4A));
                 }
                 g2.fill(new Ellipse2D.Float(0, 0, size, size));
-                
-                
+
                 g2.setColor(new Color(0x0F4D58));
                 g2.setStroke(new BasicStroke(3));
                 g2.draw(new Ellipse2D.Float(1, 1, size - 2, size - 2));
-                
-                
+
                 if (iconImages[idx] != null) {
                     int iconSize = 40;
                     int iconX = (size - iconSize) / 2;
                     int iconY = (size - iconSize) / 2;
                     g2.drawImage(iconImages[idx], iconX, iconY, iconSize, iconSize, this);
                 }
-                
-                
+
                 if (isCompleted && checkImage != null) {
                     int checkSize = 30;
                     int checkX = (size - checkSize) / 2;
                     int checkY = (size - checkSize) / 2;
                     g2.drawImage(checkImage, checkX, checkY, checkSize, checkSize, this);
                 }
-                
-                
+
                 if (!isUnlocked && !isCompleted) {
                     g2.setColor(new Color(0, 0, 0, 180));
                     g2.fill(new Ellipse2D.Float(0, 0, size, size));
                 }
-                
+
                 g2.dispose();
             }
         };
-        
+
         btn.setOpaque(false);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        
-        
+
         btn.addMouseListener(new MouseAdapter() {
             private int originalY = -1;
+
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (isLevelUnlocked(idx)) {
-                    if (originalY == -1) originalY = btn.getY();
+                    if (originalY == -1) {
+                        originalY = btn.getY();
+                    }
                     btn.setLocation(btn.getX(), originalY - 8);
                 }
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
-                if (originalY != -1) btn.setLocation(btn.getX(), originalY);
+                if (originalY != -1) {
+                    btn.setLocation(btn.getX(), originalY);
+                }
             }
         });
-        
+
         return btn;
     }
 
@@ -458,91 +459,113 @@ public class MapPagePanel extends JPanel implements Refreshable {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 boolean isUnlocked = isBossUnlocked();
-                
+
                 if (isUnlocked) {
                     g2.setColor(new Color(0xECCB2D));
                 } else {
                     g2.setColor(new Color(0x4A4A4A));
                 }
                 g2.fill(new Ellipse2D.Float(0, 0, size, size));
-                
-                
+
                 g2.setColor(new Color(0x0F4D58));
                 g2.setStroke(new BasicStroke(3));
                 g2.draw(new Ellipse2D.Float(1, 1, size - 2, size - 2));
-                
-                
+
                 if (bossIcon != null) {
                     int iconSize = 40;
                     int iconX = (size - iconSize) / 2;
                     int iconY = (size - iconSize) / 2;
                     g2.drawImage(bossIcon, iconX, iconY, iconSize, iconSize, this);
                 }
-                
-               
+
                 if (!isUnlocked) {
                     g2.setColor(new Color(0, 0, 0, 180));
                     g2.fill(new Ellipse2D.Float(0, 0, size, size));
                 }
-                
+
                 g2.dispose();
             }
         };
-        
+
         btn.setOpaque(false);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        
+
         btn.addMouseListener(new MouseAdapter() {
             private int originalY = -1;
+
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (isBossUnlocked()) {
-                    if (originalY == -1) originalY = btn.getY();
+                    if (originalY == -1) {
+                        originalY = btn.getY();
+                    }
                     btn.setLocation(btn.getX(), originalY - 8);
                 }
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
-                if (originalY != -1) btn.setLocation(btn.getX(), originalY);
+                if (originalY != -1) {
+                    btn.setLocation(btn.getX(), originalY);
+                }
             }
         });
-        
+
         return btn;
     }
 
     private boolean isActivityDone(int idx) {
         Game g = Game.getInstance();
         switch (idx) {
-            case 0: return g.isCatCompleted();
-            case 1: return g.isBurgularCompleted();
-            case 2: return g.isBridgeCompleted();
-            case 3: return g.isFireCompleted();
-            default: return false;
+            case 0:
+                return g.isCatCompleted();
+            case 1:
+                return g.isBurgularCompleted();
+            case 2:
+                return g.isBridgeCompleted();
+            case 3:
+                return g.isFireCompleted();
+            default:
+                return false;
         }
     }
 
     @Override
     public void refresh() {
+        SoundManager.stopAll();
         Game g = Game.getInstance();
-        if (playerLabel != null) playerLabel.setText("Hero: " + g.getPlayerName());
-        if (scoreLabel != null) scoreLabel.setText("Score: " + g.getScore());
-        
-        
+        if (playerLabel != null) {
+            playerLabel.setText("Hero: " + g.getPlayerName());
+        }
+        if (scoreLabel != null) {
+            scoreLabel.setText("Score: " + g.getScore());
+        }
+
         for (int i = 0; i < actButtons.length; i++) {
             if (actButtons[i] != null) {
                 updateButtonTooltip(i);
                 actButtons[i].repaint();
             }
         }
-        
+
         if (bossBtn != null) {
             updateBossTooltip();
             bossBtn.repaint();
         }
+    }
+
+    @Override
+    public void grabFocus() {
+        // We use invokeLater to ensure the component is fully 
+        // realized in the UI tree before requesting focus
+        SwingUtilities.invokeLater(() -> {
+            this.setFocusable(true);
+            this.requestFocusInWindow();
+        });
     }
 }

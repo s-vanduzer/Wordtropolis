@@ -26,25 +26,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class SoundManager {
 
     // ── Base volumes — these are the defaults you set ─────────────────────────
-    private static final int DEFAULT_SFX_VOL   = 80;
+    private static final int DEFAULT_SFX_VOL = 80;
     private static final int DEFAULT_MUSIC_VOL = 25;
 
-    private static int sfxVolume   = DEFAULT_SFX_VOL;
+    private static int sfxVolume = DEFAULT_SFX_VOL;
     private static int musicVolume = DEFAULT_MUSIC_VOL;
 
     // ── Background music state ────────────────────────────────────────────────
-    private static Clip  bgMusicClip;
+    private static Clip bgMusicClip;
     private static Timer bgLoopTimer;
     private static final CopyOnWriteArrayList<Clip> activeSfx = new CopyOnWriteArrayList<>();
 
     /**
-
-    private SoundManager() {}
-
-    // ═══════════════════════════════ GAME ACTIVITY ENUM ════════════════════════
-    /**
-     * Enum representing all possible game activities. Used to conditionally
-     * play sounds based on current active game.
+     *
+     * private SoundManager() {}
+     *
+     * // ═══════════════════════════════ GAME ACTIVITY ENUM
+     * ════════════════════════ /** Enum representing all possible game
+     * activities. Used to conditionally play sounds based on current active
+     * game.
      */
     public enum GameActivity {
         SCREEN_MAP, CAT_GAME, BOSS_GAME, BURGLAR_GAME, BRIDGE_GAME, FIRE_GAME
@@ -54,9 +54,7 @@ public final class SoundManager {
     private static GameActivity currentActivity = GameActivity.SCREEN_MAP;
 
     // ═══════════════════════════════ SOUND FILE CONSTANTS ════════════════════
-
     // ── Cat Game ─────────────────────────────────────────────────────────────
-
     // All files live in:  resources/sounds/cat_game/
     public static final String CAT_MEOW_HAPPY = "cat_game/cat_meow.wav";
     public static final String CAT_MEOW_MAD = "cat_game/cat_meow_mad.wav";
@@ -78,10 +76,10 @@ public final class SoundManager {
 
     // ── Bridge Game ───────────────────────────────────────────────────────────
     // All files live in:  resources/sounds/bridge_game/
-    public static final String BRIDGE_BGM        = "bridge_game/background.wav";
-    public static final String BRIDGE_BOX        = "bridge_game/box_effect.wav";
-    public static final String BRIDGE_ERROR      = "bridge_game/gentle_error_tone.wav";
-    public static final String BRIDGE_WIN        = "bridge_game/chaching.wav";
+    public static final String BRIDGE_BGM = "bridge_game/background.wav";
+    public static final String BRIDGE_BOX = "bridge_game/box_effect.wav";
+    public static final String BRIDGE_ERROR = "bridge_game/gentle_error_tone.wav";
+    public static final String BRIDGE_WIN = "bridge_game/chaching.wav";
 
     // ── Boss Game sounds ─────────────────────────────────────────────────────
     public static final String BOSS_ATTACK_HIT = "boss_game/attack_hit.wav";
@@ -124,35 +122,55 @@ public final class SoundManager {
         return currentActivity;
     }
 
+    /**
+     * Stops all music and clips in activeSfx
+     * 
+     */
+    public static void stopAll() {
+        stopMusic();
+        for (Clip clip : activeSfx) {
+            if (clip != null) {
+                try {
+                    clip.stop();
+                    clip.close();
+                } catch (Exception e) {
+                    /* Ignore */ }
+            }
+        }
+        activeSfx.clear();
+    }
+
     // ═══════════════════════════════ ONE-SHOT SFX ════════════════════════════
-	
     public static void play(String filename) {
         if (sfxVolume == 0 || filename == null || filename.isEmpty()) {
             return;
         }
 
-        // DEBUG: Print where the sound is being called from
-        if (filename.contains("MEOW_MAD") || filename.contains("ERROR")) {
-            System.out.println("[DEBUG] Sound called: " + filename + " from "
-                    + Thread.currentThread().getStackTrace()[2]);
-            System.out.println("[DEBUG] Current activity: " + currentActivity);
-        }
-
         new Thread(() -> {
             try {
-                Clip clip = openClip(filename);
-                if (clip == null) {
+                URL res = SoundManager.class.getResource("/sounds/" + filename);
+                if (res == null) {
                     return;
                 }
-                applyVolume(clip, sfxVolume);
-                clip.start();
-                clip.addLineListener(e -> {
-                    if (e.getType() == LineEvent.Type.STOP) {
-                        clip.close();
-                    }
-                });
+
+                try (AudioInputStream ais = AudioSystem.getAudioInputStream(res)) {
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(ais);
+                    applyVolume(clip, sfxVolume);
+
+                    activeSfx.add(clip); // Track it
+
+                    clip.addLineListener(e -> {
+                        if (e.getType() == LineEvent.Type.STOP) {
+                            clip.close();
+                            activeSfx.remove(clip); // Remove it
+                        }
+                    });
+
+                    clip.start();
+                }
             } catch (Exception ex) {
-                System.out.println("[SoundManager] Cannot play: " + filename);
+                System.err.println("[SoundManager] SFX Error: " + filename);
             }
         }, "sfx-thread").start();
     }
@@ -167,10 +185,7 @@ public final class SoundManager {
      */
     public static void playConditional(String filename, GameActivity required) {
         System.out.println("Checking sound: " + filename + " | Required: " + required + " | Current: " + currentActivity);
-    
-    if (required == currentActivity) {
-        play(filename);
-    }
+
         if (required == currentActivity) {
             play(filename);
         }
@@ -190,21 +205,21 @@ public final class SoundManager {
             play(filename);
         }
     }
-    
-        /**
-     * Play only a portion of a sound file, conditionally based on current activity.
+
+    /**
+     * Play only a portion of a sound file, conditionally based on current
+     * activity.
      *
-     * @param filename  sound file constant (e.g. SoundManager.CAT_WIND)
-     * @param startSec  start time in seconds
-     * @param endSec    end time in seconds
-     * @param required  The activity that this sound belongs to
+     * @param filename sound file constant (e.g. SoundManager.CAT_WIND)
+     * @param startSec start time in seconds
+     * @param endSec end time in seconds
+     * @param required The activity that this sound belongs to
      */
     public static void playFromConditional_trim(String filename, double startSec, double endSec, GameActivity required) {
         if (required == currentActivity) {
             playFrom(filename, startSec, endSec);
         }
     }
-
 
     /**
      * Play only a portion of a sound file. Useful for trimming long files or
@@ -269,46 +284,53 @@ public final class SoundManager {
     }
 
     // ═══════════════════════════════ BACKGROUND MUSIC ════════════════════════
-
-        public static void startMusic(String filename) {
+    public static void startMusic(String filename) {
         stopMusic();
-        if (musicVolume == 0 || filename == null || filename.isEmpty()) return;
+        if (musicVolume == 0 || filename == null || filename.isEmpty()) {
+            return;
+        }
         try {
-            Clip clip = openClip(filename);
-            if (clip == null) return;
-            bgMusicClip = clip;
+            bgMusicClip = openClip(filename);
+            if (bgMusicClip == null) {
+                return;
+            }
+
             applyVolume(bgMusicClip, musicVolume);
 
-            double cutOffSec    = 1.0;
-            double fadeSec      = 0.8;
-            long   clipLen      = bgMusicClip.getMicrosecondLength();
-            long   cutOffMicro  = clipLen - (long)(cutOffSec * 1_000_000);
-            long   fadeStart    = cutOffMicro - (long)(fadeSec * 1_000_000);
+            double cutOffSec = 1.0;
+            double fadeSec = 0.8;
+            long clipLen = bgMusicClip.getMicrosecondLength();
+            long cutOffMicro = clipLen - (long) (cutOffSec * 1_000_000);
+            long fadeStart = cutOffMicro - (long) (fadeSec * 1_000_000);
 
             bgMusicClip.start();
 
-            bgLoopTimer = new Timer(50, null);
-            bgLoopTimer.addActionListener(e -> {
+            bgLoopTimer = new Timer(50, e -> {
                 if (bgMusicClip == null || !bgMusicClip.isOpen()) {
-                    ((Timer)e.getSource()).stop(); return;
+                    ((Timer) e.getSource()).stop();
+                    return;
                 }
                 long pos = bgMusicClip.getMicrosecondPosition();
+
+                // Simple Fade Out before loop
                 if (pos >= fadeStart && pos < cutOffMicro) {
-                    double fadePct = (double)(pos - fadeStart) / (cutOffMicro - fadeStart);
-                    applyVolume(bgMusicClip, (int)(musicVolume * (1.0 - fadePct)));
+                    double fadePct = (double) (pos - fadeStart) / (cutOffMicro - fadeStart);
+                    applyVolume(bgMusicClip, (int) (musicVolume * (1.0 - fadePct)));
                 }
+
+                // Loop Logic
                 if (pos >= cutOffMicro) {
                     bgMusicClip.stop();
                     bgMusicClip.setMicrosecondPosition(0);
                     applyVolume(bgMusicClip, 0);
                     bgMusicClip.start();
-                    musicFadeIn((Timer)e.getSource());
+                    musicFadeIn((Timer) e.getSource());
                 }
             });
             bgLoopTimer.start();
 
         } catch (Exception ex) {
-            System.out.println("[SoundManager] Cannot start BGM: " + filename);
+            System.err.println("[SoundManager] BGM Error: " + filename);
         }
     }
 
@@ -333,9 +355,11 @@ public final class SoundManager {
             bgLoopTimer.stop();
             bgLoopTimer = null;
         }
-        if (bgMusicClip != null && bgMusicClip.isOpen()) {
-            bgMusicClip.stop();
-            bgMusicClip.close();
+        if (bgMusicClip != null) {
+            if (bgMusicClip.isOpen()) {
+                bgMusicClip.stop();
+                bgMusicClip.close();
+            }
             bgMusicClip = null;
         }
     }
@@ -351,8 +375,7 @@ public final class SoundManager {
                 fi.stop();
                 return;
             }
-            applyVolume(bgMusicClip,
-                    Math.min(musicVolume, (int) (musicVolume * (double) step[0] / steps)));
+            applyVolume(bgMusicClip, Math.min(musicVolume, (int) (musicVolume * (double) step[0] / steps)));
             if (step[0] >= steps) {
                 fi.stop();
                 loopTimer.start();
@@ -362,7 +385,6 @@ public final class SoundManager {
     }
 
     // ═══════════════════════════════ VOLUME CONTROL ═══════════════════════════
-
     public static void setSfxVolume(int v) {
         sfxVolume = Math.max(0, Math.min(100, v));
     }
@@ -379,30 +401,35 @@ public final class SoundManager {
         setMusicVolume(DEFAULT_MUSIC_VOL);
     }
 
-    public static int getSfxVolume()   { return sfxVolume; }
-    public static int getMusicVolume() { return musicVolume; }
+    public static int getSfxVolume() {
+        return sfxVolume;
+    }
+
+    public static int getMusicVolume() {
+        return musicVolume;
+    }
 
     // ═══════════════════════════════ PRIVATE HELPERS ══════════════════════════
     private static Clip openClip(String filename) {
         try {
             URL res = SoundManager.class.getResource("/sounds/" + filename);
             if (res == null) {
-                System.out.println("[SoundManager] File not found: /sounds/" + filename);
                 return null;
             }
             AudioInputStream ais = AudioSystem.getAudioInputStream(res);
             Clip clip = AudioSystem.getClip();
             clip.open(ais);
+            // Note: ais is typically closed when the clip is closed, 
+            // but in some OS environments, keeping it open is safer until open() finishes.
             return clip;
         } catch (Exception e) {
-            System.out.println("[SoundManager] Error opening: " + filename);
             return null;
         }
     }
 
     private static void applyVolume(Clip clip, int volumePct) {
         try {
-            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            if (clip != null && clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 FloatControl fc = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
                 float gain = 20f * (float) Math.log10(Math.max(0.0001, volumePct / 100.0));
                 fc.setValue(Math.max(fc.getMinimum(), Math.min(fc.getMaximum(), gain)));

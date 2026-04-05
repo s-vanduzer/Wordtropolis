@@ -15,45 +15,44 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * BrokenBridgeGamePanel  –  Broken Bridge mini-game
+ * BrokenBridgeGamePanel – Broken Bridge mini-game
  *
- * Mirrors CatGamePanel behaviour exactly:
- *  • Intro card matches cat-game style (title + 2 lines + divider + button)
- *  • Hero: correct avatar, centered under bridge, sprite-sheet animated
- *  • Hero is clipped to below the bridge so no artifact shows through the gap
- *  • No NPCs
- *  • Timer timeout → "Time's up! Try again." + clear + restart (no game-over)
- *  • Check before all words placed → "Pick some words first!" feedback
- *  • Enter key triggers CHECK (same as CatGamePanel Enter → submit)
- *  • Left panel: vertical green progress bar (same as CatGamePanel.paintLeftPanel)
- *  • After all rounds: score dialog → SCREEN_MAP  (same as CatGamePanel.showResultDialog)
- *  • Hero re-loaded in refresh() so the chosen avatar always appears
- *  • Word count increases per round via model.getWordsThisRound()
- *  • Sound: BGM on start, box on tile place, error on wrong, cha-ching on correct
+ * Mirrors CatGamePanel behaviour exactly: • Intro card matches cat-game style
+ * (title + 2 lines + divider + button) • Hero: correct avatar, centered under
+ * bridge, sprite-sheet animated • Hero is clipped to below the bridge so no
+ * artifact shows through the gap • No NPCs • Timer timeout → "Time's up! Try
+ * again." + clear + restart (no game-over) • Check before all words placed →
+ * "Pick some words first!" feedback • Enter key triggers CHECK (same as
+ * CatGamePanel Enter → submit) • Left panel: vertical green progress bar (same
+ * as CatGamePanel.paintLeftPanel) • After all rounds: score dialog → SCREEN_MAP
+ * (same as CatGamePanel.showResultDialog) • Hero re-loaded in refresh() so the
+ * chosen avatar always appears • Word count increases per round via
+ * model.getWordsThisRound() • Sound: BGM on start, box on tile place, error on
+ * wrong, cha-ching on correct
  */
 public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
 
     // ── Sparkle ───────────────────────────────────────────────────────────────
     private static final int SPKL_FRAMES = 14, SPKL_W = 32, SPKL_H = 32, SPKL_SCALE = 3;
     private boolean showSparkle = false;
-    private int     sparkleFrame = 0, sparkleX, sparkleY;
-    private Timer   sparkleTimer;
+    private int sparkleFrame = 0, sparkleX, sparkleY;
+    private Timer sparkleTimer;
 
     // ── Hero sprite sheet (exact constants from CatGamePanel) ─────────────────
     private static final int HERO_COLS = 4, HERO_FW = 210, HERO_FH = 316, HERO_BACK_ROW = 3;
-    private int   heroFrame = 0;
+    private int heroFrame = 0;
     private Timer heroTimer;
 
     // ── Error flash ───────────────────────────────────────────────────────────
     private static final int ERROR_FRAMES = 32;
-    private int   errorFrame = 0;
+    private int errorFrame = 0;
     private Timer shakeTimer;
-    private int   shakeTick  = 0;
+    private int shakeTick = 0;
 
     // ── Bridge geometry ───────────────────────────────────────────────────────
-    private static final double BRIDGE_Y_RATIO    = 0.56;
-    private static final double BRIDGE_H_RATIO    = 0.045;
-    private static final double LEFT_CLIFF_RATIO  = 0.28;
+    private static final double BRIDGE_Y_RATIO = 0.56;
+    private static final double BRIDGE_H_RATIO = 0.045;
+    private static final double LEFT_CLIFF_RATIO = 0.28;
     private static final double RIGHT_CLIFF_RATIO = 0.72;
 
     // ── Word-tile sizing ──────────────────────────────────────────────────────
@@ -63,25 +62,27 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     private static final int BTN_SIZE = 56;
 
     // ── Screen state ──────────────────────────────────────────────────────────
-    private enum Screen { INTRO, PLAYING, CORRECT_ANIM, ERROR_ANIM }
+    private enum Screen {
+        INTRO, PLAYING, CORRECT_ANIM, ERROR_ANIM
+    }
     private Screen screen = Screen.INTRO;
 
     // ── Model ─────────────────────────────────────────────────────────────────
-    private final Game                  game;
+    private final Game game;
     private final BrokenBridgeGameModel model;
 
     // ── Feedback (mirrors CatGamePanel) ───────────────────────────────────────
-    private String feedbackMsg   = "";
-    private Color  feedbackColor = Color.WHITE;
-    private Timer  feedbackTimer;
+    private String feedbackMsg = "";
+    private Color feedbackColor = Color.WHITE;
+    private Timer feedbackTimer;
 
     // ── Click zones + tile rects ──────────────────────────────────────────────
-    private final Map<String, Rectangle> tileRects  = new LinkedHashMap<>();
+    private final Map<String, Rectangle> tileRects = new LinkedHashMap<>();
     private final Map<String, Rectangle> clickZones = new java.util.HashMap<>();
 
     // ── Images ────────────────────────────────────────────────────────────────
     private BufferedImage imgBg, imgCheck, imgBack, imgIndividualBox,
-                          imgOuterBox, imgProgressBar, imgHero, imgSparkle;
+            imgOuterBox, imgProgressBar, imgHero, imgSparkle;
 
     // ── Timers ────────────────────────────────────────────────────────────────
     private Timer gameTimer, animTimer;
@@ -89,14 +90,13 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     // ─────────────────────────────────────────────────────────────────────────
     // Construction
     // ─────────────────────────────────────────────────────────────────────────
-
     public BrokenBridgeGamePanel() {
         this.game = Game.getInstance();
 
-        BrokenBridgeGameModel.Difficulty diff =
-                (game.getDifficulty() == Game.Difficulty.HARD)
-                        ? BrokenBridgeGameModel.Difficulty.GRADE2
-                        : BrokenBridgeGameModel.Difficulty.GRADE1;
+        BrokenBridgeGameModel.Difficulty diff
+                = (game.getDifficulty() == Game.Difficulty.HARD)
+                ? BrokenBridgeGameModel.Difficulty.GRADE2
+                : BrokenBridgeGameModel.Difficulty.GRADE1;
 
         this.model = new BrokenBridgeGameModel(diff);
 
@@ -106,7 +106,10 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
         initTimers();
 
         addMouseListener(new MouseAdapter() {
-            @Override public void mouseReleased(MouseEvent e) { handleClick(e.getX(), e.getY()); }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                handleClick(e.getX(), e.getY());
+            }
         });
 
         setFocusable(true);
@@ -123,7 +126,6 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     // ─────────────────────────────────────────────────────────────────────────
     // addNotify / removeNotify
     // ─────────────────────────────────────────────────────────────────────────
-
     @Override
     public void addNotify() {
         super.addNotify();
@@ -139,23 +141,28 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     // ─────────────────────────────────────────────────────────────────────────
     // Refreshable
     // ─────────────────────────────────────────────────────────────────────────
-
     @Override
     public void refresh() {
         model.resetGame();
         tileRects.clear();
         clickZones.clear();
-        screen       = Screen.INTRO;
+        screen = Screen.INTRO;
         sparkleFrame = 0;
-        errorFrame   = 0;
-        feedbackMsg  = "";
-        showSparkle  = false;
+        errorFrame = 0;
+        feedbackMsg = "";
+        showSparkle = false;
 
         imgHero = loadHeroImage();
 
-        if (gameTimer != null) gameTimer.stop();
-        if (animTimer != null && !animTimer.isRunning()) animTimer.start();
-        if (heroTimer != null && !heroTimer.isRunning()) heroTimer.start();
+        if (gameTimer != null) {
+            gameTimer.stop();
+        }
+        if (animTimer != null && !animTimer.isRunning()) {
+            animTimer.start();
+        }
+        if (heroTimer != null && !heroTimer.isRunning()) {
+            heroTimer.start();
+        }
 
         SwingUtilities.invokeLater(this::requestFocusInWindow);
         repaint();
@@ -164,39 +171,54 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     // ─────────────────────────────────────────────────────────────────────────
     // Image loading
     // ─────────────────────────────────────────────────────────────────────────
-
     private void loadImages() {
-        imgBg            = img("/images/bridge_game/bridge_background.png",
-                                "/images/bridge_game/city_background.png",
-                                "/images/burglar_game/city_extended_bg.png");
+        imgBg = img("/images/bridge_game/bridge_background.png",
+                "/images/bridge_game/city_background.png",
+                "/images/burglar_game/city_extended_bg.png");
         imgIndividualBox = img("/images/bridge_game/individual_box.png",
-                                "/images/cat_game/individual_box.png");
-        imgOuterBox      = img("/images/bridge_game/outer_box.png",
-                                "/images/cat_game/outer_box.png");
-        imgProgressBar   = img("/images/bridge_game/progress_bar.png",
-                                "/images/cat_game/progress_bar.png");
-        imgCheck         = img("/images/bridge_game/check.png",
-                                "/images/cat_game/check.png");
-        imgBack          = img("/images/bridge_game/back.png",
-                                "/images/cat_game/back.png");
-        imgSparkle       = img("/images/bridge_game/blue_sparkle.png",
-                                "/images/cat_game/blue_sparkle.png");
-        imgHero          = loadHeroImage();
+                "/images/cat_game/individual_box.png");
+        imgOuterBox = img("/images/bridge_game/outer_box.png",
+                "/images/cat_game/outer_box.png");
+        imgProgressBar = img("/images/bridge_game/progress_bar.png",
+                "/images/cat_game/progress_bar.png");
+        imgCheck = img("/images/bridge_game/check.png",
+                "/images/cat_game/check.png");
+        imgBack = img("/images/bridge_game/back.png",
+                "/images/cat_game/back.png");
+        imgSparkle = img("/images/bridge_game/blue_sparkle.png",
+                "/images/cat_game/blue_sparkle.png");
+        imgHero = loadHeroImage();
     }
 
     private BufferedImage loadHeroImage() {
-        String avatar = game.getAvatarPath();
-        if ("Mia".equalsIgnoreCase(avatar))  return img("/images/general/hero1_standing.png");
-        if ("Zyx".equalsIgnoreCase(avatar))  return img("/images/general/alien_standing.png");
-        return img("/images/general/hero2_standing.png");
+        try {
+            String avatar = Game.getInstance().getAvatarPath();
+            System.out.println("[Fire] Trying to load: " + avatar);
+            if ("Mia".equalsIgnoreCase(avatar)) {
+                return img("/images/general/hero1_standing.png");
+            }
+            if ("Zyx".equalsIgnoreCase(avatar)) {
+                return img("/images/general/alien_standing.png");
+            }
+            return img("/images/general/hero2_standing.png");
+        } catch (Exception ignored) {
+            System.out.println("[Bridge] Error loading hero");
+        }
+        return null;
     }
 
     private BufferedImage img(String... paths) {
         for (String path : paths) {
             try {
                 URL url = getClass().getResource(path);
-                if (url != null) { BufferedImage bi = ImageIO.read(url); if (bi != null) return bi; }
-            } catch (Exception ignored) {}
+                if (url != null) {
+                    BufferedImage bi = ImageIO.read(url);
+                    if (bi != null) {
+                        return bi;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
         }
         return null;
     }
@@ -204,9 +226,11 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     // ─────────────────────────────────────────────────────────────────────────
     // Timers
     // ─────────────────────────────────────────────────────────────────────────
-
     private void initTimers() {
-        heroTimer = new Timer(180, e -> { heroFrame = (heroFrame + 1) % HERO_COLS; repaint(); });
+        heroTimer = new Timer(180, e -> {
+            heroFrame = (heroFrame + 1) % HERO_COLS;
+            repaint();
+        });
         heroTimer.start();
 
         animTimer = new Timer(16, e -> {
@@ -215,7 +239,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
                 if (errorFrame >= ERROR_FRAMES) {
                     model.clearSelection();
                     errorFrame = 0;
-                    screen     = Screen.PLAYING;
+                    screen = Screen.PLAYING;
                 }
                 repaint();
             }
@@ -224,9 +248,13 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     }
 
     private void startGameTimer() {
-        if (gameTimer != null) gameTimer.stop();
+        if (gameTimer != null) {
+            gameTimer.stop();
+        }
         gameTimer = new Timer(1000, e -> {
-            if (screen != Screen.PLAYING) return;
+            if (screen != Screen.PLAYING) {
+                return;
+            }
             boolean hitZero = model.tickSecond();
             if (hitZero) {
                 model.clearSelection();
@@ -240,29 +268,53 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
 
     private void stopTimers() {
         SoundManager.stopMusic();                          // ← stop BGM whenever we leave
-        if (gameTimer    != null) gameTimer.stop();
-        if (animTimer    != null) animTimer.stop();
-        if (heroTimer    != null) heroTimer.stop();
-        if (sparkleTimer != null) sparkleTimer.stop();
-        if (feedbackTimer!= null) feedbackTimer.stop();
-        if (shakeTimer   != null) shakeTimer.stop();
+        if (gameTimer != null) {
+            gameTimer.stop();
+        }
+        if (animTimer != null) {
+            animTimer.stop();
+        }
+        if (heroTimer != null) {
+            heroTimer.stop();
+        }
+        if (sparkleTimer != null) {
+            sparkleTimer.stop();
+        }
+        if (feedbackTimer != null) {
+            feedbackTimer.stop();
+        }
+        if (shakeTimer != null) {
+            shakeTimer.stop();
+        }
     }
 
     private void showFeedback(String msg, Color c) {
-        feedbackMsg = msg; feedbackColor = c;
-        if (feedbackTimer != null) feedbackTimer.stop();
+        feedbackMsg = msg;
+        feedbackColor = c;
+        if (feedbackTimer != null) {
+            feedbackTimer.stop();
+        }
         feedbackTimer = new Timer(3000, e -> {
-            feedbackMsg = ""; repaint(); ((Timer) e.getSource()).stop();
+            feedbackMsg = "";
+            repaint();
+            ((Timer) e.getSource()).stop();
         });
         feedbackTimer.start();
         repaint();
     }
 
     private void shakeEffect() {
-        if (shakeTimer != null && shakeTimer.isRunning()) return;
+        if (shakeTimer != null && shakeTimer.isRunning()) {
+            return;
+        }
         shakeTick = 0;
         shakeTimer = new Timer(40, e -> {
-            if (++shakeTick > 8) { shakeTimer.stop(); repaint(); } else repaint();
+            if (++shakeTick > 8) {
+                shakeTimer.stop();
+                repaint();
+            } else {
+                repaint();
+            }
         });
         shakeTimer.start();
     }
@@ -270,39 +322,54 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     // ─────────────────────────────────────────────────────────────────────────
     // Input
     // ─────────────────────────────────────────────────────────────────────────
-
     private void handleClick(int mx, int my) {
         if (screen == Screen.INTRO) {
             Rectangle s = clickZones.get("start_btn"), b = clickZones.get("back_btn");
             if (b != null && b.contains(mx, my)) {
-                stopTimers(); Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
+                stopTimers();
+                Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
             } else if (s != null && s.contains(mx, my)) {
                 startGame();
             }
             return;
         }
-        if (screen == Screen.CORRECT_ANIM || screen == Screen.ERROR_ANIM) return;
+        if (screen == Screen.CORRECT_ANIM || screen == Screen.ERROR_ANIM) {
+            return;
+        }
 
-        Rectangle back  = clickZones.get("back_btn");
+        Rectangle back = clickZones.get("back_btn");
         Rectangle check = clickZones.get("check_btn");
         Rectangle clear = clickZones.get("clear_btn");
 
-        if (back  != null && back.contains(mx, my))  { stopTimers(); Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP); return; }
-        if (clear != null && clear.contains(mx, my)) { model.clearSelection(); repaint(); return; }
-        if (check != null && check.contains(mx, my)) { handleCheck(); return; }
+        if (back != null && back.contains(mx, my)) {
+            stopTimers();
+            Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
+            return;
+        }
+        if (clear != null && clear.contains(mx, my)) {
+            model.clearSelection();
+            repaint();
+            return;
+        }
+        if (check != null && check.contains(mx, my)) {
+            handleCheck();
+            return;
+        }
 
         // Click a placed slot → deselect
         int w = getWidth(), h = getHeight();
         List<String> sel = model.getSelected();
-        int n      = model.getWordsThisRound();
+        int n = model.getWordsThisRound();
         int outerW = n * TILE_W + (n - 1) * TILE_GAP + 40;
         int outerX = w / 2 - outerW / 2;
         int outerY = h - 78 - 60;
-        int slotY  = outerY + (78 - TILE_H) / 2;
+        int slotY = outerY + (78 - TILE_H) / 2;
         for (int i = 0; i < sel.size(); i++) {
             int sx = outerX + 20 + i * (TILE_W + TILE_GAP);
             if (mx >= sx && mx <= sx + TILE_W && my >= slotY && my <= slotY + TILE_H) {
-                model.deselectWord(sel.get(i)); repaint(); return;
+                model.deselectWord(sel.get(i));
+                repaint();
+                return;
             }
         }
 
@@ -320,8 +387,8 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     private void startGame() {
         screen = Screen.PLAYING;
         startGameTimer();
-        requestFocusInWindow();                                  
-        SwingUtilities.invokeLater(this::requestFocusInWindow);  
+        requestFocusInWindow();
+        SwingUtilities.invokeLater(this::requestFocusInWindow);
         new Thread(() -> SoundManager.startMusic(SoundManager.BRIDGE_BGM), "bgm-thread").start();
         repaint();
     }
@@ -340,8 +407,13 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             SoundManager.playFrom(SoundManager.BRIDGE_WIN, 0.0, 1.5); // ← cha-ching (first 1.5s)
             triggerSparkle();
             if (model.isComplete()) {
-                if (gameTimer != null) gameTimer.stop();
-                new Timer(900, e -> { showResultDialog(); ((Timer) e.getSource()).stop(); }).start();
+                if (gameTimer != null) {
+                    gameTimer.stop();
+                }
+                new Timer(900, e -> {
+                    showResultDialog();
+                    ((Timer) e.getSource()).stop();
+                }).start();
             } else {
                 screen = Screen.CORRECT_ANIM;
                 new Timer(900, e -> {
@@ -359,7 +431,8 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             shakeEffect();
             showFeedback("Wrong order! Try again.", UITheme.ACCENT_RED);
             model.clearSelection();
-            screen = Screen.ERROR_ANIM; errorFrame = 0;
+            screen = Screen.ERROR_ANIM;
+            errorFrame = 0;
         }
     }
 
@@ -378,14 +451,20 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
 
     private void triggerSparkle() {
         int w = getWidth(), h = getHeight();
-        int ce = (int)(w * LEFT_CLIFF_RATIO), cs = (int)(w * RIGHT_CLIFF_RATIO);
-        sparkleX = ce + (int)((double) model.getBridgeProgress()
+        int ce = (int) (w * LEFT_CLIFF_RATIO), cs = (int) (w * RIGHT_CLIFF_RATIO);
+        sparkleX = ce + (int) ((double) model.getBridgeProgress()
                 / BrokenBridgeGameModel.TOTAL_ROUNDS * (cs - ce));
-        sparkleY = (int)(h * BRIDGE_Y_RATIO) - 30;
-        sparkleFrame = 0; showSparkle = true;
-        if (sparkleTimer != null) sparkleTimer.stop();
+        sparkleY = (int) (h * BRIDGE_Y_RATIO) - 30;
+        sparkleFrame = 0;
+        showSparkle = true;
+        if (sparkleTimer != null) {
+            sparkleTimer.stop();
+        }
         sparkleTimer = new Timer(55, e -> {
-            if (++sparkleFrame >= SPKL_FRAMES) { showSparkle = false; ((Timer) e.getSource()).stop(); }
+            if (++sparkleFrame >= SPKL_FRAMES) {
+                showSparkle = false;
+                ((Timer) e.getSource()).stop();
+            }
             repaint();
         });
         sparkleTimer.start();
@@ -394,14 +473,13 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     // ─────────────────────────────────────────────────────────────────────────
     // Painting
     // ─────────────────────────────────────────────────────────────────────────
-
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,      RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,     RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
         int w = getWidth(), h = getHeight();
 
@@ -418,14 +496,18 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             paintTimerBar(g2, w);
             paintLeftPanel(g2, h);
             paintBottomUI(g2, w, h);
-            if (showSparkle) paintSparkle(g2);
+            if (showSparkle) {
+                paintSparkle(g2);
+            }
         }
 
         if (shakeTimer != null && shakeTimer.isRunning() && shakeTick % 2 == 0) {
             g2.setColor(new Color(1f, 0f, 0f, 0.12f));
             g2.fillRect(0, 0, w, h);
         }
-        if (!feedbackMsg.isEmpty()) paintFeedback(g2, w, h);
+        if (!feedbackMsg.isEmpty()) {
+            paintFeedback(g2, w, h);
+        }
 
         g2.dispose();
     }
@@ -434,27 +516,29 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
         if (imgBg != null) {
             int bw = imgBg.getWidth(), bh = imgBg.getHeight();
             double scale = Math.max((double) W / bw, (double) H / bh);
-            int dw = (int)(bw * scale), dh = (int)(bh * scale);
+            int dw = (int) (bw * scale), dh = (int) (bh * scale);
             g2.drawImage(imgBg, (W - dw) / 2, (H - dh) / 2, dw, dh, null);
         } else {
             g2.setPaint(new GradientPaint(0, 0, UITheme.SKY_TOP, 0, H * 0.7f, UITheme.SKY_BOT));
             g2.fillRect(0, 0, W, H);
             g2.setColor(UITheme.GRASS_COLOR);
-            g2.fillRect(0, (int)(H * 0.85), W, (int)(H * 0.15));
+            g2.fillRect(0, (int) (H * 0.85), W, (int) (H * 0.15));
         }
     }
 
     private void paintHero(Graphics2D g2, int W, int H) {
-        if (imgHero == null) return;
-        int drawW   = 160;
-        int drawH   = (int)((double) HERO_FH / HERO_FW * drawW);
-        int groundY = (int)(H * 0.87) - drawH;
-        int heroX   = W / 2 - drawW / 2;
+        if (imgHero == null) {
+            return;
+        }
+        int drawW = 160;
+        int drawH = (int) ((double) HERO_FH / HERO_FW * drawW);
+        int groundY = (int) (H * 0.87) - drawH;
+        int heroX = W / 2 - drawW / 2;
 
         int srcX1 = heroFrame * HERO_FW;
         int srcY1 = HERO_BACK_ROW * HERO_FH;
 
-        int bridgeBottom = (int)(H * BRIDGE_Y_RATIO) + Math.max(22, (int)(H * BRIDGE_H_RATIO)) + 2;
+        int bridgeBottom = (int) (H * BRIDGE_Y_RATIO) + Math.max(22, (int) (H * BRIDGE_H_RATIO)) + 2;
         g2.setClip(0, bridgeBottom, W, H - bridgeBottom);
         g2.drawImage(imgHero,
                 heroX, groundY, heroX + drawW, groundY + drawH,
@@ -463,16 +547,16 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     }
 
     private void paintBridge(Graphics2D g2, int w, int h) {
-        int bridgeY  = (int)(h * BRIDGE_Y_RATIO);
-        int bridgeH  = Math.max(22, (int)(h * BRIDGE_H_RATIO));
-        int cliffEnd = (int)(w * LEFT_CLIFF_RATIO);
-        int cliffSt  = (int)(w * RIGHT_CLIFF_RATIO);
-        int gapW     = cliffSt - cliffEnd;
+        int bridgeY = (int) (h * BRIDGE_Y_RATIO);
+        int bridgeH = Math.max(22, (int) (h * BRIDGE_H_RATIO));
+        int cliffEnd = (int) (w * LEFT_CLIFF_RATIO);
+        int cliffSt = (int) (w * RIGHT_CLIFF_RATIO);
+        int gapW = cliffSt - cliffEnd;
         int progress = model.getBridgeProgress();
 
-        int towerH    = (int)(h * 0.075);
-        int towerTop  = bridgeY - towerH;
-        int midX      = w / 2;
+        int towerH = (int) (h * 0.075);
+        int towerTop = bridgeY - towerH;
+        int midX = w / 2;
         int ropeNadir = bridgeY + bridgeH / 2 + 14;
 
         g2.setStroke(new BasicStroke(3.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
@@ -486,77 +570,96 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
         }
         g2.setStroke(new BasicStroke(1f));
 
-        drawDeck(g2, 0,       bridgeY, cliffEnd,    bridgeH, false);
+        drawDeck(g2, 0, bridgeY, cliffEnd, bridgeH, false);
         drawDeck(g2, cliffSt, bridgeY, w - cliffSt, bridgeH, false);
         if (progress > 0) {
-            int px = (int)((double) progress / BrokenBridgeGameModel.TOTAL_ROUNDS * gapW);
+            int px = (int) ((double) progress / BrokenBridgeGameModel.TOTAL_ROUNDS * gapW);
             drawDeck(g2, cliffEnd, bridgeY, px, bridgeH, true);
         }
-        int gapLeft = cliffEnd + (int)((double) progress / BrokenBridgeGameModel.TOTAL_ROUNDS * gapW);
+        int gapLeft = cliffEnd + (int) ((double) progress / BrokenBridgeGameModel.TOTAL_ROUNDS * gapW);
         if (gapLeft < cliffSt) {
-            g2.setColor(new Color(0, 0, 0, 88)); g2.fillRect(gapLeft, bridgeY, cliffSt - gapLeft, bridgeH);
-            g2.setColor(new Color(0, 0, 0, 50)); g2.fillRect(gapLeft, bridgeY + bridgeH, cliffSt - gapLeft, 8);
+            g2.setColor(new Color(0, 0, 0, 88));
+            g2.fillRect(gapLeft, bridgeY, cliffSt - gapLeft, bridgeH);
+            g2.setColor(new Color(0, 0, 0, 50));
+            g2.fillRect(gapLeft, bridgeY + bridgeH, cliffSt - gapLeft, 8);
         }
         drawTower(g2, cliffEnd - 13, towerTop, 26, towerH + bridgeH);
-        drawTower(g2, cliffSt  - 13, towerTop, 26, towerH + bridgeH);
+        drawTower(g2, cliffSt - 13, towerTop, 26, towerH + bridgeH);
     }
 
     private void drawDeck(Graphics2D g2, int x, int y, int width, int height, boolean wood) {
-        if (width <= 0) return;
+        if (width <= 0) {
+            return;
+        }
         if (wood) {
             for (int px = x; px < x + width; px += 13) {
                 int pw = Math.min(11, (x + width) - px);
-                g2.setColor(new Color(160, 108, 48)); g2.fillRect(px, y, pw, height);
-                g2.setColor(new Color(130, 85,  35)); g2.fillRect(px, y,  2, height);
-                g2.setColor(new Color(195, 145, 75)); g2.fillRect(px + 3, y + 2, Math.max(0, pw - 5), 4);
+                g2.setColor(new Color(160, 108, 48));
+                g2.fillRect(px, y, pw, height);
+                g2.setColor(new Color(130, 85, 35));
+                g2.fillRect(px, y, 2, height);
+                g2.setColor(new Color(195, 145, 75));
+                g2.fillRect(px + 3, y + 2, Math.max(0, pw - 5), 4);
             }
         } else {
-            g2.setColor(new Color(105, 90, 75)); g2.fillRect(x, y, width, height);
+            g2.setColor(new Color(105, 90, 75));
+            g2.fillRect(x, y, width, height);
             g2.setColor(new Color(125, 110, 94));
-            for (int bx = x; bx < x + width; bx += 24)
-                for (int by = y; by < y + height; by += 12)
+            for (int bx = x; bx < x + width; bx += 24) {
+                for (int by = y; by < y + height; by += 12) {
                     g2.drawRect(bx + (((by - y) / 12) % 2 == 0 ? 0 : 12), by, 22, 10);
+                }
+            }
         }
-        g2.setColor(new Color(205, 185, 158)); g2.fillRect(x, y,              width, 3);
-        g2.setColor(new Color(55,  42,  30));  g2.fillRect(x, y + height - 3, width, 3);
+        g2.setColor(new Color(205, 185, 158));
+        g2.fillRect(x, y, width, 3);
+        g2.setColor(new Color(55, 42, 30));
+        g2.fillRect(x, y + height - 3, width, 3);
     }
 
     private void drawTower(Graphics2D g2, int x, int y, int w, int h) {
-        g2.setColor(new Color(85,  70, 58));   g2.fillRect(x, y, w, h);
-        g2.setColor(new Color(125, 110, 95));  g2.fillRect(x, y, 3, h);
-        g2.setColor(new Color(55,  44,  34));  g2.fillRect(x + w - 3, y, 3, h);
-        g2.setColor(new Color(70,  58,  46));  g2.fillRect(x - 5, y, w + 10, 9);
-        g2.setColor(new Color(145, 128, 108)); g2.fillRect(x - 5, y, w + 10, 3);
+        g2.setColor(new Color(85, 70, 58));
+        g2.fillRect(x, y, w, h);
+        g2.setColor(new Color(125, 110, 95));
+        g2.fillRect(x, y, 3, h);
+        g2.setColor(new Color(55, 44, 34));
+        g2.fillRect(x + w - 3, y, 3, h);
+        g2.setColor(new Color(70, 58, 46));
+        g2.fillRect(x - 5, y, w + 10, 9);
+        g2.setColor(new Color(145, 128, 108));
+        g2.fillRect(x - 5, y, w + 10, 3);
     }
 
     private void drawQuadRope(Graphics2D g2, int x1, int y1, int cx, int cy, int x2, int y2) {
         int px = x1, py = y1;
         for (int i = 1; i <= 70; i++) {
             double t = i / 70.0, mt = 1 - t;
-            int nx = (int)(mt*mt*x1 + 2*mt*t*cx + t*t*x2);
-            int ny = (int)(mt*mt*y1 + 2*mt*t*cy + t*t*y2);
-            g2.drawLine(px, py, nx, ny); px = nx; py = ny;
+            int nx = (int) (mt * mt * x1 + 2 * mt * t * cx + t * t * x2);
+            int ny = (int) (mt * mt * y1 + 2 * mt * t * cy + t * t * y2);
+            g2.drawLine(px, py, nx, ny);
+            px = nx;
+            py = ny;
         }
     }
 
     private int quadRopeY(int x1, int y1, int cx, int cy, int x2, int y2, int x) {
-        double t = Math.max(0, Math.min(1, (double)(x - x1) / (x2 - x1))), mt = 1 - t;
-        return (int)(mt*mt*y1 + 2*mt*t*cy + t*t*y2);
+        double t = Math.max(0, Math.min(1, (double) (x - x1) / (x2 - x1))), mt = 1 - t;
+        return (int) (mt * mt * y1 + 2 * mt * t * cy + t * t * y2);
     }
 
     private void paintLeftPanel(Graphics2D g2, int H) {
         int panelX = 14;
         paintOuterBoxButton(g2, panelX, 12, 120, 40, "< Back", "back_btn");
 
-        int barX   = panelX + 10;
+        int barX = panelX + 10;
         int barTop = 80;
-        int barH   = Math.min(H - 80, 200);
-        int barW   = 18;
+        int barH = Math.min(H - 80, 200);
+        int barW = 18;
 
         g2.setColor(new Color(0, 0, 0, 140));
         g2.fillRoundRect(barX - 2, barTop - 2, barW + 4, barH + 4, 6, 6);
 
-        int filled = (int)((double) model.getBridgeProgress()
+        int filled = (int) ((double) model.getBridgeProgress()
                 / BrokenBridgeGameModel.TOTAL_ROUNDS * barH);
 
         if (imgProgressBar != null && filled > 0) {
@@ -576,8 +679,8 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
 
     private void paintTimerBar(Graphics2D g2, int W) {
         int tbX = 160, tbY = 8, tbH = 40, tbW = W - 320;
-        float pct   = (float) model.getTimeRemaining() / BrokenBridgeGameModel.ROUND_DURATION_SEC;
-        int   fillW = (int)(tbW * Math.max(0, pct));
+        float pct = (float) model.getTimeRemaining() / BrokenBridgeGameModel.ROUND_DURATION_SEC;
+        int fillW = (int) (tbW * Math.max(0, pct));
 
         g2.setColor(new Color(0, 0, 0, 180));
         g2.fillRoundRect(tbX - 3, tbY - 3, tbW + 6, tbH + 6, 10, 10);
@@ -594,7 +697,8 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             }
         } else if (fillW > 0) {
             Color c = pct > 0.5f ? new Color(210, 70, 145) : pct > 0.25f ? new Color(245, 145, 30) : UITheme.ACCENT_RED;
-            g2.setColor(c); g2.fillRoundRect(tbX, tbY, fillW, tbH, 8, 8);
+            g2.setColor(c);
+            g2.fillRoundRect(tbX, tbY, fillW, tbH, 8, 8);
         }
 
         g2.setColor(Color.WHITE);
@@ -640,21 +744,23 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     }
 
     private void paintWordTiles(Graphics2D g2, int w, int h) {
-        List<String> words    = model.getDisplayWords();
+        List<String> words = model.getDisplayWords();
         List<String> selected = model.getSelected();
-        int n      = words.size();
+        int n = words.size();
         int totalW = n * TILE_W + (n - 1) * TILE_GAP;
         int startX = (w - totalW) / 2;
-        int tileY  = (int)(h * 0.30);
+        int tileY = (int) (h * 0.30);
 
         tileRects.clear();
 
         for (int i = 0; i < n; i++) {
-            String  word   = words.get(i);
+            String word = words.get(i);
             boolean placed = selected.contains(word);
-            int     tx     = startX + i * (TILE_W + TILE_GAP);
+            int tx = startX + i * (TILE_W + TILE_GAP);
 
-            if (!placed) tileRects.put(word, new Rectangle(tx, tileY, TILE_W, TILE_H));
+            if (!placed) {
+                tileRects.put(word, new Rectangle(tx, tileY, TILE_W, TILE_H));
+            }
 
             if (placed) {
                 g2.setColor(new Color(170, 165, 155, 155));
@@ -683,7 +789,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     }
 
     private void paintBottomUI(Graphics2D g2, int w, int h) {
-        int n      = model.getWordsThisRound();
+        int n = model.getWordsThisRound();
         int outerW = n * TILE_W + (n - 1) * TILE_GAP + 40;
         int outerH = 78;
         int outerX = w / 2 - outerW / 2;
@@ -692,20 +798,24 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
 
         List<String> selected = model.getSelected();
         int slotStartX = outerX + 20;
-        int slotY      = outerY + (outerH - TILE_H) / 2;
+        int slotY = outerY + (outerH - TILE_H) / 2;
 
         for (int i = 0; i < n; i++) {
             int sx = slotStartX + i * (TILE_W + TILE_GAP);
-            if (imgIndividualBox != null)
+            if (imgIndividualBox != null) {
                 g2.drawImage(imgIndividualBox, sx, slotY, TILE_W, TILE_H, null);
-            else {
-                g2.setColor(new Color(255, 248, 222)); g2.fillRoundRect(sx, slotY, TILE_W, TILE_H, 10, 10);
-                g2.setColor(new Color(200, 172, 102)); g2.drawRoundRect(sx, slotY, TILE_W, TILE_H, 10, 10);
+            } else {
+                g2.setColor(new Color(255, 248, 222));
+                g2.fillRoundRect(sx, slotY, TILE_W, TILE_H, 10, 10);
+                g2.setColor(new Color(200, 172, 102));
+                g2.drawRoundRect(sx, slotY, TILE_W, TILE_H, 10, 10);
             }
 
             if (i < selected.size()) {
-                Font f = gameFont(14f); FontMetrics fm = g2.getFontMetrics(f);
-                g2.setFont(f); g2.setColor(new Color(48, 32, 10));
+                Font f = gameFont(14f);
+                FontMetrics fm = g2.getFontMetrics(f);
+                g2.setFont(f);
+                g2.setColor(new Color(48, 32, 10));
                 String word = selected.get(i);
                 g2.drawString(word,
                         sx + (TILE_W - fm.stringWidth(word)) / 2,
@@ -726,17 +836,19 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     }
 
     private void paintSparkle(Graphics2D g2) {
-        if (imgSparkle == null || !showSparkle) return;
+        if (imgSparkle == null || !showSparkle) {
+            return;
+        }
         int sx = sparkleFrame * SPKL_W;
         g2.drawImage(imgSparkle,
-                sparkleX - SPKL_W,              sparkleY - SPKL_H,
+                sparkleX - SPKL_W, sparkleY - SPKL_H,
                 sparkleX + SPKL_W * SPKL_SCALE, sparkleY + SPKL_H * SPKL_SCALE,
                 sx, 0, sx + SPKL_W, SPKL_H, null);
     }
 
     private void paintFeedback(Graphics2D g2, int W, int H) {
         int fw = Math.min(W - 60, 700), fh = 54;
-        int fx = (W - fw) / 2, fy = (int)(H * 0.70);
+        int fx = (W - fw) / 2, fy = (int) (H * 0.70);
         paintOuterBoxButton(g2, fx, fy, fw, fh, "", "");
         g2.setFont(UITheme.FONT_HEADING);
         g2.setColor(feedbackColor);
@@ -746,18 +858,20 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     // ─────────────────────────────────────────────────────────────────────────
     // Draw helpers
     // ─────────────────────────────────────────────────────────────────────────
-
     private void paintOuterBox(Graphics2D g2, int x, int y, int w, int h) {
-        g2.setColor(new Color(229, 226, 207)); g2.fillRect(x, y, w, h);
+        g2.setColor(new Color(229, 226, 207));
+        g2.fillRect(x, y, w, h);
         if (imgOuterBox != null) {
             int sh = Math.min(8, h / 2);
-            g2.drawImage(imgOuterBox, x,          y,          x + w, y + sh,         0, 0,                     imgOuterBox.getWidth(), imgOuterBox.getHeight(), null);
-            g2.drawImage(imgOuterBox, x,          y + h - sh, x + w, y + h,          0, imgOuterBox.getHeight(), imgOuterBox.getWidth(), 0,                     null);
-            g2.drawImage(imgOuterBox, x,          y + sh,     x + sh, y + h - sh,    0, 0,                     imgOuterBox.getHeight(), imgOuterBox.getHeight(), null);
-            g2.drawImage(imgOuterBox, x + w - sh, y + sh,     x + w,  y + h - sh,   imgOuterBox.getWidth() - imgOuterBox.getHeight(), 0, imgOuterBox.getWidth(), imgOuterBox.getHeight(), null);
+            g2.drawImage(imgOuterBox, x, y, x + w, y + sh, 0, 0, imgOuterBox.getWidth(), imgOuterBox.getHeight(), null);
+            g2.drawImage(imgOuterBox, x, y + h - sh, x + w, y + h, 0, imgOuterBox.getHeight(), imgOuterBox.getWidth(), 0, null);
+            g2.drawImage(imgOuterBox, x, y + sh, x + sh, y + h - sh, 0, 0, imgOuterBox.getHeight(), imgOuterBox.getHeight(), null);
+            g2.drawImage(imgOuterBox, x + w - sh, y + sh, x + w, y + h - sh, imgOuterBox.getWidth() - imgOuterBox.getHeight(), 0, imgOuterBox.getWidth(), imgOuterBox.getHeight(), null);
         } else {
-            g2.setColor(new Color(0xC8A97A)); g2.setStroke(new BasicStroke(2));
-            g2.drawRoundRect(x + 1, y + 1, w - 2, h - 2, 6, 6); g2.setStroke(new BasicStroke(1));
+            g2.setColor(new Color(0xC8A97A));
+            g2.setStroke(new BasicStroke(2));
+            g2.drawRoundRect(x + 1, y + 1, w - 2, h - 2, 6, 6);
+            g2.setStroke(new BasicStroke(1));
         }
     }
 
@@ -768,7 +882,9 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             g2.setColor(new Color(0x3B2A1A));
             drawCentredString(g2, label, x + w / 2, y + h / 2 + 5);
         }
-        if (!zoneId.isEmpty()) clickZones.put(zoneId, new Rectangle(x, y, w, h));
+        if (!zoneId.isEmpty()) {
+            clickZones.put(zoneId, new Rectangle(x, y, w, h));
+        }
     }
 
     private void paintIconBox(Graphics2D g2, int x, int y, int size, BufferedImage icon, String zoneId) {
@@ -777,7 +893,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             if ("clear_btn".equals(zoneId)) {
                 g2.drawImage(icon,
                         x + pad + (size - pad * 2), y + pad,
-                        x + pad,                    y + pad + (size - pad * 2),
+                        x + pad, y + pad + (size - pad * 2),
                         0, 0, icon.getWidth(), icon.getHeight(), null);
             } else {
                 g2.drawImage(icon, x + pad, y + pad, size - pad * 2, size - pad * 2, null);
@@ -787,13 +903,19 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     }
 
     private void paintClickBox(Graphics2D g2, int x, int y, int w, int h,
-                                String text, Font font, Color bgTint, Color textColor, String zoneId) {
+            String text, Font font, Color bgTint, Color textColor, String zoneId) {
         g2.setColor(new Color(bgTint.getRed(), bgTint.getGreen(), bgTint.getBlue(), 180));
         g2.fillRoundRect(x, y, w, h, 8, 8);
-        if (imgOuterBox != null) { g2.setColor(new Color(1f, 1f, 1f, 0.15f)); g2.fillRoundRect(x, y, w, h, 8, 8); }
-        g2.setColor(new Color(0, 0, 0, 100)); g2.setStroke(new BasicStroke(2));
-        g2.drawRoundRect(x + 1, y + 1, w - 2, h - 2, 8, 8); g2.setStroke(new BasicStroke(1));
-        g2.setFont(font); g2.setColor(textColor);
+        if (imgOuterBox != null) {
+            g2.setColor(new Color(1f, 1f, 1f, 0.15f));
+            g2.fillRoundRect(x, y, w, h, 8, 8);
+        }
+        g2.setColor(new Color(0, 0, 0, 100));
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRoundRect(x + 1, y + 1, w - 2, h - 2, 8, 8);
+        g2.setStroke(new BasicStroke(1));
+        g2.setFont(font);
+        g2.setColor(textColor);
         drawCentredString(g2, text, x + w / 2, y + h / 2 + 5);
         clickZones.put(zoneId, new Rectangle(x, y, w, h));
     }
@@ -804,8 +926,12 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     }
 
     private Font gameFont(float size) {
-        if (size >= 17) return UITheme.FONT_HEADING.deriveFont(size);
-        if (size >= 14) return UITheme.FONT_LETTER.deriveFont(size);
+        if (size >= 17) {
+            return UITheme.FONT_HEADING.deriveFont(size);
+        }
+        if (size >= 14) {
+            return UITheme.FONT_LETTER.deriveFont(size);
+        }
         return UITheme.FONT_SMALL.deriveFont(size);
     }
 }
