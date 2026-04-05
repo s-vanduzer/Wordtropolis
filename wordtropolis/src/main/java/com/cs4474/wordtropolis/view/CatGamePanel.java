@@ -23,7 +23,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
 
     // ── Game screens ──────────────────────────────────────────────────────────
     private enum Screen {
-        INTRO, GAME, RESCUE
+        INTRO, GAME, RESCUE, FINISH
     }
     private Screen currentScreen = Screen.INTRO;
 
@@ -435,6 +435,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
     }
 
     private void rescueComplete() {
+        feedbackMsg = "";
         if (countdownTimer != null) {
             countdownTimer.stop();
         }
@@ -443,38 +444,23 @@ public class CatGamePanel extends JPanel implements Refreshable {
             feedbackTimer.stop();
         }
 
-        showFeedback("Cat Rescued! Mission Complete!", UITheme.ACCENT_TEAL);
         SoundManager.playConditional(SoundManager.CAT_LEVEL_DONE, SoundManager.GameActivity.CAT_GAME);
         Game.getInstance().setCatCompleted(true);
         currentScreen = Screen.RESCUE;
-        catRescueY = 0.0f;   // start at bottom of tree, move upward
+
+        catRescueY = 0.0f;
         rescueTimer = new Timer(55, e -> {
             catRescueY += 0.015f;
             if (catRescueY >= 1.0f) {
                 catRescueY = 1.0f;
                 ((Timer) e.getSource()).stop();
+                SoundManager.stopMusic();
+                stopAll();
+                currentScreen = Screen.FINISH;
             }
             repaint();
         });
         rescueTimer.start();
-        new Timer(4000, e -> {
-            showResultDialog();
-            ((Timer) e.getSource()).stop();
-        }).start();
-    }
-
-    private void showResultDialog() {
-        // FIX 3c: stop music immediately before dialog and before navigating
-        SoundManager.stopMusic();
-        stopAll();  // stop all timers too so nothing runs in background
-        JOptionPane.showMessageDialog(this,
-                "<html><div style='font-size:14px;text-align:center;padding:10px'>"
-                + "<b>Cat Rescued!</b><br><br>"
-                + "Score: <b>" + model.getTotalScore() + "</b><br>"
-                + "Wrong attempts: " + model.getIncorrectAttempts()
-                + "</div></html>",
-                "Mission Complete!", JOptionPane.PLAIN_MESSAGE);
-        Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
     }
 
     private void speakWord() {
@@ -600,11 +586,18 @@ public class CatGamePanel extends JPanel implements Refreshable {
         // ── 9. Top: timer bar ─────────────────────────────────────────────────
         paintTimerBar(g2, W);
 
-        // ── 10. Intro or game puzzle overlay ──────────────────────────────────
-        if (currentScreen == Screen.INTRO) {
-            paintIntro(g2, W, H);
-        } else {
+        if (null == currentScreen) {
             paintGameUI(g2, W, H);
+        } else // -- 10. Intro, Game, or Finish overlays --
+        {
+            switch (currentScreen) {
+                case INTRO ->
+                    paintIntro(g2, W, H);
+                case FINISH ->
+                    paintFinishOverlay(g2, W, H);
+                default ->
+                    paintGameUI(g2, W, H);
+            }
         }
 
         // ── 11. Drag ghost — semi-transparent tile following the cursor ──────────
@@ -1010,7 +1003,6 @@ public class CatGamePanel extends JPanel implements Refreshable {
     // ── Game UI: floating tiles + word box + buttons ───────────────────────
     private void paintGameUI(Graphics2D g2, int W, int H) {
         if (currentScreen == Screen.RESCUE) {
-            paintRescueOverlay(g2, W, H);
             return;
         }
 
@@ -1072,12 +1064,59 @@ public class CatGamePanel extends JPanel implements Refreshable {
 
     }  // end paintGameUI
 
-    private void paintRescueOverlay(Graphics2D g2, int W, int H) {
-        g2.setColor(new Color(0f, 0f, 0f, 0.4f));
-        g2.fillRect(0, H / 2 - 40, W, 80);
+    private void paintFinishOverlay(Graphics2D g2, int W, int H) {
+        // 1. Full-page dark overlay (dimming the background)
+        g2.setColor(new Color(0, 0, 0, 180)); // Slightly darker for the finish
+        g2.fillRect(0, 0, W, H);
+
+        // 2. Card Dimensions (Matching your Intro style)
+        int cardW = Math.min(W - 80, 600);
+        int cardH = 320; // Slightly taller to fit stats
+        int cardX = W / 2 - cardW / 2;
+        int cardY = H / 2 - cardH / 2;
+
+        // 3. Draw the Card Background
+        paintOuterBoxButton(g2, cardX, cardY, cardW, cardH, "", "");
+
+        // 4. Header: Congratulatory Message
         g2.setFont(UITheme.FONT_HEADING);
-        g2.setColor(UITheme.TEXT_BRIGHT);
-        drawCentredString(g2, "CAT RESCUED!", W / 2, H / 2 + 8);
+        g2.setColor(new Color(0x3B2A1A));
+        drawCentredString(g2, "Mission Accomplished!", W / 2, cardY + 50);
+
+        // 5. Stats Section
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x5A4A3A));
+
+        // Y-offsets for stats
+        int statsStartY = cardY + 100;
+
+        // You'll need to ensure these methods exist in your model/logic
+        // If your variables are named differently, swap them here:
+        drawCentredString(g2, "Total Score: " + Game.getInstance().getScore(), W / 2, statsStartY);
+
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        drawCentredString(g2, "Correct Guesses: " + model.getTotalScore(), W / 2, statsStartY + 35);
+        drawCentredString(g2, "Mistakes Made: " + model.getIncorrectAttempts(), W / 2, statsStartY + 65);
+
+        // 6. Final Praise
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x2D5A27)); // Dark green for a "win" feel
+        drawCentredString(g2, "The cat is safe. Thank you Hero!", W / 2, cardY + 210);
+
+        // 7. Divider Line
+        g2.setColor(new Color(0xC8A97A));
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawLine(cardX + 60, cardY + 235, cardX + cardW - 60, cardY + 235);
+        g2.setStroke(new BasicStroke(1));
+
+        // 8. Back to Map Button (Matching the "Start" button style)
+        int btnW = 240, btnH = 50;
+        int btnX = W / 2 - btnW / 2;
+        int btnY = cardY + cardH - btnH - 20;
+
+        // Using your click box style with a gold tint
+        paintClickBox(g2, btnX, btnY, btnW, btnH, "Back to Map", UITheme.FONT_HEADING,
+                new Color(0xFCD475), UITheme.BG_DARK, "back_to_map");
     }
 
     // ── Feedback message ──────────────────────────────────────────────────────

@@ -63,7 +63,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
 
     // ── Screen state ──────────────────────────────────────────────────────────
     private enum Screen {
-        INTRO, PLAYING, CORRECT_ANIM, ERROR_ANIM
+        INTRO, PLAYING, CORRECT_ANIM, ERROR_ANIM, FINISH
     }
     private Screen screen = Screen.INTRO;
 
@@ -411,8 +411,11 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
                     gameTimer.stop();
                 }
                 new Timer(900, e -> {
-                    showResultDialog();
                     ((Timer) e.getSource()).stop();
+                    stopTimers();
+                    game.setBridgeCompleted(true);
+                    screen = Screen.FINISH;
+                    repaint();
                 }).start();
             } else {
                 screen = Screen.CORRECT_ANIM;
@@ -434,19 +437,6 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             screen = Screen.ERROR_ANIM;
             errorFrame = 0;
         }
-    }
-
-    private void showResultDialog() {
-        stopTimers();
-        game.setBridgeCompleted(true);
-        JOptionPane.showMessageDialog(this,
-                "<html><div style='font-size:14px;text-align:center;padding:10px'>"
-                + "<b>Bridge Fixed!</b><br><br>"
-                + "Score: <b>" + model.getScore() + "</b><br>"
-                + "Wrong attempts: " + model.getIncorrectAttempts()
-                + "</div></html>",
-                "Mission Complete!", JOptionPane.PLAIN_MESSAGE);
-        Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
     }
 
     private void triggerSparkle() {
@@ -491,7 +481,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             paintTimerBar(g2, w);
             paintLeftPanel(g2, h);
             paintIntro(g2, w, h);
-        } else {
+        } else if (screen == Screen.PLAYING) {
             paintWordTiles(g2, w, h);
             paintTimerBar(g2, w);
             paintLeftPanel(g2, h);
@@ -499,6 +489,8 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             if (showSparkle) {
                 paintSparkle(g2);
             }
+        } else if (screen == Screen.FINISH) {
+            paintFinishOverlay(g2, w, h);
         }
 
         if (shakeTimer != null && shakeTimer.isRunning() && shakeTick % 2 == 0) {
@@ -741,6 +733,61 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
         paintClickBox(g2, W / 2 - btnW / 2, cardY + cardH - btnH - 14,
                 btnW, btnH, "Start Fixing!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_btn");
+    }
+
+    private void paintFinishOverlay(Graphics2D g2, int W, int H) {
+        // 1. Full-page dark overlay (dimming the background)
+        g2.setColor(new Color(0, 0, 0, 180)); // Slightly darker for the finish
+        g2.fillRect(0, 0, W, H);
+
+        // 2. Card Dimensions (Matching your Intro style)
+        int cardW = Math.min(W - 80, 600);
+        int cardH = 320; // Slightly taller to fit stats
+        int cardX = W / 2 - cardW / 2;
+        int cardY = H / 2 - cardH / 2;
+
+        // 3. Draw the Card Background
+        paintOuterBoxButton(g2, cardX, cardY, cardW, cardH, "", "");
+
+        // 4. Header: Congratulatory Message
+        g2.setFont(UITheme.FONT_HEADING);
+        g2.setColor(new Color(0x3B2A1A));
+        drawCentredString(g2, "Mission Accomplished!", W / 2, cardY + 50);
+
+        // 5. Stats Section
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x5A4A3A));
+
+        // Y-offsets for stats
+        int statsStartY = cardY + 100;
+
+        // You'll need to ensure these methods exist in your model/logic
+        // If your variables are named differently, swap them here:
+        drawCentredString(g2, "Total Score: " + game.getScore(), W / 2, statsStartY);
+
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        drawCentredString(g2, "Correct Guesses: " + model.getCorrectAttempts(), W / 2, statsStartY + 35);
+        drawCentredString(g2, "Mistakes Made: " + model.getIncorrectAttempts(), W / 2, statsStartY + 65);
+
+        // 6. Final Praise
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x2D5A27)); // Dark green for a "win" feel
+        drawCentredString(g2, "The bridge is all fixd. Great job!", W / 2, cardY + 210);
+
+        // 7. Divider Line
+        g2.setColor(new Color(0xC8A97A));
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawLine(cardX + 60, cardY + 235, cardX + cardW - 60, cardY + 235);
+        g2.setStroke(new BasicStroke(1));
+
+        // 8. Back to Map Button (Matching the "Start" button style)
+        int btnW = 240, btnH = 50;
+        int btnX = W / 2 - btnW / 2;
+        int btnY = cardY + cardH - btnH - 20;
+
+        // Using your click box style with a gold tint
+        paintClickBox(g2, btnX, btnY, btnW, btnH, "Back to Map", UITheme.FONT_HEADING,
+                new Color(0xFCD475), UITheme.BG_DARK, "back_btn");
     }
 
     private void paintWordTiles(Graphics2D g2, int w, int h) {

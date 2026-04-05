@@ -361,17 +361,6 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
                 }).start();
             }
         }
-
-        if (model.isComplete()) {
-            // 1. Mark as completed in the global state
-            Game.getInstance().setBurgularCompleted(true); // This enables the "OK" badge on the map
-
-            // 2. Play a win sound or show a "Mission Accomplished" screen
-            // BurglarSoundManager.play(BurglarSoundManager.SFX_WIN);
-            // 3. Return to the Map (which will now show the "OK" badge)
-//       JOptionPane.showMessageDialog(this, "You caught the burglar! City safe!");
-            Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
-        }
     }
 
     private void refreshGame() {
@@ -380,34 +369,14 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
         repaint();
     }
 
-//private void gameComplete() {
-//    SoundManager.stopMusic(); // Stop game music
-//    stopAll();                // Stop animation timers
-//    
-//    // 1. Show the "Success" feedback on the game screen
-//    showFeedback("Hero caught the burglar! Mission Complete!", UITheme.ACCENT_TEAL);
-//    SoundManager.play(SoundManager.SFX_LEVEL_COMPLETE); //
-//    Game.getInstance().setBurgularCompleted(true); 
-//
-//    // 2. Wait 1.5 seconds so the user can actually see the feedback message
-//    new Timer(1500, e -> {
-//       showResultDialog(true);
-//       ((Timer)e.getSource()).stop();
-//    }).start();
-//    
-//    repaint();
-//}
     private void chaseComplete() {
-        showFeedback("You caught the burglar! City safe!", UITheme.ACCENT_TEAL);
+        SoundManager.stopMusic();
         SoundManager.playConditional(SoundManager.SFX_LEVEL_COMPLETE, SoundManager.GameActivity.BURGLAR_GAME);
         Game.getInstance().setBurgularCompleted(true);
-        currentScreen = BurglarGamePanel.Screen.WIN;
 
-        feedbackTimer.start();
-        new Timer(500, e -> {
-            showResultDialog();
-            ((Timer) e.getSource()).stop();
-        }).start();
+        currentScreen = Screen.WIN; // Switch to win overlay
+        stopAll();
+        repaint();
     }
 
     private void showResultDialog() {
@@ -492,7 +461,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
 
         if (currentScreen == Screen.INTRO) {
             paintStartScreen(g2, W, H);
-        } else {
+        } else if (currentScreen == Screen.GAME) {
             // Your existing game drawing logic
             paintProgressBar(g2, W, H);
             paintCharacters(g2, W, H);
@@ -535,6 +504,12 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
             }
 
             g2.dispose();
+        } else if (currentScreen == Screen.WIN) {
+            // Draw the game state frozen behind the overlay
+            paintProgressBar(g2, W, H);
+            paintCharacters(g2, W, H);
+            // Draw the overlay on top
+            paintWinOverlay(g2, W, H);
         }
     }
 
@@ -948,6 +923,61 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
         g2.setFont(UITheme.FONT_HEADING);
         g2.setColor(feedbackColor);
         drawCentredString(g2, feedbackMsg, W / 2, fy + fh / 2 + 7);
+    }
+
+    private void paintWinOverlay(Graphics2D g2, int W, int H) {
+        // 1. Full-page dark overlay (dimming the background)
+        g2.setColor(new Color(0, 0, 0, 180)); // Slightly darker for the finish
+        g2.fillRect(0, 0, W, H);
+
+        // 2. Card Dimensions (Matching your Intro style)
+        int cardW = Math.min(W - 80, 600);
+        int cardH = 320; // Slightly taller to fit stats
+        int cardX = W / 2 - cardW / 2;
+        int cardY = H / 2 - cardH / 2;
+
+        // 3. Draw the Card Background
+        paintOuterBoxButton(g2, cardX, cardY, cardW, cardH, "", "");
+
+        // 4. Header: Congratulatory Message
+        g2.setFont(UITheme.FONT_HEADING);
+        g2.setColor(new Color(0x3B2A1A));
+        drawCentredString(g2, "Mission Accomplished!", W / 2, cardY + 50);
+
+        // 5. Stats Section
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x5A4A3A));
+
+        // Y-offsets for stats
+        int statsStartY = cardY + 100;
+
+        // You'll need to ensure these methods exist in your model/logic
+        // If your variables are named differently, swap them here:
+        drawCentredString(g2, "Total Score: " + Game.getInstance().getScore(), W / 2, statsStartY);
+
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        drawCentredString(g2, "Correct Guesses: " + model.getWordsCompleted(), W / 2, statsStartY + 35);
+        drawCentredString(g2, "Mistakes Made: " + model.getIncorrectAttempts(), W / 2, statsStartY + 65);
+
+        // 6. Final Praise
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x2D5A27)); // Dark green for a "win" feel
+        drawCentredString(g2, "You caught the burglar, awesome job!", W / 2, cardY + 210);
+
+        // 7. Divider Line
+        g2.setColor(new Color(0xC8A97A));
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawLine(cardX + 60, cardY + 235, cardX + cardW - 60, cardY + 235);
+        g2.setStroke(new BasicStroke(1));
+
+        // 8. Back to Map Button (Matching the "Start" button style)
+        int btnW = 240, btnH = 50;
+        int btnX = W / 2 - btnW / 2;
+        int btnY = cardY + cardH - btnH - 20;
+
+        // Using your click box style with a gold tint
+        paintClickBox(g2, btnX, btnY, btnW, btnH, "Back to Map", UITheme.FONT_HEADING,
+                new Color(0xFCD475), UITheme.BG_DARK, "back_to_map");
     }
 
     // ── UI Helpers ────────────────────────────────────────────────────────────

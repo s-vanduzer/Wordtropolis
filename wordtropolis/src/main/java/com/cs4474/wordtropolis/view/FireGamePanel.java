@@ -78,7 +78,9 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
     private int hintCount = 0; // Number of letters revealed as hints
     private int streakCount = 1; // For score multiplier
-
+    
+    private int totalWrongCount = 0; // Total number of incorrect guesses
+    
     private StringBuilder currentInput = new StringBuilder();
     private String feedbackMsg = "";
 
@@ -251,10 +253,11 @@ public class FireGamePanel extends JPanel implements Refreshable {
             if (streakCount > 1) {
                 showFeedback("Score bonus lost, try again!");
             } else {
-                showFeedback("Try again!");
+                showFeedback("Try again! Don't forget, some words sound the same but are spelled differently!");
             }
 
             streakCount = 1;
+            totalWrongCount++;
 
             if (model.getWrongCount() > 0 && model.getWrongCount() % HINT_THRESHOLD == 0) {
                 if (hintCount < model.getCurrentWord().length()) {
@@ -775,8 +778,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
         int totalW = targetWord.length() * (charW + gap);
         int startX = (W - totalW) / 2;
 
-        // ADJUST THIS: Center vertically within the box
-        // boxY + (boxH/2) puts us in the middle; we adjust slightly for font height
         int textY = boxY + (boxH / 2) + 10;
         int lineY = textY + 15; // Underscore is below the text
 
@@ -809,7 +810,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         }
     }
 
-// ── Game UI: floating tiles + word box + buttons ───────────────────────
+// ── Game UI: word box + buttons ───────────────────────
     private void paintGameUI(Graphics2D g2, int W, int H) {
         // ── Bottom: outer_box word display row ────────────────────────────────
         String word = model.getCurrentWord();
@@ -818,7 +819,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         int totalSlotW = wordLen * (slotSize + slotGap) - slotGap;
 
         // The outer box spans the word slots
-        int boxPad = 20;
+        int boxPad = 25;
         int boxW = totalSlotW + boxPad * 2;
         int boxH = slotSize + boxPad;
         int boxX = (W - boxW) / 2;
@@ -830,38 +831,72 @@ public class FireGamePanel extends JPanel implements Refreshable {
         paintInputBox(g2, W, H, boxY, boxH);
 
         int btnSize = 56;
-        int spacing = 10;
+        int spacing = 30;
 
-        // 1. Back button (Left of box)
+        // 1. Back button (Left of box) + Label
         int backX = boxX - btnSize - spacing;
         int backY = boxY + boxH / 2 - btnSize / 2;
-        paintIconBox(g2, backX, backY, btnSize, imgBack, "back_btn");
+        paintLabeledIcon(g2, backX, backY, btnSize, imgBack, "BACKSPACE", "back_btn");
 
-        // 2. Check button (Right of box)
+        // 2. Check button (Right of box) + Label
         int checkX = boxX + boxW + spacing;
         int checkY = backY;
-        paintIconBox(g2, checkX, checkY, btnSize, imgCheck, "check_btn");
+        paintLabeledIcon(g2, checkX, checkY, btnSize, imgCheck, "ENTER", "check_btn");
     }  // end paintGameUI
 
     private void paintFinishOverlay(Graphics2D g2, int W, int H) {
-        // 1. Draw a semi-transparent dark background for the text/button area
-        g2.setColor(new Color(0f, 0f, 0f, 0.6f));
-        // We make this taller (160 instead of 80) to fit the button
-        g2.fillRect(0, H / 2 - 80, W, 160);
+        // 1. Full-page dark overlay (dimming the background)
+        g2.setColor(new Color(0, 0, 0, 180)); // Slightly darker for the finish
+        g2.fillRect(0, 0, W, H);
 
-        // 2. Draw the "All fires are out!" text
+        // 2. Card Dimensions (Matching your Intro style)
+        int cardW = Math.min(W - 80, 600);
+        int cardH = 320; // Slightly taller to fit stats
+        int cardX = W / 2 - cardW / 2;
+        int cardY = H / 2 - cardH / 2;
+
+        // 3. Draw the Card Background
+        paintOuterBoxButton(g2, cardX, cardY, cardW, cardH, "", "");
+
+        // 4. Header: Congratulatory Message
         g2.setFont(UITheme.FONT_HEADING);
-        g2.setColor(UITheme.TEXT_BRIGHT);
-        drawCentredString(g2, "All fires are out!", W / 2, H / 2 - 10);
+        g2.setColor(new Color(0x3B2A1A));
+        drawCentredString(g2, "Mission Accomplished!", W / 2, cardY + 50);
 
-        // 3. Draw the "Back to Map" button below the text
-        int btnW = 200;
-        int btnH = 45;
-        int btnX = (W - btnW) / 2;
-        int btnY = H / 2 + 25; // Positioned below the text
+        // 5. Stats Section
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x5A4A3A));
 
-        // We use "back_to_map" as the zoneId so it triggers the existing map logic
-        paintOuterBoxButton(g2, btnX, btnY, btnW, btnH, "Back to Map", "back_to_map");
+        // Y-offsets for stats
+        int statsStartY = cardY + 100;
+
+        // You'll need to ensure these methods exist in your model/logic
+        // If your variables are named differently, swap them here:
+        drawCentredString(g2, "Total Score: " + game.getScore(), W / 2, statsStartY);
+
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        drawCentredString(g2, "Correct Guesses: " + model.getCorrectCount(), W / 2, statsStartY + 35);
+        drawCentredString(g2, "Mistakes Made: " + totalWrongCount, W / 2, statsStartY + 65);
+
+        // 6. Final Praise
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x2D5A27)); // Dark green for a "win" feel
+        drawCentredString(g2, "The Pet Shop is safe thanks to you!", W / 2, cardY + 210);
+
+        // 7. Divider Line
+        g2.setColor(new Color(0xC8A97A));
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawLine(cardX + 60, cardY + 235, cardX + cardW - 60, cardY + 235);
+        g2.setStroke(new BasicStroke(1));
+
+        // 8. Back to Map Button (Matching the "Start" button style)
+        int btnW = 240, btnH = 50;
+        int btnX = W / 2 - btnW / 2;
+        int btnY = cardY + cardH - btnH - 20;
+
+        // Using your click box style with a gold tint
+        paintClickBox(g2, btnX, btnY, btnW, btnH, "Back to Map", UITheme.FONT_HEADING,
+                new Color(0xFCD475), UITheme.BG_DARK, "back_to_map");
     }
 
     /**
@@ -921,6 +956,43 @@ public class FireGamePanel extends JPanel implements Refreshable {
             }
         }
         clickZones.put(zoneId, new Rectangle(x, y, size, size));
+    }
+
+    private void paintLabeledIcon(Graphics2D g2, int x, int y, int size,
+            BufferedImage icon, String label, String zoneId) {
+        // 1. Draw the Icon itself (from your existing code)
+        paintIconBox(g2, x, y, size, icon, zoneId);
+
+        // 2. Setup Larger Font and Metrics
+        // Increased from 11 to 14
+        g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+        FontMetrics fm = g2.getFontMetrics();
+
+        int textW = fm.stringWidth(label);
+        int textH = fm.getHeight();
+
+        // 3. Positioning and Sizing the background
+        int hPadding = 8;  // Side padding
+        int vPadding = 4;  // Top/Bottom padding
+        int bgW = textW + (hPadding * 2);
+        int bgH = textH + vPadding;
+
+        // Center horizontally relative to the icon
+        int bgX = x + (size / 2) - (bgW / 2);
+        // Positioned 8 pixels below the icon
+        int bgY = y + size + 8;
+
+        // 4. Draw Background "Pill" (Dark for high contrast)
+        g2.setColor(new Color(0, 0, 0, 190)); // Slightly more opaque for visibility
+        g2.fillRoundRect(bgX, bgY, bgW, bgH, 10, 10);
+
+        // 5. Draw the Text in White
+        g2.setColor(Color.WHITE);
+        // fm.getAscent() ensures the text sits correctly inside the pill
+        g2.drawString(label, bgX + hPadding, bgY + fm.getAscent() + (vPadding / 2) - 2);
+
+        // 6. Update the Click Zone so the text is also clickable
+        clickZones.put(zoneId, new Rectangle(x, y, size, size + bgH + 8));
     }
 
     // ── Feedback message ──────────────────────────────────────────────────────

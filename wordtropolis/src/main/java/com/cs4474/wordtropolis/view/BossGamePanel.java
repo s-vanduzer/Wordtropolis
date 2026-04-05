@@ -34,22 +34,19 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
     // ── Game screens ──────────────────────────────────────────────────────────
     private enum Screen {
-        INTRO, GAME, RESCUE
+        INTRO, GAME, FINISH
     }
     private Screen currentScreen = Screen.INTRO;
 
     // ── Images ────────────────────────────────────────────────────────────────
-    private BufferedImage imgBg, imgTree, imgCat, imgNpc, imgLadder;
-    private BufferedImage imgLightPole, imgProgressBar;
-    private BufferedImage imgLetterBox, imgOuterBox, imgBanner;
+    private BufferedImage imgBg, imgTree, imgNpc;
+    private BufferedImage imgLetterBox, imgOuterBox;
     private BufferedImage imgBack, imgCheck, imgSparkle;
     private BufferedImage imgHero;   // selected hero sprite sheet
     private BufferedImage imgVillain;
     private BufferedImage imgShield;
 
     // ── Sprite constants ──────────────────────────────────────────────────────
-    private static final int CAT_FRAMES = 10, CAT_FW = 32, CAT_FH = 32;
-    private static final int NPC_COLS = 6, NPC_FW = 32, NPC_FH = 32;
     private static final int SPKL_FRAMES = 14, SPKL_W = 32, SPKL_H = 32;
     // Hero sprite sheet: 4 cols × 4 rows, each frame ~210×316px
     // Row 3 (last row, 0-indexed) = back-facing → hero looks toward tree
@@ -60,30 +57,16 @@ public class BossGamePanel extends JPanel implements Refreshable {
     private int heroFrame = 0;
     private Timer heroTimer, gameTimer;
 
-    // ── Progress bar from progress_bar.png ───────────────────────────────────
-    // Row 1 (y=24) is the cyan/filled bar — we rotate it 90° to use vertically
-    // Row 3 (y=72) is used as the timer bar (red/orange fill)
-    private static final int PB_ROW_H = 24;
-    private static final int PB_LADDER_ROW = 1;  // cyan bar for ladder progress
-    private static final int PB_TIMER_ROW = 3;  // red/orange bar for timer
-
     // ── Animation state ───────────────────────────────────────────────────────
-    private int catFrame = 0, npcFrame = 0, sparkleFrame = 0;
+    private int sparkleFrame = 0;
     private boolean showSparkle = false;
     private int sparkleX, sparkleY;
-    private float catRescueY = 1.0f;
-
-    private int catDrawX = -1;   // ADD THIS
-    private int catDrawY = -1;   // ADD THIS
-
-    private Timer catTimer, npcTimer, sparkleTimer, rescueTimer;
 
     // Add these animation state variables
-    private Timer attackTimer;
+    private Timer sparkleTimer, attackTimer, hitEffectTimer;
     private int attackAnimProgress = 0;
     private boolean showingHitEffect = false;
     private int hitEffectX = 0, hitEffectY = 0;
-    private Timer hitEffectTimer;
 
     // ── Floating letter tile positions ────────────────────────────────────────
     // Tiles float in screen space; wind offsets drift them
@@ -160,22 +143,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         SwingUtilities.invokeLater(this::requestFocusInWindow);
     }
 
-    // ═══════════════════════════════ LOADING ═════════════════════════════════
-    private void loadImages() {
-        imgVillain = img("/images/boss_game/boss.png");
-        imgShield = img("/images/boss_game/shield.png");
-        imgBg = img("/images/boss_game/roof_bg.png");
-        imgProgressBar = img("/images/cat_game/progress_bar.png");
-        imgLetterBox = img("/images/cat_game/individual_box.png");
-        imgOuterBox = img("/images/cat_game/outer_box.png");
-        imgBanner = img("/images/cat_game/banner.png");
-        imgBack = img("/images/cat_game/back.png");
-        imgCheck = img("/images/cat_game/check.png");
-        imgSparkle = img("/images/cat_game/blue_sparkle.png");
-        imgSparkle = img("/images/cat_game/blue_sparkle.png");
-        imgHero = loadHeroImage();
-    }
-
     @Override
     public void refresh() {
         refreshGame();
@@ -185,6 +152,20 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
         SwingUtilities.invokeLater(this::requestFocusInWindow);
         repaint();
+    }
+
+    // ═══════════════════════════════ LOADING ═════════════════════════════════
+    private void loadImages() {
+        imgVillain = img("/images/boss_game/boss.png");
+        imgShield = img("/images/boss_game/shield.png");
+        imgBg = img("/images/boss_game/roof_bg.png");
+        imgLetterBox = img("/images/cat_game/individual_box.png");
+        imgOuterBox = img("/images/cat_game/outer_box.png");
+        imgBack = img("/images/cat_game/back.png");
+        imgCheck = img("/images/cat_game/check.png");
+        imgSparkle = img("/images/cat_game/blue_sparkle.png");
+        imgSparkle = img("/images/cat_game/blue_sparkle.png");
+        imgHero = loadHeroImage();
     }
 
     private BufferedImage loadHeroImage() {
@@ -228,16 +209,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
 //    }
     // ═══════════════════════════════ ANIMATIONS ══════════════════════════════
     private void startAnimations() {
-        catTimer = new Timer(150, e -> {
-            catFrame = (catFrame + 1) % CAT_FRAMES;
-            repaint();
-        });
-        catTimer.start();
-        npcTimer = new Timer(200, e -> {
-            npcFrame = (npcFrame + 1) % NPC_COLS;
-            repaint();
-        });
-        npcTimer.start();
         heroTimer = new Timer(180, e -> {
             heroFrame = (heroFrame + 1) % HERO_COLS;
             repaint();
@@ -264,7 +235,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
     }
 
     private void stopAll() {
-        for (Timer t : new Timer[]{catTimer, npcTimer, heroTimer, sparkleTimer, rescueTimer,
+        for (Timer t : new Timer[]{heroTimer, sparkleTimer,
             windTimer, countdownTimer, feedbackTimer}) {
             if (t != null) {
                 t.stop();
@@ -775,42 +746,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
         repaint();
     }
 
-    private void rescueComplete() {
-        showFeedback("Mission Complete!", UITheme.ACCENT_TEAL);
-        SoundManager.playConditional(SoundManager.CAT_LEVEL_DONE, SoundManager.GameActivity.BOSS_GAME);
-//        Game.getInstance().setCatCompleted(true);
-        currentScreen = Screen.RESCUE;
-        catRescueY = 0.0f;   // start at bottom of tree, move upward
-        rescueTimer = new Timer(55, e -> {
-            catRescueY += 0.015f;
-            if (catRescueY >= 1.0f) {
-                catRescueY = 1.0f;
-                ((Timer) e.getSource()).stop();
-            }
-            repaint();
-        });
-        rescueTimer.start();
-        new Timer(4000, e -> {
-            showResultDialog();
-            ((Timer) e.getSource()).stop();
-        }).start();
-    }
-
-    private void showResultDialog() {
-        // FIX 3c: stop music immediately before dialog and before navigating
-        SoundManager.stopMusic();
-        stopAll();  // stop all timers too so nothing runs in background
-        JOptionPane.showMessageDialog(this,
-                "<html><div style='font-size:14px;text-align:center;padding:10px'>"
-                + "<b>Cat Rescued!</b><br><br>"
-                + "Score: <b>" + model.getTotalScore() + "</b><br>"
-                + "Wrong attempts: " + model.getIncorrectAttempts()
-                + "</div></html>",
-                "Mission Complete!", JOptionPane.PLAIN_MESSAGE);
-        Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
-    }
-
-    // TTS removed — only CatGamePanel uses TTS
+    // TTS removed — only BossGamePanel uses TTS
     private void showFeedback(String msg, Color c) {
         feedbackMsg = msg;
         feedbackColor = c;
@@ -866,9 +802,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         // ── 1. Background — fills the whole panel ─────────────────────────────
         paintBackground(g2, W, H);
 
-        // Paint background
-        paintBackground(g2, W, H);
-
         // Paint health bars (replaces left panel)
         paintHealthBars(g2, W, H);
 
@@ -913,10 +846,17 @@ public class BossGamePanel extends JPanel implements Refreshable {
         paintTimerBar(g2, W);
 
         // ── 10. Intro or game puzzle overlay ──────────────────────────────────
-        if (currentScreen == Screen.INTRO) {
-            paintIntro(g2, W, H);
-        } else {
-            paintGameUI(g2, W, H);
+        if (null != currentScreen) {
+            switch (currentScreen) {
+                case INTRO ->
+                    paintIntro(g2, W, H);
+                case GAME ->
+                    paintGameUI(g2, W, H);
+                case FINISH ->
+                    paintFinishOverlay(g2, W, H);
+                default -> {
+                }
+            }
         }
 
         // ── 11. Drag ghost — semi-transparent tile following the cursor ──────────
@@ -989,7 +929,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
         // 1. Calculate dimensions
         int drawW = 200;
-        // Ensure HERO_FH and HERO_FW match the actual pixels of ONE frame in your sheet
+        // Ensure HERO_FH and HERO_FW match the actual pixels of ONE frame in sheet
         int drawH = (int) ((double) HERO_FH / HERO_FW * drawW);
 
         // 2. Set Position
@@ -999,14 +939,10 @@ public class BossGamePanel extends JPanel implements Refreshable {
         // 3. Animation Logic
         int attackOffset = (attackAnimProgress > 0) ? (20 - attackAnimProgress) * 5 : 0;
 
-        // Since it's 1 row, srcY is always 0. 
-        // srcX moves horizontally based on the frame (0, 1, 2, or 3)
         int srcX1 = (heroFrame % 4) * HERO_FW; // % 4 ensures we never go past the 4th column
         int srcY1 = 0;
 
         // 4. Draw
-        // Note: I removed the "+ 70" vertical offset from your original srcY1 
-        // unless your sprite has empty whitespace at the top of the row.
         g2.drawImage(imgHero,
                 heroX + attackOffset, groundY,
                 heroX + drawW + attackOffset, groundY + drawH,
@@ -1067,25 +1003,17 @@ public class BossGamePanel extends JPanel implements Refreshable {
         stopAll();
 
         if (victory) {
-            showFeedback("VICTORY! Mayor Defeated!", UITheme.ACCENT_TEAL);
+            SoundManager.stopMusic();
+            stopAll();
             SoundManager.playConditional(SoundManager.BOSS_VICTORY, SoundManager.GameActivity.BOSS_GAME);
             Game.getInstance().setCatCompleted(true);
+            feedbackMsg = "";
+            currentScreen = Screen.FINISH;
+
         } else {
             showFeedback("DEFEAT! Hero has fallen!", UITheme.ACCENT_RED);
             SoundManager.playConditional(SoundManager.BOSS_DEFEAT, SoundManager.GameActivity.BOSS_GAME);
         }
-
-        new Timer(3000, e -> {
-            JOptionPane.showMessageDialog(this,
-                    "<html><div style='font-size:14px;text-align:center;padding:10px'>"
-                    + "<b>" + (victory ? "VICTORY!" : "DEFEAT!") + "</b><br><br>"
-                    + "Score: <b>" + model.getTotalScore() + "</b><br>"
-                    + "Incorrect attempts: " + model.getIncorrectAttempts()
-                    + "</div></html>",
-                    victory ? "Battle Won!" : "Battle Lost", JOptionPane.PLAIN_MESSAGE);
-            Wordtropolis.showScreen(Wordtropolis.SCREEN_FINISH);
-            ((Timer) e.getSource()).stop();
-        }).start();
     }
 
     // ── Background ────────────────────────────────────────────────────────────
@@ -1103,97 +1031,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
             g2.fillRect(0, 0, W, H);
             g2.setColor(UITheme.GRASS_COLOR);
             g2.fillRect(0, (int) (H * 0.85), W, (int) (H * 0.15));
-        }
-    }
-
-    // ── NPCs ─────────────────────────────────────────────────────────────────
-    private void paintNpcs(Graphics2D g2, int W, int H) {
-        if (imgNpc == null) {
-            return;
-        }
-
-        int npcScale = 4;
-        int fw = NPC_FW * npcScale;   // drawn width  (96px)
-        int fh = NPC_FH * npcScale;   // drawn height (96px)
-        int groundY = (int) (H * 0.87) - fh;
-
-        int srcY = 1 * 32;
-        int srcX = npcFrame * NPC_FW;
-
-        // ── 3 NPCs on the LEFT side of the tree ──────────────────────────────
-        int[] leftPositions = {
-            (int) (W * 0.11), // leftmost
-            (int) (W * 0.18), // middle-left
-            (int) (W * 0.25), // closest to tree
-        };
-        for (int x : leftPositions) {
-
-            g2.drawImage(imgNpc,
-                    x, groundY, //destination top-left
-                    x + fw, groundY + fh, //destination bottom-right
-                    srcX, srcY, //source top-left
-                    srcX + NPC_FW, srcY + NPC_FH, //source bottom-right
-                    null);
-        }
-
-        // ── 3 NPCs on the RIGHT side of the tree ─────────────────────────────
-        int[] rightPositions = {
-            (int) (W * 0.65), // closest to tree
-            (int) (W * 0.72), // middle-right
-            (int) (W * 0.79), // rightmost
-        };
-        for (int x : rightPositions) {
-            g2.drawImage(imgNpc,
-                    x + fw, groundY, x, groundY + fh,
-                    srcX, srcY,
-                    srcX + NPC_FW, srcY + NPC_FH,
-                    null);
-        }
-    }
-
-    // ── Hero ──────────────────────────────────────────────────────────────────
-    /**
-     * Draw the selected hero at ground level, slightly right of centre, using
-     * the back-facing row so they appear to be looking at the tree.
-     *
-     * Sprite sheet layout: 1 cols × 4 rows, each frame HERO_FW × HERO_FH px.
-     * Row 3 (HERO_SIDE_ROW) = side-facing walk cycle.
-     */
-    private void paintHero(Graphics2D g2, int W, int H) {
-        if (imgHero == null) {
-            return;
-        }
-
-        // Drawn size — scale down to look proportional next to NPCs
-        int drawW = 160;
-        int drawH = (int) ((double) HERO_FH / HERO_FW * drawW);  // keep aspect ratio
-
-        // Ground line matches NPC ground Y
-        int groundY = (int) (H * 0.87) - drawH;
-
-        // Position: just right of the tree centre
-        int heroX = (int) (W * 0.50);
-
-        // Source rectangle: back-facing row, current animation frame
-        int srcX1 = heroFrame * HERO_FW;
-        int srcY1 = HERO_BACK_ROW * HERO_FH;
-        int srcX2 = srcX1 + HERO_FW;
-        int srcY2 = srcY1 + HERO_FH;
-
-        g2.drawImage(imgHero,
-                heroX, groundY, heroX + drawW, groundY + drawH,
-                srcX1, srcY1 + 70, srcX2, srcY2, null);
-    }
-
-    // ── Tree ─────────────────────────────────────────────────────────────────
-    private void paintTree(Graphics2D g2, int tx, int ty, int tw, int th) {
-        if (imgTree != null) {
-            g2.drawImage(imgTree, tx, ty + 30, tw, th + 30, null);
-        } else {
-            g2.setColor(UITheme.TREE_TRUNK);
-            g2.fillRoundRect(tx + tw / 3, ty + th / 2, tw / 3, th / 2, 8, 8);
-            g2.setColor(UITheme.TREE_LEAVES);
-            g2.fillOval(tx, ty, tw, th / 2);
         }
     }
 
@@ -1376,7 +1213,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
         int scoreX = 390;
         int scoreY = 10;
         paintOuterBoxButton(g2, scoreX, scoreY, scoreW, scoreH,
-                "Score: " + model.getTotalScore(), "");
+                "Score: " + game.getScore(), "");
     }
     // ── Intro screen ──────────────────────────────────────────────────────────
 
@@ -1427,8 +1264,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
     // ── Game UI: floating tiles + word box + buttons ───────────────────────
     private void paintGameUI(Graphics2D g2, int W, int H) {
-        if (currentScreen == Screen.RESCUE) {
-            paintRescueOverlay(g2, W, H);
+        if (currentScreen == Screen.FINISH) {
             return;
         }
 
@@ -1509,12 +1345,59 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
     }  // end paintGameUI
 
-    private void paintRescueOverlay(Graphics2D g2, int W, int H) {
-        g2.setColor(new Color(0f, 0f, 0f, 0.4f));
-        g2.fillRect(0, H / 2 - 40, W, 80);
+    private void paintFinishOverlay(Graphics2D g2, int W, int H) {
+        // 1. Full-page dark overlay (dimming the background)
+        g2.setColor(new Color(0, 0, 0, 180)); // Slightly darker for the finish
+        g2.fillRect(0, 0, W, H);
+
+        // 2. Card Dimensions (Matching your Intro style)
+        int cardW = Math.min(W - 80, 600);
+        int cardH = 320; // Slightly taller to fit stats
+        int cardX = W / 2 - cardW / 2;
+        int cardY = H / 2 - cardH / 2;
+
+        // 3. Draw the Card Background
+        paintOuterBoxButton(g2, cardX, cardY, cardW, cardH, "", "");
+
+        // 4. Header: Congratulatory Message
         g2.setFont(UITheme.FONT_HEADING);
-        g2.setColor(UITheme.TEXT_BRIGHT);
-        drawCentredString(g2, "City is safe!", W / 2, H / 2 + 8);
+        g2.setColor(new Color(0x3B2A1A));
+        drawCentredString(g2, "City Saved!", W / 2, cardY + 50);
+
+        // 5. Stats Section
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x5A4A3A));
+
+        // Y-offsets for stats
+        int statsStartY = cardY + 100;
+
+        // You'll need to ensure these methods exist in your model/logic
+        // If your variables are named differently, swap them here:
+        drawCentredString(g2, "Total Score: " + game.getScore(), W / 2, statsStartY);
+
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        drawCentredString(g2, "Correct Guesses: " + model.getCorrectAttempts(), W / 2, statsStartY + 35);
+        drawCentredString(g2, "Mistakes Made: " + model.getIncorrectAttempts(), W / 2, statsStartY + 65);
+
+        // 6. Final Praise
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x2D5A27)); // Dark green for a "win" feel
+        drawCentredString(g2, "The evil mayor has been defeated!", W / 2, cardY + 210);
+
+        // 7. Divider Line
+        g2.setColor(new Color(0xC8A97A));
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawLine(cardX + 60, cardY + 235, cardX + cardW - 60, cardY + 235);
+        g2.setStroke(new BasicStroke(1));
+
+        // 8. Back to Map Button (Matching the "Start" button style)
+        int btnW = 240, btnH = 50;
+        int btnX = W / 2 - btnW / 2;
+        int btnY = cardY + cardH - btnH - 20;
+
+        // Using your click box style with a gold tint
+        paintClickBox(g2, btnX, btnY, btnW, btnH, "Finish", UITheme.FONT_HEADING,
+                new Color(0xFCD475), UITheme.BG_DARK, "finish_screen");
     }
 
     // ── Feedback message ──────────────────────────────────────────────────────
@@ -1776,7 +1659,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
                 if (!isDragging) {
                     // Check Skip button FIRST (most specific)
                     if (skipButtonRect != null && skipButtonRect.contains(mx, my)) {
-                        System.out.println("[CatGame] Skip button clicked!");
+                        System.out.println("[BossGame] Skip button clicked!");
                         handleSkipWord();
                         return;
                     }
@@ -1785,8 +1668,16 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     Rectangle backToMap = clickZones.get("back_to_map");
                     if (backToMap != null && backToMap.contains(mx, my)) {
                         SoundManager.stopAll();
+                        stopAll();
                         Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
-                        //Wordtropolis.replaceScreen(Wordtropolis.SCREEN_MAP, new MapPagePanel());
+                        return;
+                    }
+
+                    Rectangle finishScreen = clickZones.get("finish_screen");
+                    if (finishScreen != null && finishScreen.contains(mx, my)) {
+                        SoundManager.stopAll();
+                        stopAll();
+                        Wordtropolis.showScreen(Wordtropolis.SCREEN_FINISH);
                         return;
                     }
 
@@ -1944,7 +1835,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
             return;
         }
 
-        System.out.println("[CatGame] Skipping word: " + model.getCurrentWord());
+        System.out.println("[BossGame] Skipping word: " + model.getCurrentWord());
 
         // Add current word to timeout list
         String skippedWord = model.getCurrentWord();
@@ -2001,8 +1892,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
     @Override
     public void setBounds(int x, int y, int w, int h) {
         super.setBounds(x, y, w, h);
-        catDrawX = -1;   // force recalculate on next paint
-        catDrawY = -1;
         computeTilePositions();
     }
 

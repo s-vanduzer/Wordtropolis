@@ -38,6 +38,7 @@ public class BrokenBridgeGameModel {
     private int bridgeProgress;
     private int timeRemaining;
     private int incorrectAttempts;
+    private int correctAttempts;
 
     // ── Construction ──────────────────────────────────────────────────────────
 
@@ -89,6 +90,7 @@ public class BrokenBridgeGameModel {
         bridgeProgress    = 0;
         timeRemaining     = ROUND_DURATION_SEC;
         incorrectAttempts = 0;
+        correctAttempts = 0;
         newRound();
     }
 
@@ -134,6 +136,7 @@ public class BrokenBridgeGameModel {
         if (selected.size() != getWordsThisRound()) return false;
         for (int i = 0; i < selected.size(); i++)
             if (!selected.get(i).equals(correctOrder.get(i))) return false;
+        correctAttempts++;
         return true;
     }
 
@@ -161,6 +164,7 @@ public class BrokenBridgeGameModel {
     public int          getBridgeProgress()   { return bridgeProgress; }
     public int          getTimeRemaining()    { return timeRemaining; }
     public int          getIncorrectAttempts(){ return incorrectAttempts; }
+    public int          getCorrectAttempts()  { return correctAttempts; }
     public boolean      isComplete()          { return bridgeProgress >= TOTAL_ROUNDS; }
     public Difficulty   getDifficulty()       { return difficulty; }
 }
