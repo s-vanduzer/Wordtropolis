@@ -309,6 +309,9 @@ public boolean checkAnswer() {
     return correct;
 }
     
+public String getCurrentFullWord() {
+    return currentQuestion.fullWord; 
+}
     
     
     // ── Getters ───────────────────────────────────────────────────────────────
