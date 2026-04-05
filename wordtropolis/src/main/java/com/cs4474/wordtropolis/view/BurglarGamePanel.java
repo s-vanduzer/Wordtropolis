@@ -293,7 +293,7 @@ private Screen currentScreen = Screen.INTRO;
         
         if (correct) {
             showFeedback("Correct! The hero moves forward!", UITheme.ACCENT_TEAL);
-            SoundManager.playFrom(SoundManager.SFX_CORRECT, 1.0, 1.5);
+            SoundManager.playFromConditional(SoundManager.SFX_CORRECT, 1.0, 1.5, SoundManager.GameActivity.BURGLAR_GAME);
             System.out.println("Hero position: " + model.getHeroPosition());
             int points = BurglarGameModel.POINTS_PER_CORRECT;
             Game.getInstance().addScore(points);
@@ -311,9 +311,13 @@ private Screen currentScreen = Screen.INTRO;
                 }).start();
             }
         } else {
-            showFeedback("Incorrect! The he's is getting away!", UITheme.ACCENT_RED);
+            // Get the actual word from the model for the error message
+            String correctWord = model.getCurrentFullWord();
+            // Updated error message as requested
+            showFeedback("Incorrect! It was '" + correctWord + "', he's is getting away!", UITheme.ACCENT_RED);
+            
 
-            SoundManager.play(SoundManager.SFX_ERROR);
+            SoundManager.playConditional(SoundManager.SFX_ERROR, SoundManager.GameActivity.BURGLAR_GAME);
             shakeEffect();
             repaint();
             
@@ -419,7 +423,7 @@ private Screen currentScreen = Screen.INTRO;
         feedbackMsg = msg;
         feedbackColor = c;
         if (feedbackTimer != null) feedbackTimer.stop();
-        feedbackTimer = new Timer(3000, e -> { feedbackMsg = ""; repaint(); ((Timer)e.getSource()).stop(); });
+        feedbackTimer = new Timer(4000, e -> { feedbackMsg = ""; repaint(); ((Timer)e.getSource()).stop(); });
         feedbackTimer.start();
         repaint();
     }

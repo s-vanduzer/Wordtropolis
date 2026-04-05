@@ -199,11 +199,11 @@ public class CatGamePanel extends JPanel {
                 if (key == KeyEvent.CHAR_UNDEFINED || key < 32) return;
                 switch (model.typeKey(key)) {
                     case TYPED_OK:
-                        SoundManager.play(SoundManager.CAT_TILE_CLICK);
+                        SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.CAT_GAME);
                         triggerSparkle(getWidth()/2, getHeight()/2 - 60);
                         repaint(); break;
                     case TYPED_NOT_AVAILABLE:
-                        SoundManager.play(SoundManager.CAT_ERROR);
+                        SoundManager.playConditional(SoundManager.CAT_ERROR, SoundManager.GameActivity.CAT_GAME);
                         shakeEffect();
                         showFeedback("'" + Character.toUpperCase(key) + "' is not available!", UITheme.ACCENT_RED); break;
                     case TYPED_FULL:
@@ -214,7 +214,8 @@ public class CatGamePanel extends JPanel {
                 if (currentScreen != Screen.GAME || waitingForNext) return;
                 int c = e.getKeyCode();
                 if (c == KeyEvent.VK_BACK_SPACE && model.backspace()) {
-                    SoundManager.play(SoundManager.CAT_TILE_CLICK); repaint();
+                    SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.CAT_GAME);
+                    repaint();
                 } else if (c == KeyEvent.VK_ENTER) {
                     handleSubmit();
                 } else if (c == KeyEvent.VK_ESCAPE) {
@@ -265,12 +266,12 @@ public class CatGamePanel extends JPanel {
             if (--timeLeft <= 0) {
                 countdownTimer.stop();
                 showFeedback("Time's up! Try again.", UITheme.ACCENT_RED);
-                SoundManager.play(SoundManager.CAT_ERROR);
+                SoundManager.playConditional(SoundManager.CAT_ERROR, SoundManager.GameActivity.CAT_GAME);
                 model.clearArrangement();
                 startCountdown();
                 repaint();
             } else if (timeLeft == T_WARN && !warnPlayed) {
-                SoundManager.play(SoundManager.CAT_MEOW_MAD);
+                SoundManager.playConditional(SoundManager.CAT_MEOW_MAD, SoundManager.GameActivity.CAT_GAME);
                 warnPlayed = true;
             }
             repaint();
@@ -284,7 +285,7 @@ public class CatGamePanel extends JPanel {
         // FIX 3a: play wind sound every time tile drifting starts
         int prevVol = SoundManager.getSfxVolume();
         SoundManager.setSfxVolume(30);                           // quiet wind
-        SoundManager.playFrom(SoundManager.CAT_WIND, 0.0, 1.5);
+        SoundManager.playFromConditional(SoundManager.CAT_WIND, 0.0, 1.5, SoundManager.GameActivity.CAT_GAME);
         SoundManager.setSfxVolume(prevVol);
 
         java.util.Random rand = new java.util.Random();
@@ -316,8 +317,8 @@ public class CatGamePanel extends JPanel {
         boolean correct = model.submitAnswer();
         if (correct) {
             showFeedback("Great spelling! The ladder is growing!", UITheme.ACCENT_TEAL);
-            SoundManager.playFrom(SoundManager.CAT_CORRECT, 1.0, 1.5);
-            SoundManager.play(SoundManager.CAT_MEOW_HAPPY);
+            SoundManager.playFromConditional(SoundManager.CAT_CORRECT, 1.0, 1.5, SoundManager.GameActivity.CAT_GAME);
+            SoundManager.playConditional(SoundManager.CAT_MEOW_HAPPY, SoundManager.GameActivity.CAT_GAME);
             triggerSparkle(getWidth()/2, getHeight()/2);
             if (countdownTimer != null) countdownTimer.stop();
             stopWindEffect();
@@ -334,8 +335,8 @@ public class CatGamePanel extends JPanel {
             }
         } else {
             showFeedback("Incorrect. Please try again!", UITheme.ACCENT_RED);
-            SoundManager.play(SoundManager.CAT_MEOW_MAD);
-            SoundManager.play(SoundManager.CAT_ERROR);
+            SoundManager.playConditional(SoundManager.CAT_MEOW_MAD, SoundManager.GameActivity.CAT_GAME);
+            SoundManager.playConditional(SoundManager.CAT_ERROR, SoundManager.GameActivity.CAT_GAME);
             shakeEffect();
             repaint();
         }
@@ -358,7 +359,7 @@ public class CatGamePanel extends JPanel {
 
     private void rescueComplete() {
         showFeedback("Cat Rescued! Mission Complete!", UITheme.ACCENT_TEAL);
-        SoundManager.play(SoundManager.CAT_LEVEL_DONE);
+        SoundManager.playConditional(SoundManager.CAT_LEVEL_DONE, SoundManager.GameActivity.CAT_GAME);
         Game.getInstance().setCatCompleted(true);
     currentScreen = Screen.RESCUE;
         catRescueY = 0.0f;   // start at bottom of tree, move upward
@@ -442,7 +443,7 @@ public class CatGamePanel extends JPanel {
         // FIX 3b: play wind sound at the start of every shake/wrong-answer effect
         int prevVol = SoundManager.getSfxVolume();
         SoundManager.setSfxVolume(25);                           // very subtle wind
-        SoundManager.playFrom(SoundManager.CAT_WIND, 0.0, 0.8);
+        SoundManager.playFromConditional(SoundManager.CAT_WIND, 0.0, 0.8, SoundManager.GameActivity.CAT_GAME);
         SoundManager.setSfxVolume(prevVol);
 
         shakeTick = 0;
@@ -1255,13 +1256,13 @@ public class CatGamePanel extends JPanel {
  
                 if (!dragFromArr && inBox) {
                     // Available tile dropped into word box → place it
-                    SoundManager.play(SoundManager.CAT_TILE_CLICK);
+                    SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.CAT_GAME);
                     model.selectLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
                 } else if (dragFromArr && !inBox) {
                     // Arrangement tile dragged out → return to pool
-                    SoundManager.play(SoundManager.CAT_TILE_CLICK);
+                    SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.CAT_GAME);
                     model.removeLetter(dragTileIndex);
                     computeTilePositions();
                     repaint();
@@ -1346,7 +1347,7 @@ public class CatGamePanel extends JPanel {
     }
 
     private void startGame() {
-        SoundManager.play(SoundManager.CAT_GAME_START);
+        SoundManager.playConditional(SoundManager.CAT_GAME_START, SoundManager.GameActivity.CAT_GAME);
         // FIX 3d: music starts when user clicks Start Rescue — not before
         SoundManager.startMusic(SoundManager.CAT_BGM);
         // Show instruction dialog

@@ -21,7 +21,8 @@ public class MapPagePanel extends JPanel implements Refreshable {
         Wordtropolis.SCREEN_CAT_GAME,
         Wordtropolis.SCREEN_FIRE_GAME,
         Wordtropolis.SCREEN_BRIDGE_GAME,
-        Wordtropolis.SCREEN_BURGLAR_GAME
+        Wordtropolis.SCREEN_BURGLAR_GAME,
+        Wordtropolis.SCREEN_BOSS_GAME
     };
     private static final Color[] ACT_COLORS = {
         new Color(0x2D8B2D),
@@ -74,7 +75,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
             actButtons[i].addActionListener(e -> {
                 // Play click sound conditionally (only if we're on map screen)
                 SoundManager.playConditional(SoundManager.BOSS_HINT_PLACE, 
-                    SoundManager.GameActivity.MAP);
+                    SoundManager.GameActivity.SCREEN_MAP);
                 
                 if (idx == 0) {
                     // Rebuild Cat Game when the first button is clicked
@@ -86,15 +87,15 @@ public class MapPagePanel extends JPanel implements Refreshable {
                 } 
                 else if (idx == 2){
                     // link the brige game here
-                   Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BRIDGE_GAME, new BrokenBridgeGamePanel());
+                   //Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BRIDGE_GAME, new BrokenBridgeGamePanel());
                 
                     
                    // if u want to try the boss game uncomment this and click the brige game placeholder
-                   //Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
+                   Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
                 }
                 else {
                     // link the fire game here
-                    // replace with this: Wordtropolis.replaceScreen(Wordtropolis.SCREEN_FIRE_GAME, new BossGamePanel());
+                    // replace with this: Wordtropolis.replaceScreen(Wordtropolis.SCREEN_FIRE_GAME, new FireGamePanel());
                     Wordtropolis.showScreen(ACT_SCREENS[idx]);
                     
                 }
@@ -110,12 +111,6 @@ public class MapPagePanel extends JPanel implements Refreshable {
         bossBtn = UITheme.makeDangerButton("Fight the Final Boss!");
         bossBtn.setPreferredSize(new Dimension(270, 52));
         bossBtn.setEnabled(false);
-        bossBtn.addActionListener(e -> {
-            // Play boss fight click sound conditionally
-            SoundManager.playConditional(SoundManager.BOSS_HINT_PLACE, 
-                SoundManager.GameActivity.MAP);
-            Wordtropolis.showScreen(Wordtropolis.SCREEN_BOSS_GAME);
-        });
         bottom.add(bossBtn);
         bottom.add(UITheme.makeLabel("Complete all 4 missions to unlock",
                 UITheme.FONT_SMALL, UITheme.TEXT_DIM));

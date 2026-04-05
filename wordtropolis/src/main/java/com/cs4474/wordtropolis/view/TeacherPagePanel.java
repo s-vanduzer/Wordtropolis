@@ -59,7 +59,7 @@ public class TeacherPagePanel extends JPanel {
 
     private void loadWordsFromFile() {
         wordListModel = new DefaultListModel<>();
-        try (InputStream is = getClass().getResourceAsStream("/wordlist/WordListGr1.txt")) {
+        try (InputStream is = getClass().getResourceAsStream("/wordlist/WordListGr2.txt")) {
             if (is != null) {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
                 String line;

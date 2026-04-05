@@ -3,6 +3,7 @@ package com.cs4474.wordtropolis.view;
 import javax.sound.sampled.*;
 import javax.swing.Timer;
 import java.net.URL;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * ╔══════════════════════════════════════════════════════════╗
@@ -35,6 +36,9 @@ public final class SoundManager {
     // ── Background music state ────────────────────────────────────────────────
     private static Clip  bgMusicClip;
     private static Timer bgLoopTimer;
+    private static final CopyOnWriteArrayList<Clip> activeSfx = new CopyOnWriteArrayList<>();
+
+    /**
 
     private SoundManager() {}
 
@@ -44,11 +48,11 @@ public final class SoundManager {
      * Used to conditionally play sounds based on current active game.
      */
     public enum GameActivity {
-        MAP, CAT_GAME, BOSS_GAME, BURGLAR_GAME
+        SCREEN_MAP, CAT_GAME, BOSS_GAME, BURGLAR_GAME, BRIDGE_GAME, FIRE_GAME
     }
 
     // Current active game state - defaults to MAP
-    private static GameActivity currentActivity = GameActivity.MAP;
+    private static GameActivity currentActivity = GameActivity.SCREEN_MAP;
 
     // ═══════════════════════════════ SOUND FILE CONSTANTS ════════════════════
 
@@ -155,6 +159,11 @@ public final class SoundManager {
      * @param required The activity that this sound belongs to
      */
     public static void playConditional(String filename, GameActivity required) {
+        System.out.println("Checking sound: " + filename + " | Required: " + required + " | Current: " + currentActivity);
+    
+    if (required == currentActivity) {
+        play(filename);
+    }
         if (required == currentActivity) {
             play(filename);
         }
@@ -173,6 +182,21 @@ public final class SoundManager {
             play(filename);
         }
     }
+    
+        /**
+     * Play only a portion of a sound file, conditionally based on current activity.
+     *
+     * @param filename  sound file constant (e.g. SoundManager.CAT_WIND)
+     * @param startSec  start time in seconds
+     * @param endSec    end time in seconds
+     * @param required  The activity that this sound belongs to
+     */
+    public static void playFromConditional(String filename, double startSec, double endSec, GameActivity required) {
+        if (required == currentActivity) {
+            playFrom(filename, startSec, endSec);
+        }
+    }
+
 
     /**
      * Play only a portion of a sound file.
@@ -210,20 +234,6 @@ public final class SoundManager {
                 System.out.println("[SoundManager] Cannot playFrom: " + filename);
             }
         }, "sfx-thread").start();
-    }
-
-    /**
-     * Play only a portion of a sound file, conditionally based on current activity.
-     *
-     * @param filename  sound file constant (e.g. SoundManager.CAT_WIND)
-     * @param startSec  start time in seconds
-     * @param endSec    end time in seconds
-     * @param required  The activity that this sound belongs to
-     */
-    public static void playFromConditional(String filename, double startSec, double endSec, GameActivity required) {
-        if (required == currentActivity) {
-            playFrom(filename, startSec, endSec);
-        }
     }
 
     // ═══════════════════════════════ BACKGROUND MUSIC ════════════════════════

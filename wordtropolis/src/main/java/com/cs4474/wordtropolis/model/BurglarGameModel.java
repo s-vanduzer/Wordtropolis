@@ -52,7 +52,14 @@ public class BurglarGameModel {
     // ── Constructor ───────────────────────────────────────────────────────────
     
     public BurglarGameModel(List<String> providedWords) {
-        wordQueue = buildWordQueue(providedWords);
+        // 1. Create a copy of the list to avoid modifying the original source
+        List<String> shuffledWords = new ArrayList<>(providedWords);
+
+        // 2. Shuffle the copy randomly
+        Collections.shuffle(shuffledWords);
+
+        // 3. Build the queue from the now-shuffled list
+        wordQueue = buildWordQueue(shuffledWords);
         wordsCompleted = 0;
         incorrectAttempts = 0;
         totalScore = 0;
@@ -250,41 +257,62 @@ public class BurglarGameModel {
     
     // ── Answer Checking ───────────────────────────────────────────────────────
     
-    /**
-     * Check if the arrangement matches the missing letters in correct order.
-     */
+/**
+ * Check if the arrangement matches the missing letters in the exact order required.
+ */
 public boolean checkAnswer() {
-    String answer = "";
-    for (Character c : playerArrangement) answer += c;
-    
-    // Sort player's current arrangement to compare with sorted missing letters
-    char[] arr = answer.toCharArray();
-    Arrays.sort(arr);
-    boolean correct = new String(arr).equals(currentQuestion.missingLetters);
-    
+    // 1. Convert the player's arrangement (List<Character>) into a String
+    StringBuilder userInput = new StringBuilder();
+    for (Character c : playerArrangement) {
+        userInput.append(c);
+    }
+    String playerSpelled = userInput.toString();
 
+    // 2. Reconstruct the full word as the player spelled it
+    // We take the display word (e.g., "_O_N") and fill the blanks with player letters
+    StringBuilder finalWordBuilder = new StringBuilder();
+    int playerCharIdx = 0;
+    String display = currentQuestion.displayWord;
+
+    for (int i = 0; i < display.length(); i++) {
+        if (display.charAt(i) == '_') {
+            // Fill the blank with the next letter the player picked
+            if (playerCharIdx < playerSpelled.length()) {
+                finalWordBuilder.append(playerSpelled.charAt(playerCharIdx));
+                playerCharIdx++;
+            }
+        } else {
+            // Keep the existing letter (like 'O' or 'N')
+            finalWordBuilder.append(display.charAt(i));
+        }
+    }
+
+    String fullSpelledWord = finalWordBuilder.toString();
+
+    // 3. Compare the full spelled word against the actual target word
+    // (Assuming currentQuestion.originalWord holds the correct spelling like "DOWN")
+    boolean correct = fullSpelledWord.equalsIgnoreCase(currentQuestion.fullWord);
 
     if (correct) {
-        heroPosition++; // MOVE HERO
-
+        heroPosition++; 
         wordsCompleted++;
         totalScore += POINTS_PER_CORRECT;
-
-        // update global score
         Game.getInstance().addScore(POINTS_PER_CORRECT);
-       
     } else {
-        robberPosition++; // Robber moves one step further right (away)
+        robberPosition++; 
         incorrectAttempts++;
-        Game.getInstance().addMisspelledWord(answer);
+        // We log what they actually spelled (e.g., "WODN")
+        Game.getInstance().addMisspelledWord(fullSpelledWord);
         totalScore = Math.max(0, totalScore - PENALTY_INCORRECT);
     }
+    
     return correct;
 }
     
     
     
     // ── Getters ───────────────────────────────────────────────────────────────
+    
     
     public WordQuestion getCurrentQuestion() { return currentQuestion; }
     public List<Character> getPlayerArrangement() { 
