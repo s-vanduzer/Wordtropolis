@@ -345,7 +345,7 @@ public class PickHeroPanel extends JPanel {
         
         //the heros images
         Image img = new ImageIcon(getClass().getResource(HERO_IMAGES[idx])).getImage();
-        Image scaledImg = img.getScaledInstance(120, 120, Image.SCALE_SMOOTH);
+        Image scaledImg = img.getScaledInstance(120, 135, Image.SCALE_SMOOTH);
         JLabel heroImage = new JLabel(new ImageIcon(scaledImg));
         heroImage.setBounds(30, 20, 120, 120);
         card.add(heroImage);

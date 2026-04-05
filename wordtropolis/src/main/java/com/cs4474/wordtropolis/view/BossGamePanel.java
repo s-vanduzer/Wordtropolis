@@ -59,7 +59,7 @@ public class BossGamePanel extends JPanel {
     private static final int HERO_FH      = 330;   // frame height (1264 / 4)
     private static final int HERO_BACK_ROW = 3;    // last row = back-facing walk
     private int   heroFrame = 0;
-    private Timer heroTimer;
+    private Timer heroTimer, gameTimer;
 
     // ── Progress bar from progress_bar.png ───────────────────────────────────
     // Row 1 (y=24) is the cyan/filled bar — we rotate it 90° to use vertically
@@ -178,12 +178,12 @@ public class BossGamePanel extends JPanel {
         // HERO_LABELS are "Mia" (girl), "Alex" (boy), "Zyx" (alien).
         String avatarPath = Game.getInstance().getAvatarPath();
         if ("Mia".equalsIgnoreCase(avatarPath)) {
-            imgHero = img("/images/general/hero1_standing.png");
+            imgHero = img("/images/general/hero1_boss.png");
         } else if ("Zyx".equalsIgnoreCase(avatarPath)) {
-            imgHero = img("/images/general/alien_standing.png");
+            imgHero = img("/images/general/alien_boss.png");
         } else {
             // Default: Alex / boy hero
-            imgHero = img("/images/general/hero2_standing.png");
+            imgHero = img("/images/general/hero2_boss.png");
         }
     }
 
@@ -278,7 +278,7 @@ public class BossGamePanel extends JPanel {
         int tileSize = 56;
         int totalW   = count * (tileSize + 10) - 10;
         int startX   = (W - totalW) / 2;
-        int baseY    = (int)(H * 0.5f);   // vertically centred in scene area
+        int baseY    = (int)(H * 0.6f);   // vertically centred in scene area
 
         // Gentle arc: y varies sinusoidally
         for (int i = 0; i < count; i++) {
@@ -351,7 +351,7 @@ private void startCountdown() {
                     battleComplete(true);
                 }
                 repaint();
-            } else if (timeLeft <= 10 && !hintModeActive) {
+            } else if (timeLeft <= 15 && !hintModeActive) {
                 // ACTIVATE HINT MODE when 10 seconds or less remaining
                 hintModeActive = true;
                 model.startHintMode();
@@ -362,7 +362,7 @@ private void startCountdown() {
             } else if (timeLeft == T_WARN && !warnPlayed) {
                 SoundManager.playConditional(SoundManager.BOSS_TIMER_TICKING, SoundManager.GameActivity.BOSS_GAME);
                 warnPlayed = true;
-                showFeedback("Hurry! Hint mode activates at 10 seconds!", 
+                showFeedback("Hurry! Hint mode activates at 15 seconds!", 
                             UITheme.ACCENT_YELLOW);
             }
             
@@ -378,7 +378,7 @@ private void startCountdown() {
 private void startHintTimer() {
     if (hintTimer != null) hintTimer.stop();
     
-    hintTimer = new Timer(2000, new ActionListener() {
+    hintTimer = new Timer(5000, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (hintModeActive && model.isHintModeActive()) {
@@ -853,12 +853,12 @@ private void refreshGame() {
     
     // Add new painting methods
 private void paintVillain(Graphics2D g2, int W, int H) {
-    int villainW = (int)(W * 0.28);
+    int villainW = (int)(W * 0.31);
     int villainH = (int)(H * 0.56);
     // Move to the RIGHT side (80% across the width)
-    int villainX = (int)(W * 0.90) - villainW; 
+    int villainX = (int)(W * 0.94) - villainW; 
     // Align to the same ground level as the hero
-    int groundY = (int)(H * 0.85) - villainH; 
+    int groundY = (int)(H * 0.87) - villainH; 
 
     if (imgVillain != null) {
         g2.drawImage(imgVillain, villainX, groundY, villainW, villainH, null);
@@ -868,28 +868,38 @@ private void paintVillain(Graphics2D g2, int W, int H) {
 private void paintHeroBattle(Graphics2D g2, int W, int H) {
     if (imgHero == null) return;
 
-    int drawW = 180;
+    // 1. Calculate dimensions
+    int drawW = 200;
+    // Ensure HERO_FH and HERO_FW match the actual pixels of ONE frame in your sheet
     int drawH = (int)((double) HERO_FH / HERO_FW * drawW);
-    // Set ground level at 85% of height
-    int groundY = (int)(H * 0.85) - drawH;
+    
+    // 2. Set Position
+    int groundY = (int)(H * 0.96) - drawH;
     int heroX = (int)(W * 0.15); 
 
-    // Attack animation lunges FORWARD (positive X)
+    // 3. Animation Logic
     int attackOffset = (attackAnimProgress > 0) ? (20 - attackAnimProgress) * 5 : 0;
 
-    int srcX1 = heroFrame * HERO_FW;
-    int srcY1 = HERO_BACK_ROW * HERO_FH;
+    // Since it's 1 row, srcY is always 0. 
+    // srcX moves horizontally based on the frame (0, 1, 2, or 3)
+    int srcX1 = (heroFrame % 4) * HERO_FW; // % 4 ensures we never go past the 4th column
+    int srcY1 = 0; 
 
+    // 4. Draw
+    // Note: I removed the "+ 70" vertical offset from your original srcY1 
+    // unless your sprite has empty whitespace at the top of the row.
     g2.drawImage(imgHero,
             heroX + attackOffset, groundY,
             heroX + drawW + attackOffset, groundY + drawH,
-            srcX1, srcY1 + 70, srcX1 + HERO_FW, srcY1 + HERO_FH, null);
+            srcX1, srcY1, 
+            srcX1 + HERO_FW, srcY1 + HERO_FH, 
+            null);
 }
 
     private void paintShieldOverlay(Graphics2D g2, int W, int H) {
         int shieldSize = 200;
-        int shieldX = (W/2 - shieldSize/2)+10;
-        int shieldY = (H/3 - shieldSize/2)+10;
+            int shieldX = (int)(W * 0.90) - (int)(W * 0.31); 
+    int shieldY = (int)(H * 0.47);
 
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
         if (imgShield != null) {
@@ -920,7 +930,7 @@ private void paintAttackSwoosh(Graphics2D g2, int W, int H) {
         g2.setColor(new Color(1f, 0.9f, 0.3f, alpha)); // Brighter yellow/gold
         int offset = i * 12;
         // Draw horizontal swoosh lines
-        g2.drawLine(startX, startY + offset, endX, endY + offset);
+        g2.drawLine(startX, startY + offset+6, endX, endY + offset);
     }
     g2.setStroke(new BasicStroke(1));
 }
@@ -1030,8 +1040,8 @@ private void battleComplete(boolean victory) {
      * Draw the selected hero at ground level, slightly right of centre,
      * using the back-facing row so they appear to be looking at the tree.
      *
-     * Sprite sheet layout: 4 cols × 4 rows, each frame HERO_FW × HERO_FH px.
-     * Row 3 (HERO_BACK_ROW) = back-facing walk cycle.
+     * Sprite sheet layout: 1 cols × 4 rows, each frame HERO_FW × HERO_FH px.
+     * Row 3 (HERO_SIDE_ROW) = side-facing walk cycle.
      */
     private void paintHero(Graphics2D g2, int W, int H) {
         if (imgHero == null) return;
@@ -1097,9 +1107,12 @@ private void battleComplete(boolean victory) {
     }
     
     System.out.println("\n▶ PHASE 1C - Final Battle Words (harder difficulty):");
-    String[] finalWords = {"LASER", "BUILD", "LEVEL", "BLUE", "LETTER"};
-    for (int i = 0; i < finalWords.length; i++) {
-        System.out.printf("   %2d. %s%n", i+1, finalWords[i]);
+    if (mainWords != null && !mainWords.isEmpty()) {
+        for (int i = 0; i < mainWords.size(); i++) {
+            System.out.printf("   %2d. %s%n", i+1, mainWords.get(i).toUpperCase());
+        }
+    } else {
+        System.out.println("   ⚠ No words provided - using defaults");
     }
     
     System.out.println("\n═══════════════════════════════════════════════════════════════\n");
@@ -1298,21 +1311,7 @@ private void paintTimerBar(Graphics2D g2, int W) {
             return;
         }
 
-        int tileSize = 64;
-
-        // ── Floating available tiles ──────────────────────────────────────────
-        List<Character> avail = model.getAvailableLetters();
-        if (tileBaseX == null || tileBaseX.length != avail.size()) computeTilePositions();
-
-        for (int i = 0; i < avail.size(); i++) {
-            int dx = (windX != null && i < windX.length) ? windX[i] : 0;
-            int dy = (windY != null && i < windY.length) ? windY[i] : 0;
-            int x  = tileBaseX[i] + dx;
-            int y  = tileBaseY[i] + dy;
-            paintLetterTile(g2, x, y, tileSize, String.valueOf(avail.get(i)), false, i);
-        }
-
-        // ── Bottom: outer_box word display row ────────────────────────────────
+                // ── Bottom: outer_box word display row ────────────────────────────────
         String word     = model.getCurrentWord();
         int wordLen     = word.length();
         int slotSize    = 64, slotGap = 10;
@@ -1324,6 +1323,26 @@ private void paintTimerBar(Graphics2D g2, int W) {
         int boxH    = slotSize + boxPad;
         int boxX    = (W - boxW) / 2;
         int boxY    = H - boxH - 60;
+        int tileSize = 64;
+
+        // ── Floating available tiles ──────────────────────────────────────────
+        int gapAboveBox = 30; 
+
+        // 2. The Y position for all floating tiles should be the box's top minus tile height and gap
+        int floatingTilesY = boxY - slotSize - gapAboveBox;
+
+        // 3. Apply this to your loop
+        List<Character> avail = model.getAvailableLetters();
+        if (tileBaseX == null || tileBaseX.length != avail.size()) computeTilePositions();
+
+        for (int i = 0; i < avail.size(); i++) {
+            int dx = (windX != null && i < windX.length) ? windX[i] : 0;
+            int dy = (windY != null && i < windY.length) ? windY[i] : 0;
+            int x  = tileBaseX[i] + dx;
+            int y  = tileBaseY[i] + dy;
+            paintLetterTile(g2, x, y, tileSize, String.valueOf(avail.get(i)), false, i);
+        }
+
 
         // Draw outer_box tiled as the container
         paintOuterBox(g2, boxX, boxY, boxW, boxH);
@@ -1384,7 +1403,7 @@ private void paintTimerBar(Graphics2D g2, int W) {
         int fw = Math.min(W - 60, 700);
         int fh = 54;   // was 36 — taller box
         int fx = (W - fw) / 2;
-        int fy = (int)(H * 0.70);
+        int fy = (int)(H * 0.19);
         paintOuterBoxButton(g2, fx, fy, fw, fh, "", "");  // use the nicer outer_box style
         g2.setFont(UITheme.FONT_HEADING);   // was FONT_SMALL — much bigger now
         g2.setColor(feedbackColor);
@@ -1838,6 +1857,19 @@ private void handleSkipWord() {
         startCountdown();
         repaint();
     }
+    
+public void cleanup() {
+    // Stop the Swing Timer
+    if (this.gameTimer != null) {
+        this.gameTimer.stop();
+    }
+    // Tell the model to stop processing
+    if (this.model != null) {
+        this.model.stopGame(); 
+    }
+    System.out.println("Boss Game cleaned up and stopped.");
+}
+    
     
     @Override
     public void setBounds(int x, int y, int w, int h) {
