@@ -82,7 +82,7 @@ public class Wordtropolis {
         register(new PickHeroPanel(),     SCREEN_HERO_PICK);
         register(new MapPagePanel(),      SCREEN_MAP);
         register(new CatGamePanel(),      SCREEN_CAT_GAME);
-        register(new PlaceholderPanel("Fire Rescue\nComing Soon!", new Color(0xFF6B35)), SCREEN_FIRE_GAME);
+        register(new FireGamePanel(),     SCREEN_FIRE_GAME);
         register(new BrokenBridgeGamePanel(), SCREEN_BRIDGE_GAME);
         register(new BurglarGamePanel(),  SCREEN_BURGLAR_GAME);
         register(new BossGamePanel(),     SCREEN_BOSS_GAME);

@@ -86,11 +86,14 @@ public class FireGamePanel extends JPanel {
         startAnimations();
         setupKeyboard();
         setupMouseInteraction();
-        SoundManager.play(SoundManager.FIRE_TRUCK);
 
         this.addHierarchyListener(e -> {
             if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
                 requestFocusInWindow();
+                int prevVol = SoundManager.getSfxVolume();
+                SoundManager.setSfxVolume(15); // don't scare people
+                SoundManager.play(SoundManager.FIRE_TRUCK);
+                SoundManager.setSfxVolume(prevVol);
             }
         });
     }
