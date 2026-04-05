@@ -29,6 +29,9 @@ public class Game {
     private CurrentStage currentStage;
     private int musicVol;
     private int sfxVol;
+    
+    // Add this near your other private fields (like playerName, wordList, etc.)
+    private boolean isCustomListActive = false;
 
     // Activity completion flags
     private boolean catCompleted;
@@ -91,7 +94,17 @@ public class Game {
         e.printStackTrace();
     }
 }
-    public void loadWordsForDifficulty() {
+    
+    
+    
+    
+public void loadWordsForDifficulty() {
+    // If a teacher has provided a custom list, exit immediately to avoid overwriting it
+    if (isCustomListActive) {
+        System.out.println("Custom word list is active. Skipping difficulty-based file load.");
+        return;
+    }
+
     if (difficulty == null) difficulty = Difficulty.HARD;
 
     switch (difficulty) {
@@ -113,7 +126,10 @@ public class Game {
     public void   setPlayerName(String playerName)       { this.playerName = playerName; }
 
     public List<String> getWordList()                    { return wordList; }
-    public void         setWordList(List<String> list)   { this.wordList = list; }
+    public void setWordList(List<String> list) { 
+    this.wordList = list; 
+    this.isCustomListActive = true; // Mark that a teacher/user has provided these words
+}
 
     public String getAvatarPath()                        { return avatarPath; }
     public void   setAvatarPath(String avatarPath)       { this.avatarPath = avatarPath; }

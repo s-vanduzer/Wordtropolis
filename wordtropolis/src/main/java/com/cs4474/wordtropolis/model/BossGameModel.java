@@ -62,7 +62,9 @@ private boolean autoCompleted = false;
         timeoutWords = new ArrayList<>();
         
         // Initialize word lists
-        initializeWordLists(providedWords, misspelledWords);
+        initializeWordLists(providedWords);
+        //STart at phase 1
+        startPhase(BattlePhase.PHASE_1A);
         
         // Initialize combat stats
         heroHealth = HERO_MAX_HEALTH;
@@ -77,40 +79,70 @@ private boolean autoCompleted = false;
         // Start the game
         loadNextWord();
     }
+    
 
-    private void initializeWordLists(List<String> provided, List<String> misspelled) {
-        // Clean and process main word list
-        phase1AWords = cleanWordList(provided);
-        if (phase1AWords.isEmpty()) {
-            phase1AWords = new ArrayList<>(Arrays.asList(
-                "ATTACK", "DEFEND", "BATTLE", "FIGHT", "POWER", "MAGIC", "SHIELD", "VICTORY"));
+private void initializeWordLists(List<String> providedWords) {
+    // 1. Create a clean list (No spaces, Uppercase, No duplicates)
+    List<String> clean = new ArrayList<>();
+    Set<String> seen = new LinkedHashSet<>();
+    
+    for (String w : providedWords) {
+        if (w == null) continue;
+        String upper = w.trim().toUpperCase();
+        // Regex [A-Z]+ ensures we only take words with letters
+        if (!upper.isEmpty() && upper.matches("[A-Z]+") && seen.add(upper)) {
+            clean.add(upper);
         }
-        
-        // Ensure we have enough words
-        while (phase1AWords.size() < TOTAL_WORDS_PHASE_1A) {
-            phase1AWords.add(phase1AWords.get(random.nextInt(phase1AWords.size())));
-        }
-        
-        // Phase 1B words - misspelled words from the game
-        phase1BWords = new ArrayList<>();
-        if (misspelled != null) {
-            for (String word : misspelled) {
-                String cleaned = cleanWord(word);
-                if (cleaned != null) phase1BWords.add(cleaned);
-            }
-        }
-        
-        // Add default misspelled words if empty
-        if (phase1BWords.isEmpty()) {
-            phase1BWords.addAll(Arrays.asList("THUNDER", "LIGHTNING", "RAINNING", "STORM"));
-        }
-        
-        // Phase 1C words - harder difficulty
-        phase1CWords = new ArrayList<>(Arrays.asList(
-            "EARTHQUAKE", "TSUNAMI", "VOLCANO", "HURRICANE", "TYPHOON"));
-        
-        currentWordPool = new ArrayList<>(phase1AWords);
     }
+
+    // 2. Phase 1A: Use the CLEAN list
+    this.phase1AWords = new ArrayList<>(clean);
+    // Shuffle first so same-length words appear in a random order
+    Collections.shuffle(this.phase1AWords);
+    // Then sort so the game starts easy (short words) and gets harder
+    this.phase1AWords.sort(Comparator.comparingInt(String::length));
+
+    // 3. Phase 1B: Use clean teacher words as a backup if no mistakes exist yet
+    this.phase1BWords = new ArrayList<>(Game.getInstance().getMisspelledWordList());
+    if (this.phase1BWords.isEmpty()) {
+        this.phase1BWords.addAll(clean);
+        Collections.shuffle(this.phase1BWords);
+    }
+
+    // 4. Phase 1C: Take the hardest (longest) words from the teacher
+    this.phase1CWords = new ArrayList<>(clean);
+    this.phase1CWords.sort((a, b) -> Integer.compare(b.length(), a.length()));
+}
+ 
+
+
+    private void startPhase(BattlePhase phase) {
+    this.currentPhase = phase;
+    this.wordsCompletedInPhase = 0;
+
+    switch (phase) {
+        case PHASE_1A:
+            currentWordPool = new ArrayList<>(phase1AWords);
+            break;
+        case PHASE_1B:
+            // Refresh misspelled words one last time in case new ones were added during 1A
+            List<String> mistakes = Game.getInstance().getMisspelledWordList();
+            currentWordPool = mistakes.isEmpty() ? new ArrayList<>(phase1AWords) : new ArrayList<>(mistakes);
+            break;
+        case PHASE_1C:
+            currentWordPool = new ArrayList<>(phase1CWords);
+            break;
+    }
+    
+    if (currentWordPool.isEmpty()) {
+        currentWordPool.addAll(phase1AWords); // Ultimate fallback to teacher list
+    }
+    
+    Collections.shuffle(currentWordPool);
+    loadNextWord();
+}
+
+
     
     private List<String> cleanWordList(List<String> words) {
         List<String> clean = new ArrayList<>();
@@ -163,43 +195,6 @@ private boolean autoCompleted = false;
         return true;
     }
     
-//// Update refreshForPhase to include timeout words
-//public void refreshForPhase(BattlePhase newPhase) {
-//    currentPhase = newPhase;
-//    wordsCompletedInPhase = 0;
-//    
-//    switch (newPhase) {
-//        case PHASE_1A:
-//            currentWordPool = new ArrayList<>(phase1AWords);
-//            break;
-//        case PHASE_1B:
-//            // Combine misspelled words AND timeout words
-//            Set<String> allReviewWords = new LinkedHashSet<>();
-//            allReviewWords.addAll(phase1BWords);      // Existing misspelled
-//            allReviewWords.addAll(timeoutWords);      // Words that timed out
-//            allReviewWords.addAll(misspelledDuringGame); // Words misspelled
-//            
-//            currentWordPool = new ArrayList<>(allReviewWords);
-//            
-//            // If still empty, add defaults
-//            if (currentWordPool.isEmpty()) {
-//                currentWordPool.addAll(Arrays.asList("THUNDER", "LIGHTNING", "DRAGON", "PHOENIX"));
-//            }
-//            
-//            System.out.println("[CatGame] Phase 1B loaded with " + currentWordPool.size() + 
-//                               " words (misspelled: " + misspelledDuringGame.size() + 
-//                               ", timeout: " + timeoutWords.size() + ")");
-//            break;
-//            
-//        case PHASE_1C:
-//            currentWordPool = new ArrayList<>(phase1CWords);
-//            break;
-//    }
-//    
-//    Collections.shuffle(currentWordPool);
-//    loadNextWord();
-//}
-    
     
     // Update refreshForPhase to include timeout words and proper phase setup
 public void refreshForPhase(BattlePhase newPhase) {
@@ -225,7 +220,7 @@ public void refreshForPhase(BattlePhase newPhase) {
             
             // If still empty, add defaults
             if (currentWordPool.isEmpty()) {
-                currentWordPool.addAll(Arrays.asList("THUNDER", "LIGHTNING", "DRAGON", "PHOENIX", "WIZARD"));
+                currentWordPool.addAll(Arrays.asList("BUILD", "LEVEL", "GRADE", "MAYOR", "FIGHT"));
                 System.out.println("[BossGame] Phase 1B using default words");
             }
             
@@ -525,6 +520,21 @@ public void advanceToNextWord() {
         }
     }
 
+    
+private boolean isRunning = true;
+
+public void stopGame() {
+    this.isRunning = false;
+    // Clear any temporary word pools to free memory
+    if (currentWordPool != null) currentWordPool.clear();
+    System.out.println("Boss Game Model stopped.");
+}
+
+public boolean isRunning() {
+    return isRunning;
+}
+    
+    
     // ── Getters ───────────────────────────────────────────────────────────────
     public String getCurrentWord() { return currentWord; }
     public List<Character> getPlayerArrangement() { return Collections.unmodifiableList(playerArrangement); }

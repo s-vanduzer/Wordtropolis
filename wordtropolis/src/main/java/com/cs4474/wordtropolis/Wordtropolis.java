@@ -173,28 +173,21 @@ public class Wordtropolis {
         SoundManager.stopMusic(); // Stop cat music when returning to map
     } else if (screenName.equals(SCREEN_CAT_GAME)) {
         SoundManager.setActivity(SoundManager.GameActivity.CAT_GAME);
+    } else if (screenName.equals(SCREEN_BURGLAR_GAME)) {
+        SoundManager.setActivity(SoundManager.GameActivity.BURGLAR_GAME);
+        } 
+    else if (screenName.equals(SCREEN_BOSS_GAME)) {
+        SoundManager.setActivity(SoundManager.GameActivity.BOSS_GAME);
     }
-//        
-//        // Update the SoundManager activity based on the screen being shown
-//    switch (screenName) {
-//        case SCREEN_MAP:
-//            SoundManager.setActivity(SoundManager.GameActivity.SCREEN_MAP);
-//            break;
-//        case SCREEN_CAT_GAME:
-//            SoundManager.setActivity(SoundManager.GameActivity.CAT_GAME);
-//            break;
-//        case SCREEN_BURGLAR_GAME:
-//            SoundManager.setActivity(SoundManager.GameActivity.BURGLAR_GAME);
-//            break;
-//        case SCREEN_BOSS_GAME:
-//            SoundManager.setActivity(SoundManager.GameActivity.BOSS_GAME);
-//            break;
-//        default:
-//            // For start screens or transitions, you can default to MAP or a neutral state
-//            SoundManager.setActivity(SoundManager.GameActivity.SCREEN_MAP);
-//            break;
-//            
-//    }
+        else if (screenName.equals(SCREEN_FIRE_GAME)) {
+        SoundManager.setActivity(SoundManager.GameActivity.FIRE_GAME);
+    }
+        else if (screenName.equals(SCREEN_BRIDGE_GAME)) {
+        SoundManager.setActivity(SoundManager.GameActivity.BRIDGE_GAME);
+    }
+    
+    
+    
         for (Component comp : cardPanel.getComponents()) {
             if (comp.isVisible() && comp instanceof Refreshable) {
                 ((Refreshable) comp).refresh();
@@ -204,19 +197,32 @@ public class Wordtropolis {
     }
 
     public static void replaceScreen(String screenName, JPanel newPanel) {
+        
+        // 1. Find the current panel before we remove it
+    for (Component comp : cardPanel.getComponents()) {
+        if (comp.isVisible()) { 
+            // 2. If it's a BossGamePanel (or any game panel), call a stop method
+            if (comp instanceof BossGamePanel) {
+                ((BossGamePanel) comp).cleanup();
+            }
+            // Repeat for other games if they have timers (e.g., BurglarGamePanel)
+            break;
+        }
+    }
+        
+        
         for (Component comp : cardPanel.getComponents()) {
             if (screenName.equals(comp.getName())) {
                 cardPanel.remove(comp);
                 break;
             }
         }
-        register(newPanel, screenName);
-// ADD THIS LINE HERE:
-    updateSoundActivity(screenName); 
-    
-    cardLayout.show(cardPanel, screenName);
-    cardPanel.revalidate();
-    cardPanel.repaint();
+            register(newPanel, screenName);
+            updateSoundActivity(screenName); 
+
+            cardLayout.show(cardPanel, screenName);
+            cardPanel.revalidate();
+            cardPanel.repaint();
 }
 
 // Create this helper so you don't have to write the switch twice
@@ -225,6 +231,8 @@ private static void updateSoundActivity(String screenName) {
         case SCREEN_CAT_GAME:     SoundManager.setActivity(SoundManager.GameActivity.CAT_GAME); break;
         case SCREEN_BURGLAR_GAME: SoundManager.setActivity(SoundManager.GameActivity.BURGLAR_GAME); break;
         case SCREEN_BOSS_GAME:    SoundManager.setActivity(SoundManager.GameActivity.BOSS_GAME); break;
+        case SCREEN_BRIDGE_GAME:    SoundManager.setActivity(SoundManager.GameActivity.BRIDGE_GAME); break;
+        case SCREEN_FIRE_GAME:    SoundManager.setActivity(SoundManager.GameActivity.FIRE_GAME); break;
         case SCREEN_MAP:          SoundManager.setActivity(SoundManager.GameActivity.SCREEN_MAP); break;
     }
 }
