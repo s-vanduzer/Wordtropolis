@@ -23,7 +23,7 @@ import java.util.Random;
  *
  * @author svand
  */
-public class FireGamePanel extends JPanel implements Refreshable {
+public class FireGamePanel extends JPanel {
 
     private enum Screen {
         INTRO, GAME, FINISH
@@ -78,9 +78,9 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
     private int hintCount = 0; // Number of letters revealed as hints
     private int streakCount = 1; // For score multiplier
-    
+
     private int totalWrongCount = 0; // Total number of incorrect guesses
-    
+
     private StringBuilder currentInput = new StringBuilder();
     private String feedbackMsg = "";
 
@@ -96,27 +96,22 @@ public class FireGamePanel extends JPanel implements Refreshable {
         this.addHierarchyListener(e -> {
             if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
                 grabFocus();
+
+                model.resetGame();
+                clickZones.clear();
+                currentScreen = Screen.INTRO;
+                feedbackMsg = "";
+
+                stopAll();
+
                 int prevVol = SoundManager.getSfxVolume();
                 SoundManager.setSfxVolume(15); // don't scare people
                 SoundManager.play(SoundManager.FIRE_TRUCK);
                 SoundManager.setSfxVolume(prevVol);
+                
+                imgHero = loadHeroImage();
             }
         });
-    }
-
-    @Override
-    public void refresh() {
-        model.resetGame();
-        clickZones.clear();
-        currentScreen = Screen.INTRO;
-        feedbackMsg = "";
-
-        imgHero = loadHeroImage();
-
-        stopAll();
-
-        grabFocus();
-        repaint();
     }
 
     @Override
@@ -217,6 +212,11 @@ public class FireGamePanel extends JPanel implements Refreshable {
     }
 
     private void handleSubmit() {
+        if (currentInput.toString().length() < model.getCurrentWord().length()) {
+            showFeedback("Complete the word!");
+            return;
+        }
+
         if (model.submitWord(currentInput.toString())) {
             if (streakCount > 1) {
                 showFeedback("Fire extinguished! Score bonus :D");
@@ -252,8 +252,12 @@ public class FireGamePanel extends JPanel implements Refreshable {
         } else {
             if (streakCount > 1) {
                 showFeedback("Score bonus lost, try again!");
+            } else if (model.getWrongCount() % REIGNITE_LIMIT == 0 && fireCounter > 0) {
+                showFeedback("Oh no! A fire relit!");
+                reigniteFire();
+                game.addMisspelledWord(model.getCurrentWord());
             } else {
-                showFeedback("Try again! Don't forget, some words sound the same but are spelled differently!");
+                showFeedback("Try again! Some words sound the same but are spelled different.");
             }
 
             streakCount = 1;
@@ -270,11 +274,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
             SoundManager.setSfxVolume(25);                           // subtle error
             SoundManager.play(SoundManager.FIRE_ERROR);
             SoundManager.setSfxVolume(prevVol);
-
-            if (model.getWrongCount() % REIGNITE_LIMIT == 0 && fireCounter > 0) {
-                reigniteFire();
-                game.addMisspelledWord(model.getCurrentWord());
-            }
         }
         resetInputWithHints();
         repaint();

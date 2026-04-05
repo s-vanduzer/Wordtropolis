@@ -7,6 +7,7 @@ import com.cs4474.wordtropolis.model.Game;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -16,7 +17,7 @@ import java.util.List;
 /**
  * CatGamePanel.java
  */
-public class CatGamePanel extends JPanel implements Refreshable {
+public class CatGamePanel extends JPanel {
 
     // ── Model ─────────────────────────────────────────────────────────────────
     private final CatGameModel model;
@@ -107,6 +108,20 @@ public class CatGamePanel extends JPanel implements Refreshable {
         setupKeyboard();
         setupMouseInteraction();
         // Intro screen just paints — clicking Start Rescue transitions to GAME
+
+        this.addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                grabFocus();
+
+                model.resetGame();
+                clickZones.clear();
+                currentScreen = Screen.INTRO;
+                feedbackMsg = "";
+                imgHero = loadHeroImage();
+
+                stopAll();
+            }
+        });
     }
 
     @Override
@@ -124,16 +139,13 @@ public class CatGamePanel extends JPanel implements Refreshable {
     }
 
     @Override
-    public void refresh() {
-        model.resetGame();
-        clickZones.clear();
-        currentScreen = Screen.INTRO;
-        feedbackMsg = "";
-
-        imgHero = loadHeroImage();
-
-        SwingUtilities.invokeLater(this::requestFocusInWindow);
-        repaint();
+    public void grabFocus() {
+        // We use invokeLater to ensure the component is fully 
+        // realized in the UI tree before requesting focus
+        SwingUtilities.invokeLater(() -> {
+            this.setFocusable(true);
+            this.requestFocusInWindow();
+        });
     }
 
     // ═══════════════════════════════ LOADING ═════════════════════════════════

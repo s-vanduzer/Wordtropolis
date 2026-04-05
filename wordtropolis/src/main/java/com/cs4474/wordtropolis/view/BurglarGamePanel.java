@@ -460,57 +460,46 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
         paintBackground(g2, W, H);
         // Always paint the background so the start screen has the street behind it
 
-        if (currentScreen == Screen.INTRO) {
-            paintStartScreen(g2, W, H);
-        } else if (currentScreen == Screen.GAME) {
-            // Your existing game drawing logic
-            paintProgressBar(g2, W, H);
-            paintCharacters(g2, W, H);
-            paintWordDisplay(g2, W, H);
-//        paintAvailableLetters(g2);
-
-            // 4. Sparkle effect
-            if (showSparkle) {
-                paintSparkle(g2);
+        if (null != currentScreen) {
+            switch (currentScreen) {
+                case INTRO ->
+                    paintStartScreen(g2, W, H);
+                case GAME -> {
+                    paintProgressBar(g2, W, H);
+                    paintCharacters(g2, W, H);
+                    paintWordDisplay(g2, W, H);
+                    // 4. Sparkle effect
+                    if (showSparkle) {
+                        paintSparkle(g2);
+                    }   // 5. Word display with blanks
+                    paintWordDisplay(g2, W, H);
+                    // 6. Floating letter tiles
+                    paintLetterTiles(g2);
+                    // 7. Score display
+                    paintScoreBox(g2, W);
+                    // 8. Back button
+                    paintBackButton(g2);
+                    //9. Check button
+                    //        paintCheckButton(g2, W, H);
+                    // 10. Feedback message
+                    if (!feedbackMsg.isEmpty()) {
+                        paintFeedback(g2, W, H);
+                    }   // 11. Drag ghost
+                    if (isDragging && dragTileIndex >= 0) {
+                        paintDragGhost(g2);
+                    }   // 12. Shake flash
+                    if (shakeTimer != null && shakeTimer.isRunning() && shakeTick % 2 == 0) {
+                        g2.setColor(new Color(1f, 0f, 0f, 0.12f));
+                        g2.fillRect(0, 0, W, H);
+                    }
+                    g2.dispose();
+                }
+                case WIN -> {
+                    paintWinOverlay(g2, W, H);
+                }
+                default -> {
+                }
             }
-
-            // 5. Word display with blanks
-            paintWordDisplay(g2, W, H);
-
-            // 6. Floating letter tiles
-            paintLetterTiles(g2);
-
-            // 7. Score display
-            paintScoreBox(g2, W);
-
-            // 8. Back button
-            paintBackButton(g2);
-
-//        // 9. Check button
-//        paintCheckButton(g2, W, H);
-            // 10. Feedback message
-            if (!feedbackMsg.isEmpty()) {
-                paintFeedback(g2, W, H);
-            }
-
-            // 11. Drag ghost
-            if (isDragging && dragTileIndex >= 0) {
-                paintDragGhost(g2);
-            }
-
-            // 12. Shake flash
-            if (shakeTimer != null && shakeTimer.isRunning() && shakeTick % 2 == 0) {
-                g2.setColor(new Color(1f, 0f, 0f, 0.12f));
-                g2.fillRect(0, 0, W, H);
-            }
-
-            g2.dispose();
-        } else if (currentScreen == Screen.WIN) {
-            // Draw the game state frozen behind the overlay
-            paintProgressBar(g2, W, H);
-            paintCharacters(g2, W, H);
-            // Draw the overlay on top
-            paintWinOverlay(g2, W, H);
         }
     }
 
@@ -651,7 +640,6 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
         g2.drawLine(cardX + 30, cardY + 124, cardX + cardW - 30, cardY + 124);
         g2.setStroke(new BasicStroke(1));
 
-        // Start Rescue button INSIDE the card at the bottom
         int btnW = 260, btnH = 58;
         int btnX = W / 2 - btnW / 2;
         int btnY = cardY + cardH - btnH - 20;
@@ -1257,18 +1245,6 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
         SoundManager.playConditional(SoundManager.SFX_GAME_START, SoundManager.GameActivity.BURGLAR_GAME);
         SoundManager.startMusic(SoundManager.BGM_BACKGROUND);
 
-        currentScreen = Screen.GAME;
-        // Show instruction dialog
-
-//    // Show instruction dialog exactly like Cat Game
-//    JOptionPane.showMessageDialog(this,
-//        "<html><div style='font-size:14px;text-align:center;padding:10px'>"
-//        + "<b>How to Play</b><br><br>"
-//        + "Spell the words correctly to catch the burglar!<br>"
-//        + "Drag the letters into the box below.<br><br>"
-//        + "Each correct word moves the hero closer."
-//        + "</div></html>",
-//        "How to Play", JOptionPane.INFORMATION_MESSAGE);
         currentScreen = Screen.GAME;
         computeTilePositions();
         repaint();
