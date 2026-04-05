@@ -34,6 +34,7 @@ public class BossGamePanel extends JPanel {
 
     // ── Model ─────────────────────────────────────────────────────────────────
     private final BossGameModel model;
+    private final Game  game;
 
     // ── Game screens ──────────────────────────────────────────────────────────
     private enum Screen { INTRO, GAME, RESCUE }
@@ -128,6 +129,7 @@ public class BossGamePanel extends JPanel {
 
     // ─────────────────────────────────────────────────────────────────────────
     public BossGamePanel() {
+        this.game = Game.getInstance();
             model = new BossGameModel(
         Game.getInstance().getWordList(),
         Game.getInstance().getMisspelledWordList() // You'll need to add this getter
@@ -173,27 +175,36 @@ public class BossGamePanel extends JPanel {
         imgCheck       = img("/images/cat_game/check.png");
         imgSparkle     = img("/images/cat_game/blue_sparkle.png");
         imgSparkle     = img("/images/cat_game/blue_sparkle.png");
+        imgHero = loadHeroImage();
 
         // Pick hero sprite sheet based on what PickHeroPanel saved via setAvatarPath().
         // HERO_LABELS are "Mia" (girl), "Alex" (boy), "Zyx" (alien).
-        String avatarPath = Game.getInstance().getAvatarPath();
-        if ("Mia".equalsIgnoreCase(avatarPath)) {
-            imgHero = img("/images/general/hero1_boss.png");
-        } else if ("Zyx".equalsIgnoreCase(avatarPath)) {
-            imgHero = img("/images/general/alien_boss.png");
-        } else {
-            // Default: Alex / boy hero
-            imgHero = img("/images/general/hero2_boss.png");
+
+    }
+        private BufferedImage loadHeroImage() {
+        String avatar = game.getAvatarPath();
+        if ("Mia".equalsIgnoreCase(avatar))  return img("/images/general/hero1_boss.png");
+        if ("Zyx".equalsIgnoreCase(avatar))  return img("/images/general/alien_boss.png");
+        return img("/images/general/hero2_boss.png");
+    }
+        
+            private BufferedImage img(String... paths) {
+        for (String path : paths) {
+            try {
+                URL url = getClass().getResource(path);
+                if (url != null) { BufferedImage bi = ImageIO.read(url); if (bi != null) return bi; }
+            } catch (Exception ignored) {}
         }
+        return null;
     }
 
-    private BufferedImage img(String path) {
-        try {
-            URL r = getClass().getResource(path);
-            if (r == null) { System.out.println("[Cat] missing: " + path); return null; }
-            return ImageIO.read(r);
-        } catch (Exception e) { System.out.println("[Cat] err: " + path); return null; }
-    }
+//    private BufferedImage img(String path) {
+//        try {
+//            URL r = getClass().getResource(path);
+//            if (r == null) { System.out.println("[Cat] missing: " + path); return null; }
+//            return ImageIO.read(r);
+//        } catch (Exception e) { System.out.println("[Cat] err: " + path); return null; }
+//    }
 
     // ═══════════════════════════════ ANIMATIONS ══════════════════════════════
 
