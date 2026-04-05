@@ -954,7 +954,7 @@ private void battleComplete(boolean victory) {
             + "Incorrect attempts: " + model.getIncorrectAttempts()
             + "</div></html>",
             victory ? "Battle Won!" : "Battle Lost", JOptionPane.PLAIN_MESSAGE);
-        Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
+        Wordtropolis.showScreen(Wordtropolis.SCREEN_FINISH);
         ((Timer)e.getSource()).stop();
     }).start();
 }
