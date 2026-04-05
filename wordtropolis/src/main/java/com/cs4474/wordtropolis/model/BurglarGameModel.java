@@ -69,6 +69,7 @@ public class BurglarGameModel {
         loadNextWord();
     }
     
+   
     // ── Word Queue Building ───────────────────────────────────────────────────
     
     /**
@@ -94,13 +95,9 @@ public class BurglarGameModel {
                     "CAT", "DOG", "SUN", "MOON", "STAR", "FISH", "BIRD", "TREE", "PIZZA", "DARE", "CHAT","APPLE"));
         }
         
-        // Step 2: Sort shortest first
-        clean.sort(Comparator.comparingInt(String::length));
+//        // Step 2: Sort shortest first
+//        clean.sort(Comparator.comparingInt(String::length));
         
-//        // Step 3: Cap at TOTAL_WORDS
-//        if (clean.size() > TOTAL_WORDS) {
-//            clean = clean.subList(0, TOTAL_WORDS);
-//        }
         
         // Step 4: Pad by cycling if fewer than TOTAL_WORDS
         List<String> base = new ArrayList<>(clean);
