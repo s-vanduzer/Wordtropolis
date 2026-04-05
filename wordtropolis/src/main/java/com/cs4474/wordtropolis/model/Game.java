@@ -119,7 +119,7 @@ public class Game {
     public void   setAvatarPath(String avatarPath)       { this.avatarPath = avatarPath; }
 
     public List<String> getMisspelledWorldList()         { return misspelledWorldList; }
-    public void         addMisspelledWord(String word)   { misspelledWorldList.add(word); }
+    public void         addMisspelledWord(String word)   { if (!misspelledWorldList.contains(word)) misspelledWorldList.add(word); }
 
     public int  getScore()                               { return score; }
     public void addScore(int points)                     { this.score += points; }
