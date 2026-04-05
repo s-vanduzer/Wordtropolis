@@ -30,7 +30,7 @@ import java.util.Map;
  * model.getWordsThisRound() • Sound: BGM on start, box on tile place, error on
  * wrong, cha-ching on correct
  */
-public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
+public class BrokenBridgeGamePanel extends JPanel {
 
     // ── Sparkle ───────────────────────────────────────────────────────────────
     private static final int SPKL_FRAMES = 14, SPKL_W = 32, SPKL_H = 32, SPKL_SCALE = 3;
@@ -121,6 +121,25 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
                 }
             }
         });
+
+        this.addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                grabFocus();
+
+                model.resetGame();
+                tileRects.clear();
+                clickZones.clear();
+                screen = Screen.INTRO;
+                feedbackMsg = "";
+                sparkleFrame = 0;
+                errorFrame = 0;
+                showSparkle = false;
+
+                imgHero = loadHeroImage();
+
+                stopTimers();
+            }
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -136,36 +155,6 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     public void removeNotify() {
         super.removeNotify();
         stopTimers();
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Refreshable
-    // ─────────────────────────────────────────────────────────────────────────
-    @Override
-    public void refresh() {
-        model.resetGame();
-        tileRects.clear();
-        clickZones.clear();
-        screen = Screen.INTRO;
-        sparkleFrame = 0;
-        errorFrame = 0;
-        feedbackMsg = "";
-        showSparkle = false;
-
-        imgHero = loadHeroImage();
-
-        if (gameTimer != null) {
-            gameTimer.stop();
-        }
-        if (animTimer != null && !animTimer.isRunning()) {
-            animTimer.start();
-        }
-        if (heroTimer != null && !heroTimer.isRunning()) {
-            heroTimer.start();
-        }
-
-        SwingUtilities.invokeLater(this::requestFocusInWindow);
-        repaint();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -267,7 +256,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     }
 
     private void stopTimers() {
-        SoundManager.stopMusic();                          // ← stop BGM whenever we leave
+        SoundManager.stopAll();                          // ← stop BGM whenever we leave
         if (gameTimer != null) {
             gameTimer.stop();
         }

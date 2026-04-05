@@ -66,6 +66,8 @@ public class FireGamePanel extends JPanel {
     private int npcFrame = 0;
     private int heroFrame = 0;
 
+    private int hintCount; // Number of letters revealed as hints
+
     private Timer heroTimer, npcTimer, feedbackTimer;
 
     private java.util.Map<String, Rectangle> clickZones = new java.util.HashMap<>();
@@ -73,21 +75,14 @@ public class FireGamePanel extends JPanel {
     // 6 FlameLabel instances in a 3x2 grid for fire animations
     private List<FlameLabel> flames;
 
-    private int fireCounter = 0; // Counter for completed fires
-    private int fireIndex = 0;
-
-    private int hintCount = 0; // Number of letters revealed as hints
-    private int streakCount = 1; // For score multiplier
-
-    private int totalWrongCount = 0; // Total number of incorrect guesses
-
     private StringBuilder currentInput = new StringBuilder();
     private String feedbackMsg = "";
 
     public FireGamePanel() {
-
         this.game = Game.getInstance();
         model = new FireGameModel(game.getWordList());
+
+        hintCount = 0; // Number of letters revealed as hints
 
         loadImages();
         setupKeyboard();
@@ -98,9 +93,14 @@ public class FireGamePanel extends JPanel {
                 grabFocus();
 
                 model.resetGame();
+                System.out.println("[Fire] Wrong count aftr reset: " + model.getWrongCount());
                 clickZones.clear();
                 currentScreen = Screen.INTRO;
                 feedbackMsg = "";
+                imgHero = loadHeroImage();
+                hintCount = 0;
+
+                currentInput.setLength(0);
 
                 stopAll();
 
@@ -108,8 +108,6 @@ public class FireGamePanel extends JPanel {
                 SoundManager.setSfxVolume(15); // don't scare people
                 SoundManager.play(SoundManager.FIRE_TRUCK);
                 SoundManager.setSfxVolume(prevVol);
-                
-                imgHero = loadHeroImage();
             }
         });
     }
@@ -218,7 +216,7 @@ public class FireGamePanel extends JPanel {
         }
 
         if (model.submitWord(currentInput.toString())) {
-            if (streakCount > 1) {
+            if (model.getStreakCount() > 1) {
                 showFeedback("Fire extinguished! Score bonus :D");
             } else {
                 showFeedback("Fire extinguished!");
@@ -227,15 +225,9 @@ public class FireGamePanel extends JPanel {
             hintCount = 0;
             extinguishFire();
 
-            game.addScore(BASE_SCORE * streakCount);
+            game.addScore(BASE_SCORE * model.getStreakCount());
 
-            streakCount = (model.getWrongCount() == 0) ? streakCount + 1 : 1;
-
-            System.out.println(streakCount);
-
-            model.resetWrongCount();
-
-            if (fireCounter < NUMBER_OF_FIRES) {
+            if (model.getFireCounter() < NUMBER_OF_FIRES) {
                 model.pickNextWord();
 
                 playWord();
@@ -250,18 +242,21 @@ public class FireGamePanel extends JPanel {
             }
 
         } else {
-            if (streakCount > 1) {
-                showFeedback("Score bonus lost, try again!");
-            } else if (model.getWrongCount() % REIGNITE_LIMIT == 0 && fireCounter > 0) {
+
+            System.out.println("[Fire] Wrong count beginning of handle: " + model.getWrongCount());
+            System.out.println("[Fire] Fire counter: " + model.getFireCounter());
+            System.out.println("[Fire] math: " + model.getWrongCount() % REIGNITE_LIMIT);
+            System.out.println(model.getWrongCount() % REIGNITE_LIMIT == 0 && model.getFireCounter() > 0);
+
+            if (model.getWrongCount() % REIGNITE_LIMIT == 0 && model.getFireCounter() > 0) {
                 showFeedback("Oh no! A fire relit!");
                 reigniteFire();
                 game.addMisspelledWord(model.getCurrentWord());
+            } else if (model.getStreakCount() > 1) {
+                showFeedback("Score bonus lost, try again!");
             } else {
                 showFeedback("Try again! Some words sound the same but are spelled different.");
             }
-
-            streakCount = 1;
-            totalWrongCount++;
 
             if (model.getWrongCount() > 0 && model.getWrongCount() % HINT_THRESHOLD == 0) {
                 if (hintCount < model.getCurrentWord().length()) {
@@ -275,6 +270,7 @@ public class FireGamePanel extends JPanel {
             SoundManager.play(SoundManager.FIRE_ERROR);
             SoundManager.setSfxVolume(prevVol);
         }
+        System.out.println("[Fire] Wrong count at end of handle: " + model.getWrongCount());
         resetInputWithHints();
         repaint();
     }
@@ -299,18 +295,18 @@ public class FireGamePanel extends JPanel {
     // Update the fire counter
     private void updateFireCounter(int val) {
         if (val > 0) {
-            fireCounter++;
+            model.incrementFireCounter();
         } else {
-            fireCounter--;
+            model.decrementFireCounter();
         }
 
-        int startSearch = (fireIndex + 1) % NUMBER_OF_FIRES;
+        int startSearch = (model.getFireIndex() + 1) % NUMBER_OF_FIRES;
 
         for (int i = 0; i < NUMBER_OF_FIRES; i++) {
             int checkIndex = (startSearch + i) % NUMBER_OF_FIRES;
 
             if (flames.get(checkIndex).isActive()) {
-                fireIndex = checkIndex;
+                model.setFireIndex(checkIndex);
                 break;
             }
         }
@@ -319,10 +315,10 @@ public class FireGamePanel extends JPanel {
 
     // Handle fire extinguishing logic (extinguish the fire when necessary)
     private void extinguishFire() {
-        if (fireIndex >= 0 && fireIndex < flames.size()) {
-            flames.get(fireIndex).extinguish(); // Play the end animation for this fire
+        if (model.getFireIndex() >= 0 && model.getFireIndex() < flames.size()) {
+            flames.get(model.getFireIndex()).extinguish(); // Play the end animation for this fire
 
-            System.out.println("extinguish " + fireIndex + "\n");
+            System.out.println("extinguish " + model.getFireIndex() + "\n");
             updateFireCounter(1); // Increment the counter when the fire is extinguished
             SoundManager.play(SoundManager.FIRE_HOSE);
         }
@@ -436,11 +432,13 @@ public class FireGamePanel extends JPanel {
                     handleSubmit();
                     return;
                 }
+
                 Rectangle back = clickZones.get("back_btn");
                 if (back != null && back.contains(mx, my)) {
                     handleDelete();
                     return;
                 }
+
                 Rectangle again = clickZones.get("again_btn");
                 if (again != null && again.contains(mx, my)) {
                     playWord();
@@ -589,8 +587,8 @@ public class FireGamePanel extends JPanel {
             }
 
             // Prepare Text Data
-            int firesLeft = NUMBER_OF_FIRES - fireCounter;
-            int guessesLeft = REIGNITE_LIMIT - model.getWrongCount() % REIGNITE_LIMIT;
+            int firesLeft = NUMBER_OF_FIRES - model.getFireCounter();
+            int guessesLeft = REIGNITE_LIMIT - (model.getWrongCount() % REIGNITE_LIMIT);
 
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Monospaced", Font.BOLD, 16));
@@ -602,10 +600,18 @@ public class FireGamePanel extends JPanel {
             g2.setFont(new Font("Monospaced", Font.PLAIN, 14));
             g2.drawString("Fires Left: " + firesLeft, textX, panelY + 75);
 
-            // Multi-line wrap for the warning text
-            g2.drawString("Next flare in:", textX, panelY + 110);
-            g2.setFont(new Font("Monospaced", Font.BOLD, 14));
-            g2.drawString(guessesLeft + " tries", textX, panelY + 130);
+            // Conditional logic for the flare warning
+            if (model.getFireCounter() == 0) {
+                // If no fires have been put out yet, there's nothing to "relight"
+                g2.setFont(new Font("Monospaced", Font.ITALIC, 14));
+                g2.drawString("All the fires", textX, panelY + 110);
+                g2.drawString("are lit!", textX, panelY + 130);
+            } else {
+                // Standard warning when there are extinguished fires that could relight
+                g2.drawString("Next flare in:", textX, panelY + 110);
+                g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+                g2.drawString(guessesLeft + " tries", textX, panelY + 130);
+            }
 
             // --- 3. Play Word Again Button (Now on the Left) ---
             int againW = 180;
@@ -875,7 +881,7 @@ public class FireGamePanel extends JPanel {
 
         g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
         drawCentredString(g2, "Correct Guesses: " + model.getCorrectCount(), W / 2, statsStartY + 35);
-        drawCentredString(g2, "Mistakes Made: " + totalWrongCount, W / 2, statsStartY + 65);
+        drawCentredString(g2, "Mistakes Made: " + model.getTotalWrongCount(), W / 2, statsStartY + 65);
 
         // 6. Final Praise
         g2.setFont(new Font("Monospaced", Font.BOLD, 18));
