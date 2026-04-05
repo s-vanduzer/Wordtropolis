@@ -5,6 +5,7 @@
 package com.cs4474.wordtropolis.view;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -16,135 +17,111 @@ import java.util.ArrayList;
  */
 public class FlameLabel extends JLabel {
 
-    private ArrayList<ImageIcon> startFrames = new ArrayList<>();
-    private ArrayList<ImageIcon> loopFrames = new ArrayList<>();
-    private ArrayList<ImageIcon> endFrames = new ArrayList<>();
-
-    private final int startFrameCount = 12;
-    private final int endFrameCount = 14;
+    private ArrayList<ImageIcon> startFrames;
+    private ArrayList<ImageIcon> loopFrames;
+    private ArrayList<ImageIcon> endFrames;
 
     private final int frameWidth = 24;
     private final int frameHeight = 32;
 
-    private int frameDelay = 100; // ms per frame
+    private int frameDelay = 100;
     private Timer animationTimer;
     private int currentFrameIndex = 0;
-    private ArrayList<ImageIcon> currentFrames;
+    private ArrayList<ImageIcon> currentFrames = null;
 
-    private boolean isActive = false; // Whether the fire is burning
+    private boolean isActive = false;
     private boolean isAnimating = false;
 
-    /**
-     * Constructor to initialize the FlameLabel with start, loop, and end
-     * animations
-     *
-     * @param startSheet
-     * @param loopSheet
-     * @param endSheet
-     */
-    public FlameLabel(BufferedImage startSheet, BufferedImage loopSheet, BufferedImage endSheet) {
-        this.startFrames = extractFramesFromSheet(startSheet, frameWidth, frameHeight);
-        this.loopFrames = extractFramesFromSheet(loopSheet, frameWidth, frameHeight);
-        this.endFrames = extractFramesFromSheet(endSheet, frameWidth, frameHeight);
+    private final JPanel observer;
 
-        if (!this.startFrames.isEmpty()) {
-            this.setIcon(this.startFrames.get(0)); // Default to start animation first frame
-        }
+    public FlameLabel(BufferedImage startSheet, BufferedImage loopSheet, BufferedImage endSheet, JPanel observer) {
+        // Convert sheets to compatible format first
+        BufferedImage compStart = toCompatibleImage(startSheet);
+        BufferedImage compLoop = toCompatibleImage(loopSheet);
+        BufferedImage compEnd = toCompatibleImage(endSheet);
+
+        // Then extract frames from the optimized sheets
+        this.startFrames = extractFramesFromSheet(compStart, frameWidth, frameHeight);
+        this.loopFrames = extractFramesFromSheet(compLoop, frameWidth, frameHeight);
+        this.endFrames = extractFramesFromSheet(compEnd, frameWidth, frameHeight);
+
+        // Ensure the label is transparent so only the flame shows
+        setOpaque(false);
+
+        this.observer = observer;
     }
 
-    /**
-     * Extract frames from a horizontal sprite sheet
-     */
-    private ArrayList<ImageIcon> extractFramesFromSheet(BufferedImage sheet, int frameWidth, int frameHeight) {
+    private ArrayList<ImageIcon> extractFramesFromSheet(BufferedImage sheet, int w, int h) {
         ArrayList<ImageIcon> frames = new ArrayList<>();
         if (sheet == null) {
             return frames;
         }
 
-        int cols = sheet.getWidth() / frameWidth;
-        int rows = sheet.getHeight() / frameHeight;
+        int cols = sheet.getWidth() / w;
+        int rows = sheet.getHeight() / h;
 
         for (int y = 0; y < rows; y++) {
             for (int x = 0; x < cols; x++) {
-                BufferedImage frame = sheet.getSubimage(x * frameWidth, y * frameHeight, frameWidth, frameHeight);
-                frames.add(new ImageIcon(frame));
+                frames.add(new ImageIcon(sheet.getSubimage(x * w, y * h, w, h)));
             }
         }
         return frames;
     }
 
-    /**
-     * Ignite the fire, playing the start animation and then switching to the
-     * loop animation
-     */
     public void ignite() {
         if (isActive || isAnimating) {
-            return; // Fire is already active or animation is in progress
+            return;
         }
+
         isActive = true;
         isAnimating = true;
-        playFrames(startFrames, startFrameCount, true); // Play start animation
-
-        System.out.println("End frames: " + endFrameCount);
-        System.out.println("Start frames: " + startFrameCount);
+        playFrames(startFrames, true);
     }
 
-    /**
-     * Extinguish the fire, playing the end animation once
-     */
     public void extinguish() {
-        if (!isActive || isAnimating) {
-            return; // Fire is not active or animation is in progress
+        // Allow extinguishing even if "igniting" is still playing
+        if (!isActive) {
+            return;
         }
+
         isActive = false;
-        playFrames(endFrames, endFrameCount, false); // Play end animation once
-        isAnimating = false;
+        isAnimating = true; // Mark as animating the exit
+        playFrames(endFrames, false);
     }
 
-    /**
-     * Play a sequence of frames (start, loop, or end animation)
-     */
-    private void playFrames(ArrayList<ImageIcon> frames, int maxFrames, boolean switchToLoop) {
-        if (frames.isEmpty()) {
+    private void playFrames(ArrayList<ImageIcon> frames, boolean switchToLoop) {
+        if (frames == null || frames.isEmpty()) {
+            isAnimating = false;
             return;
         }
 
         currentFrames = frames;
         currentFrameIndex = 0;
 
-        if (animationTimer != null && animationTimer.isRunning()) {
-            animationTimer.stop(); // Stop previous animation if running
+        if (animationTimer != null) {
+            animationTimer.stop();
         }
 
         animationTimer = new Timer(frameDelay, e -> {
-            setIcon(currentFrames.get(currentFrameIndex));
-            currentFrameIndex++;
-
-            int totalFrames = (maxFrames > 0 && maxFrames <= currentFrames.size())
-                    ? maxFrames
-                    : currentFrames.size();
-
-            if (currentFrameIndex >= totalFrames) {
+            if (currentFrameIndex < currentFrames.size() - 1) {
+                currentFrameIndex++;
+                triggerRepaint(); // Tell the panel a new frame is ready
+            } else {
                 ((Timer) e.getSource()).stop();
-
-                // After the start animation, switch to the loop animation
                 if (switchToLoop && isActive) {
-                    playLoop(); // Start the loop animation for the fire
+                    playLoop();
                 } else {
                     isAnimating = false;
-                    if (!isActive) {
-                        setIcon(null); // Stop after end sheet is completed
-                    }
+                    currentFrames = null;
+                    triggerRepaint();
                 }
             }
         });
 
+        triggerRepaint(); // Show frame 0 immediately
         animationTimer.start();
     }
 
-    /**
-     * Start the loop animation (repeated indefinitely)
-     */
     private void playLoop() {
         if (loopFrames.isEmpty()) {
             return;
@@ -152,20 +129,63 @@ public class FlameLabel extends JLabel {
 
         currentFrames = loopFrames;
         currentFrameIndex = 0;
+        isAnimating = false; // We are now in "idle" state
+
+        if (animationTimer != null) {
+            animationTimer.stop();
+        }
 
         animationTimer = new Timer(frameDelay, e -> {
-            setIcon(currentFrames.get(currentFrameIndex));
             currentFrameIndex = (currentFrameIndex + 1) % currentFrames.size();
+            triggerRepaint();
         });
         animationTimer.start();
-        isAnimating = false;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (currentFrames != null && currentFrameIndex < currentFrames.size()) {
+            Image frameImage = currentFrames.get(currentFrameIndex).getImage();
+            // Using RenderingHints for smoother scaling if label size != frame size
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2d.drawImage(frameImage, 0, 0, getWidth(), getHeight(), this);
+        }
+    }
+
+    // Helper
+    private BufferedImage toCompatibleImage(BufferedImage image) {
+        GraphicsConfiguration gf = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                .getDefaultScreenDevice()
+                .getDefaultConfiguration();
+
+        /*
+         * Create a new image that is compatible with the screen.
+         * Transparency.TRANSLUCENT ensures the alpha channel (transparency) is preserved,
+         * which is vital for flame effects.
+         */
+        BufferedImage compatibleImage = gf.createCompatibleImage(
+                image.getWidth(),
+                image.getHeight(),
+                Transparency.TRANSLUCENT);
+
+        // Draw the original image onto the new compatible image
+        Graphics2D g2d = compatibleImage.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+        g2d.dispose();
+
+        return compatibleImage;
+
+    }
+
+    private void triggerRepaint() {
+        if (observer != null) {
+            observer.repaint();
+        }
     }
 
     public boolean isActive() {
-        return isActive; // Check if the fire is active (burning)
-    }
-
-    public void setFrameDelay(int delayMs) {
-        this.frameDelay = delayMs; // Set custom frame delay
+        return isActive;
     }
 }

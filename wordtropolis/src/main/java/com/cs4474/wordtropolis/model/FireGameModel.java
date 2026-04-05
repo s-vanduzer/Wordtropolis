@@ -52,6 +52,7 @@ public class FireGameModel {
 
     /**
      * Returns the current word for TTS or display.
+     * @return current word
      */
     public String getCurrentWord() {
         return currentWord;
@@ -80,6 +81,7 @@ public class FireGameModel {
 
     /**
      * Returns how many times the player has gotten the current word wrong.
+     * @return number of times player got word wrong
      */
     public int getWrongCount() {
         return wrongCount;
@@ -87,6 +89,7 @@ public class FireGameModel {
 
     /**
      * Returns the number of words the player has gotten correct.
+     * @return number of words gotten correct
      */
     public int getCorrectCount() {
         return correctCount;

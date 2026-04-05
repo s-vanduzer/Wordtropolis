@@ -87,12 +87,13 @@ public final class SoundManager {
     public static final String BOSS_HINT_PLACE = "boss_game/click.wav";
 
     // ── Fire Game sounds ─────────────────────────────────────────────────────
-    public static final String FIRE_CRACKLING = "fire_game/fire_crackling1.wav";
     public static final String FIRE_IGNITE = "fire_game/fire_ignite.wav";
     public static final String FIRE_HOSE = "fire_game/hose.wav";
     public static final String FIRE_TRUCK = "fire_game/fire_truck.wav";
     public static final String FIRE_ERROR = "fire_game/incorrect.wav";
     public static final String FIRE_END_GAME = "fire_game/end_game.wav";
+    public static final String FIRE_BGM_FIRE = "fire_game/background_music_fire.wav";
+    public static final String FIRE_BGM = "fire_game/background_music.wav";
 
     // ═══════════════════════════════ ACTIVITY MANAGEMENT ══════════════════════
     /**
