@@ -252,7 +252,7 @@ public class TeacherPagePanel extends JPanel {
 
         duplicateWarningLabel = new JLabel(" ");
         duplicateWarningLabel.setFont(UITheme.FONT_BODY);
-        duplicateWarningLabel.setForeground(UITheme.ACCENT_YELLOW);
+        duplicateWarningLabel.setForeground(new Color(0xECCB2D)); // Yellow color
         duplicateWarningLabel.setHorizontalAlignment(SwingConstants.CENTER);
         bottom.add(duplicateWarningLabel, BorderLayout.NORTH);
 
@@ -263,13 +263,13 @@ public class TeacherPagePanel extends JPanel {
         JPanel navRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 0));
         navRow.setOpaque(false);
 
-        // Back button - Grey
+       
         JButton backBtn = createStyledButton("Back", new Color(0x4A4A4A), new Color(0x6A6A6A), Color.WHITE);
         backBtn.setPreferredSize(new Dimension(160, 40));
         backBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_START));
 
-        // Save & Return button - Yellow
-        JButton saveBtn = createStyledButton("Save & Return", new Color(0xECCB2D), new Color(0xFFD700), new Color(0x5D4E37));
+        
+        JButton saveBtn = createStyledButton("Save & Return", new Color(0xECCB2D), new Color(0xFFD700), Color.WHITE);
         saveBtn.setPreferredSize(new Dimension(200, 40));
         saveBtn.addActionListener(e -> {
             syncToGame();
