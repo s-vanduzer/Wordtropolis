@@ -515,42 +515,53 @@ public class FireGamePanel extends JPanel implements Refreshable {
         g2.setColor(new Color(0, 0, 0, 160));
         g2.fillRect(0, 0, W, H);
 
-        // FIX 1: One single outer_box card centred on screen
-        // Contains: title line, description line, and Start Rescue button
-        // Wide enough to fit the longest text line comfortably
+        // Increased height to 300 to fit the extra text lines comfortably
         int cardW = Math.min(W - 80, 680);
-        int cardH = 220;
+        int cardH = 300;
         int cardX = W / 2 - cardW / 2;
         int cardY = H / 2 - cardH / 2;
 
         // Draw the outer_box as the card background
-        paintOuterBoxButton(g2, cardX, cardY, cardW, cardH, "", "");  // background only
+        paintOuterBoxButton(g2, cardX, cardY, cardW, cardH, "", "");
 
         // Title text inside card
         g2.setFont(UITheme.FONT_HEADING);
         g2.setColor(new Color(0x3B2A1A));
-        drawCentredString(g2, "The Pet Shop is on fire!", W / 2, cardY + 48);
+        drawCentredString(g2, "The Pet Shop is on fire!", W / 2, cardY + 45);
 
-        // Description text inside card — two lines if needed
-        g2.setFont(new Font("Monospaced", Font.PLAIN, 15));
+        // Description text - using a slightly larger font for readability
+        g2.setFont(new Font("Monospaced", Font.BOLD, 14));
         g2.setColor(new Color(0x5A4A3A));
-        drawCentredString(g2,
-                "Listen to the word spoken aloud and then type the word.",
-                W / 2, cardY + 84);
-        drawCentredString(g2,
-                "Each correct word puts out a fire. Be careful, the fire might spread...",
-                W / 2, cardY + 108);
 
-        // Divider line
+        // Line 1
+        drawCentredString(g2,
+                "Listen to the word spoken aloud and then type the word on your keyboard.",
+                W / 2, cardY + 85);
+
+        // Line 2
+        drawCentredString(g2,
+                "Each correct word puts out a fire.",
+                W / 2, cardY + 110);
+
+        // Line 3
+        drawCentredString(g2,
+                "Be careful, the fire will spread if you guess wrong 4 times.",
+                W / 2, cardY + 135);
+
+        // Line 4
+        g2.setFont(new Font("Monospaced", Font.BOLD, 16)); // Slightly emphasized
+        drawCentredString(g2, "Good luck Hero!", W / 2, cardY + 170);
+
+        // Divider line shifted down to accommodate more text
         g2.setColor(new Color(0xC8A97A));
         g2.setStroke(new BasicStroke(1.5f));
-        g2.drawLine(cardX + 30, cardY + 124, cardX + cardW - 30, cardY + 124);
+        g2.drawLine(cardX + 40, cardY + 195, cardX + cardW - 40, cardY + 195);
         g2.setStroke(new BasicStroke(1));
 
-        // Start Rescue button INSIDE the card at the bottom
+        // Start Rescue button adjusted toward the bottom of the taller card
         int btnW = 260, btnH = 58;
         int btnX = W / 2 - btnW / 2;
-        int btnY = cardY + cardH - btnH - 20;
+        int btnY = cardY + cardH - btnH - 25;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_btn");
     }
