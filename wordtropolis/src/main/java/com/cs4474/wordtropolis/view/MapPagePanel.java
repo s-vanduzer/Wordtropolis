@@ -86,7 +86,12 @@ public class MapPagePanel extends JPanel implements Refreshable {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            // Make the image 10 pixels bigger and move UP by 20 pixels
+            int newWidth = getWidth() + 10;
+            int newHeight = getHeight() + 10;
+            int x = -5;
+            int y = -25;  // Moved up 20 pixels (from -5 to -25)
+            g.drawImage(backgroundImage, x, y, newWidth, newHeight, this);
         }
     }
 
@@ -207,7 +212,6 @@ public class MapPagePanel extends JPanel implements Refreshable {
         header.add(info, BorderLayout.EAST);
         add(header);
 
-        
         for (int i = 0; i < 4; i++) {
             final int idx = i;
             actButtons[i] = createCircularButton(idx, 80);
@@ -216,9 +220,10 @@ public class MapPagePanel extends JPanel implements Refreshable {
            
             updateButtonTooltip(idx);
             
+            // SIMPLIFIED: Just call the registered screen
             actButtons[i].addActionListener(e -> {
                 if (isLevelUnlocked(idx)) {
-                    Wordtropolis.replaceScreen(ACT_SCREENS[idx], getGamePanel(idx));
+                    Wordtropolis.showScreen(ACT_SCREENS[idx]);
                 } else {
                     String message = getUnlockMessage(idx);
                     JOptionPane.showMessageDialog(this, message, "Locked", JOptionPane.WARNING_MESSAGE);
@@ -227,7 +232,6 @@ public class MapPagePanel extends JPanel implements Refreshable {
             add(actButtons[i]);
         }
 
-        
         bossBtn = createCircularBossButton(80);
         bossBtn.setBounds(BUTTON_POSITIONS[4][0], BUTTON_POSITIONS[4][1], 80, 80);
         
@@ -236,7 +240,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
         
         bossBtn.addActionListener(e -> {
             if (isBossUnlocked()) {
-                Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
+                Wordtropolis.showScreen(Wordtropolis.SCREEN_BOSS_GAME);
             } else {
                 JOptionPane.showMessageDialog(this, "Complete all 4 missions to unlock the Final Boss!", "Locked", JOptionPane.WARNING_MESSAGE);
             }
@@ -343,16 +347,6 @@ public class MapPagePanel extends JPanel implements Refreshable {
         }
     }
 
-    private JPanel getGamePanel(int idx) {
-        switch (idx) {
-            case 0: return new CatGamePanel();
-            case 1: return new BurglarGamePanel();
-            case 2: return new BrokenBridgeGamePanel();
-            case 3: return new FireGamePanel(); // Replace with FireGamePanel when ready
-            default: return new CatGamePanel();
-        }
-    }
-
     private boolean isLevelUnlocked(int idx) {
         
         if (!LINEAR_PROGRESSION_ENABLED) {
@@ -371,12 +365,12 @@ public class MapPagePanel extends JPanel implements Refreshable {
     }
 
     private boolean isBossUnlocked() {
-        // If linear progression is disabled, boss is always unlocked
+        // if linear progression is disabled, boss is always unlocked
         if (!LINEAR_PROGRESSION_ENABLED) {
             return true;
         }
         
-        // Original linear progression code
+        // og linear progression code
         Game g = Game.getInstance();
         return g.isCatCompleted() && g.isBurgularCompleted() && 
                g.isBridgeCompleted() && g.isFireCompleted();
@@ -392,7 +386,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
                 boolean isUnlocked = isLevelUnlocked(idx);
                 boolean isCompleted = isActivityDone(idx);
                 
-                // Color logic
+                
                 if (isCompleted) {
                     g2.setColor(new Color(0x4CAF50)); 
                 } else if (isUnlocked) {
@@ -402,12 +396,12 @@ public class MapPagePanel extends JPanel implements Refreshable {
                 }
                 g2.fill(new Ellipse2D.Float(0, 0, size, size));
                 
-                // Border
+                
                 g2.setColor(new Color(0x0F4D58));
                 g2.setStroke(new BasicStroke(3));
                 g2.draw(new Ellipse2D.Float(1, 1, size - 2, size - 2));
                 
-                // Icon (40px)
+                
                 if (iconImages[idx] != null) {
                     int iconSize = 40;
                     int iconX = (size - iconSize) / 2;
@@ -415,7 +409,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
                     g2.drawImage(iconImages[idx], iconX, iconY, iconSize, iconSize, this);
                 }
                 
-                // Checkmark in center if completed
+                
                 if (isCompleted && checkImage != null) {
                     int checkSize = 30;
                     int checkX = (size - checkSize) / 2;
@@ -423,7 +417,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
                     g2.drawImage(checkImage, checkX, checkY, checkSize, checkSize, this);
                 }
                 
-                // Dark overlay if locked
+                
                 if (!isUnlocked && !isCompleted) {
                     g2.setColor(new Color(0, 0, 0, 180));
                     g2.fill(new Ellipse2D.Float(0, 0, size, size));
