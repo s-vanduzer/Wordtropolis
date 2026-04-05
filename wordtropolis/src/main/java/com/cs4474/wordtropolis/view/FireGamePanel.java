@@ -52,7 +52,7 @@ public class FireGamePanel extends JPanel {
     private BufferedImage imgBg, imgHero, imgFireTruck, imgNpc;
     private BufferedImage imgFireStart, imgFireLoop, imgFireEnd;
     private BufferedImage imgBack, imgCheck;
-    private BufferedImage imgPanel, imgOuterBox, imgBanner;
+    private BufferedImage imgPanel, imgOuterBox;
 
     private final Random random = new Random();
 
@@ -123,7 +123,6 @@ public class FireGamePanel extends JPanel {
         imgCheck = img("/images/fire_game/check.png");
         imgNpc = img("/images/fire_game/npc.png");
         imgPanel = img("/images/fire_game/panel.png");
-        imgBanner = img("/images/fire_game/banner.png");
 
         // Load hero image based on avatar selection
         String avatarPath = Game.getInstance().getAvatarPath();
@@ -426,22 +425,22 @@ public class FireGamePanel extends JPanel {
         // ── 1. Background — fills the whole panel ─────────────────────────────
         paintBackground(g2, W, H);
 
-        // ── 3. NPCs at the bottom ─────────────────────────────────────────────
+        // ── 2. NPCs — placed at the bottom ground line ────────────────────────
         paintNPCS(g2, W, H);
 
-        // -- 2. Fire truck
+        // ── 3. Fire Truck — positioned on the left ────────────────────────────
         paintFireTruck(g2, W, H);
 
-        // ── 3b. Hero — centre-right, back-facing so they look toward the tree ─
+        // ── 4. Hero — centre-facing toward the building ───────────────────────
         paintHero(g2, W, H);
 
-        // ── 8. Left panel: banner + vertical progress bar (ladder progress) ───
+        // ── 5. Left Panel — back button and status display ────────────────────
         paintLeftPanel(g2, H);
 
+        // ── 6. Screen Overlays — handles Intro, Game, and Finish states ───────
         if (null == currentScreen) {
             paintFinishOverlay(g2, W, H);
-        } else // ── 10. Intro or game puzzle overlay ──────────────────────────────────
-        {
+        } else {
             switch (currentScreen) {
                 case INTRO ->
                     paintIntro(g2, W, H);
@@ -455,6 +454,7 @@ public class FireGamePanel extends JPanel {
             }
         }
 
+        // ── 7. Feedback — floating message alerts ─────────────────────────────
         paintFeedback(g2, W, H);
 
         g2.dispose();
@@ -685,32 +685,28 @@ public class FireGamePanel extends JPanel {
     }
 
     private void paintTopBanner(Graphics2D g2, int W) {
-        if (imgBanner == null) {
-            return;
-        }
+        // 1. Box Dimensions - Decreased width from 280 to 200
+        int boxW = 200;
+        int boxH = 50;
+        int boxX = (W - boxW) / 2; // Centers the box on the screen
+        int boxY = 15;
 
-        // 1. Banner Dimensions
-        int bannerW = 320;
-        int bannerH = 100;
-        int bannerX = (W - bannerW) / 2;
-        int bannerY = 5;
-
-        // 2. Draw the Image
-        g2.drawImage(imgBanner, bannerX, bannerY, bannerW, bannerH, null);
+        // 2. Draw the Outer Box background and borders
+        paintOuterBox(g2, boxX, boxY, boxW, boxH);
 
         // 3. Configure Font
-        g2.setFont(new Font("Monospaced", Font.BOLD, 22));
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18)); // Slightly smaller font for a smaller box
         g2.setColor(new Color(0x3B2A1A));
         FontMetrics fm = g2.getFontMetrics();
 
-        // 4. Percentage-Based Vertical Alignment
+        // 4. Horizontal Centering Logic
         String scoreText = "SCORE: " + Game.getInstance().getScore();
 
-        // Horizontal center remains the same
-        int textX = bannerX + (bannerW - fm.stringWidth(scoreText)) / 2;
+        // Calculate the X coordinate: (Box Width - Text Width) / 2 + Box's X Position
+        int textX = boxX + (boxW - fm.stringWidth(scoreText)) / 2;
 
-        float verticalPercent = 0.34f;
-        int textY = bannerY + (int) (bannerH * verticalPercent) + (fm.getAscent() / 2);
+        // 5. Vertical Centering Logic
+        int textY = boxY + (boxH / 2) + (fm.getAscent() / 2) - 2;
 
         g2.drawString(scoreText, textX, textY);
     }
