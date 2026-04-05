@@ -217,34 +217,6 @@ public class MapPagePanel extends JPanel implements Refreshable {
             updateButtonTooltip(idx);
             
             actButtons[i].addActionListener(e -> {
-
-                // Play click sound conditionally (only if we're on map screen)
-                SoundManager.playConditional(SoundManager.BOSS_HINT_PLACE, 
-                    SoundManager.GameActivity.MAP);
-                
-                if (idx == 0) {
-                    // Rebuild Cat Game when the first button is clicked
-                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_CAT_GAME, new CatGamePanel());
-                } 
-                else if (idx == 3) {
-                    // Rebuild Burglar Game when the fourth button is clicked
-                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BURGLAR_GAME, new BurglarGamePanel());
-                } 
-                else if (idx == 2){
-                    // link the brige game here
-                    // replace with this: Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BRIDGE_GAME, new BossGamePanel());
-                    Wordtropolis.showScreen(ACT_SCREENS[idx]);
-                    
-                   // if u want to try the boss game uncomment this and click the brige game placeholder
-                   //Wordtropolis.replaceScreen(Wordtropolis.SCREEN_BOSS_GAME, new BossGamePanel());
-                }
-                else {
-                    Wordtropolis.replaceScreen(Wordtropolis.SCREEN_FIRE_GAME, new FireGamePanel());
-                    // link the fire game here
-                    // replace with this: Wordtropolis.replaceScreen(Wordtropolis.SCREEN_FIRE_GAME, new BossGamePanel());
-                    //Wordtropolis.showScreen(ACT_SCREENS[idx]);
-                    
-
                 if (isLevelUnlocked(idx)) {
                     Wordtropolis.replaceScreen(ACT_SCREENS[idx], getGamePanel(idx));
                 } else {
@@ -376,7 +348,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
             case 0: return new CatGamePanel();
             case 1: return new BurglarGamePanel();
             case 2: return new BrokenBridgeGamePanel();
-            case 3: return new BossGamePanel(); // Replace with FireGamePanel when ready
+            case 3: return new FireGamePanel(); // Replace with FireGamePanel when ready
             default: return new CatGamePanel();
         }
     }

@@ -231,7 +231,7 @@ public class FireGamePanel extends JPanel {
             SoundManager.play(SoundManager.FIRE_ERROR);
             SoundManager.setSfxVolume(prevVol);
 
-            if (model.getWrongCount()%REIGNITE_LIMIT == 0 && fireCounter > 0) {
+            if (model.getWrongCount() % REIGNITE_LIMIT == 0 && fireCounter > 0) {
                 reigniteFire();
                 Game.getInstance().addMisspelledWord(model.getCurrentWord());
             }
@@ -535,7 +535,7 @@ public class FireGamePanel extends JPanel {
 
             // Prepare Text Data
             int firesLeft = NUMBER_OF_FIRES - fireCounter;
-            int guessesLeft = REIGNITE_LIMIT - model.getWrongCount()%REIGNITE_LIMIT;
+            int guessesLeft = REIGNITE_LIMIT - model.getWrongCount() % REIGNITE_LIMIT;
 
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Monospaced", Font.BOLD, 16));
@@ -597,12 +597,17 @@ public class FireGamePanel extends JPanel {
             return;
         }
 
+        // Drawn size — scale down to look proportional next to NPCs
         int drawW = 160;
-        int drawH = (int) ((double) HERO_FH / HERO_FW * drawW);
+        int drawH = (int) ((double) HERO_FH / HERO_FW * drawW);  // keep aspect ratio
 
-        int groundY = (int) (H * 0.82) - drawH;
+        // Ground line matches NPC ground Y
+        int groundY = (int) (H * 0.87) - drawH;
+
+        // Position: just right of the tree centre
         int heroX = (int) (W * 0.50);
 
+        // Source rectangle: back-facing row, current animation frame
         int srcX1 = heroFrame * HERO_FW;
         int srcY1 = HERO_BACK_ROW * HERO_FH;
         int srcX2 = srcX1 + HERO_FW;
@@ -610,7 +615,7 @@ public class FireGamePanel extends JPanel {
 
         g2.drawImage(imgHero,
                 heroX, groundY, heroX + drawW, groundY + drawH,
-                srcX1, srcY1, srcX2, srcY2, null);
+                srcX1, srcY1 + 100, srcX2, srcY2 + 50, null);
     }
 
     // Paint Fire Truck
@@ -620,8 +625,8 @@ public class FireGamePanel extends JPanel {
         }
 
         // Scale the truck
-        int truckWidth = 500;
-        int truckHeight = 250;
+        int truckWidth = 475;
+        int truckHeight = 225;
 
         // Position it on the far left
         int truckX = -200;
