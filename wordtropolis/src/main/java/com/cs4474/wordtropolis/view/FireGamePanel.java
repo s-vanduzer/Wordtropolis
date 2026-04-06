@@ -33,7 +33,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
     private static final int REIGNITE_LIMIT = 4;
     private static final int HINT_THRESHOLD = 3; // Initial wrong tries before first hint
     private static final int NUMBER_OF_FIRES = 6;
-    private static final int BASE_SCORE = 50;
 
     private static final int NPC_COLS = 6, NPC_FW = 32, NPC_FH = 32;
 
@@ -157,7 +156,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
     private BufferedImage loadHeroImage() {
         try {
-            String avatar = Game.getInstance().getAvatarPath();
+            String avatar = game.getAvatarPath();
             if ("Mia".equalsIgnoreCase(avatar)) {
                 return img("/images/general/hero1_standing.png");
             }
@@ -233,8 +232,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
             hintCount = 0;
             extinguishFire();
 
-            game.addScore(BASE_SCORE * model.getStreakCount());
-
             if (model.getFireCounter() < NUMBER_OF_FIRES) {
                 model.pickNextWord();
 
@@ -247,6 +244,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
                 currentScreen = Screen.FINISH;
                 SoundManager.play(SoundManager.GAME_FINISH);
                 game.setFireCompleted(true);
+                game.addScore(model.getScore());
             }
 
         } else {
@@ -414,8 +412,8 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
                 Rectangle backToMap = clickZones.get("back_to_map");
                 if (backToMap != null && backToMap.contains(mx, my)) {
-                    stopAll();
                     SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                    stopAll();
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
                 }
@@ -484,8 +482,9 @@ public class FireGamePanel extends JPanel implements Refreshable {
             paintFinishOverlay(g2, W, H);
         } else {
             switch (currentScreen) {
-                case INTRO ->
+                case INTRO -> {
                     paintIntro(g2, W, H);
+                }
                 case GAME -> {
                     paintGameUI(g2, W, H);
                     paintFlames(g2, W, H);
@@ -502,7 +501,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         g2.dispose();
     }
 
-// Paint background
+    // Paint background
     private void paintBackground(Graphics2D g2, int W, int H) {
         if (imgBg != null) {
             g2.drawImage(imgBg, 0, 0, W, H, null);
@@ -567,6 +566,11 @@ public class FireGamePanel extends JPanel implements Refreshable {
         int btnY = cardY + cardH - btnH - 25;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_btn");
+
+        // Back to map button
+        int panelX = 14;
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
     }
 
     private void paintLeftPanel(Graphics2D g2, int H) {
@@ -576,7 +580,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         int backBtnW = 120, backBtnH = 40;
         paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
 
-        // --- 2. Side Status Panel (Replacing the Top Banner) ---
+        // --- 2. Side Status Panel ---
         if (currentScreen == Screen.GAME) {
             int panelW = 200;
             int panelH = 180;
@@ -763,7 +767,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         FontMetrics fm = g2.getFontMetrics();
 
         // 4. Horizontal Centering Logic
-        String scoreText = "SCORE: " + game.getScore();
+        String scoreText = "SCORE: " + model.getScore();
 
         // Calculate the X coordinate: (Box Width - Text Width) / 2 + Box's X Position
         int textX = boxX + (boxW - fm.stringWidth(scoreText)) / 2;

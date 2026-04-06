@@ -15,6 +15,8 @@ import java.util.Random;
  */
 public class FireGameModel {
 
+    private static final int BASE_SCORE = 50;
+
     private List<String> words;
     private final Random random = new Random();
 
@@ -28,6 +30,8 @@ public class FireGameModel {
     private int fireIndex;
 
     private int streakCount; // For score multiplier
+
+    private int score;
 
     /**
      * Constructor.
@@ -95,11 +99,14 @@ public class FireGameModel {
             if (wrongCount == 0 || streakCount == 0) {
                 streakCount++;
             }
+            
+            score += BASE_SCORE * streakCount;
             correctCount++;
             pickNextWord();
 
             return true;
         } else {
+            streakCount = 0;
             wrongCount++;
             totalWrongCount++;
             return false;
@@ -166,5 +173,9 @@ public class FireGameModel {
 
     public void resetStreakCount() {
         streakCount = 0;
+    }
+
+    public int getScore() {
+        return score;
     }
 }

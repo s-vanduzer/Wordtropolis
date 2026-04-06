@@ -23,13 +23,14 @@ public class BossGameModel {
     }
 
     // ── Constants ─────────────────────────────────────────────────────────────
-    public static final int TOTAL_WORDS_PHASE_1A = 8;
-    public static final int TOTAL_WORDS_PHASE_1C = 5;
-    public static final int MAYOR_MAX_HEALTH = 100;
-    public static final int HERO_MAX_HEALTH = 100;
-    public static final int SHIELD_MAX_HEALTH = 60;
-    public static final int DAMAGE_PER_CORRECT = 15;
-    public static final int HERO_DAMAGE_PER_INCORRECT = 10;
+    private static final int TOTAL_WORDS_PHASE_1A = 8;
+    private static final int TOTAL_WORDS_PHASE_1C = 5;
+    private static final int MAYOR_MAX_HEALTH = 100;
+    private static final int HERO_MAX_HEALTH = 100;
+    private static final int SHIELD_MAX_HEALTH = 60;
+    private static final int DAMAGE_PER_CORRECT = 15;
+    private static final int HERO_DAMAGE_PER_INCORRECT = 10;
+    private static final int SCORE_POINTS = 50;
 
     private static final char[] DISTRACTOR_POOL = "XQZVWBJK".toCharArray();
 
@@ -56,6 +57,8 @@ public class BossGameModel {
     private boolean isHintActive = false;
     private int hintProgress = 0;
     private boolean autoCompleted = false;
+
+    private int score = 0;
 
     // Tracking
     private List<String> misspelledDuringGame;
@@ -98,6 +101,7 @@ public class BossGameModel {
         this.wordsCompletedInPhase = 0;
         this.incorrectAttempts = 0;
         this.correctAttempts = 0;
+        this.score = 0;
         this.currentDifficulty = Difficulty.EASY;
         this.isRunning = true;
 
@@ -463,7 +467,7 @@ public class BossGameModel {
 
         if (isCorrect) {
             // CORRECT ANSWER - Deal damage based on phase
-            Game.getInstance().addScore(50);
+            addScore(SCORE_POINTS);
             correctAttempts++;
 
             switch (currentPhase) {
@@ -503,6 +507,7 @@ public class BossGameModel {
 
                     if (mayorHealth <= 0) {
                         isVictory = true;
+                        Game.getInstance().addScore(score);
                         System.out.println("[BossGame] VICTORY! Mayor defeated!");
                     }
                     break;
@@ -599,6 +604,10 @@ public class BossGameModel {
         return isRunning;
     }
 
+    public void addScore(int add) {
+        score += add;
+    }
+
     // ── Getters ───────────────────────────────────────────────────────────────
     public String getCurrentWord() {
         return currentWord;
@@ -654,6 +663,10 @@ public class BossGameModel {
 
     public Difficulty getCurrentDifficulty() {
         return currentDifficulty;
+    }
+
+    public int getScore() {
+        return score;
     }
 
     public boolean isHeroDead() {

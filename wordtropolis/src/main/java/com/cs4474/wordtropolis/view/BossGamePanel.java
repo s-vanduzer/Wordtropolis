@@ -1003,7 +1003,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
             SoundManager.stopMusic();
             stopAll();
             SoundManager.playConditional(SoundManager.BOSS_VICTORY, SoundManager.GameActivity.BOSS_GAME);
-//            Game.getInstance().setCatCompleted(true);
             feedbackMsg = "";
             currentScreen = Screen.FINISH;
 
@@ -1192,7 +1191,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
         int scoreX = 390;
         int scoreY = 10;
         paintOuterBoxButton(g2, scoreX, scoreY, scoreW, scoreH,
-                "Score: " + game.getScore(), "");
+                "Score: " + model.getScore(), "");
     }
     // ── Intro screen ──────────────────────────────────────────────────────────
 
@@ -1239,6 +1238,10 @@ public class BossGamePanel extends JPanel implements Refreshable {
         int btnY = cardY + cardH - btnH - 20;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start battle!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_rescue");
+
+        int panelX = 14;
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
     }
 
     // ── Game UI: floating tiles + word box + buttons ───────────────────────
@@ -1407,7 +1410,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
         // You'll need to ensure these methods exist in your model/logic
         // If your variables are named differently, swap them here:
-        drawCentredString(g2, "Total Score: " + game.getScore(), W / 2, statsStartY);
+        drawCentredString(g2, "Score: " + model.getScore(), W / 2, statsStartY);
 
         g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
         drawCentredString(g2, "Correct Guesses: " + model.getCorrectAttempts(), W / 2, statsStartY + 35);
@@ -1698,15 +1701,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
                         return;
                     }
 
-                    Rectangle finishScreen = clickZones.get("finish_screen");
-                    if (finishScreen != null && finishScreen.contains(mx, my)) {
-                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
-                        SoundManager.stopAll();
-                        stopAll();
-                        Wordtropolis.showScreen(Wordtropolis.SCREEN_FINISH);
-                        return;
-                    }
-
                     // Check Start Rescue button (intro screen)
                     if (currentScreen == Screen.INTRO) {
                         Rectangle r = clickZones.get("start_rescue");
@@ -1715,6 +1709,15 @@ public class BossGamePanel extends JPanel implements Refreshable {
                             startGame();
                         }
                         isDragging = false;
+                        return;
+                    }
+
+                    Rectangle finishScreen = clickZones.get("finish_screen");
+                    if (finishScreen != null && finishScreen.contains(mx, my)) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                        SoundManager.stopAll();
+                        stopAll();
+                        Wordtropolis.showScreen(Wordtropolis.SCREEN_FINISH);
                         return;
                     }
 

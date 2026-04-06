@@ -7,7 +7,6 @@ import com.cs4474.wordtropolis.model.Game;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -459,6 +458,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
         }
 
         Game.getInstance().setCatCompleted(true);
+        Game.getInstance().addScore(model.getTotalScore());
         currentScreen = Screen.RESCUE;
 
         catRescueY = 0.0f;
@@ -1012,6 +1012,11 @@ public class CatGamePanel extends JPanel implements Refreshable {
         int btnY = cardY + cardH - btnH - 20;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start Rescue!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_rescue");
+
+        int panelX = 14;
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
+
     }
 
     // ── Game UI: floating tiles + word box + buttons ───────────────────────
