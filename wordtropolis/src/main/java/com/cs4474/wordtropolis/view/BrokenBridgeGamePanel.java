@@ -398,7 +398,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
 
         if (model.isAnswerCorrect()) {
             model.applyCorrectRound();
-            SoundManager.playFrom(SoundManager.BRIDGE_ADD_PIECE, 0.0, 1.5); // ← cha-ching (first 1.5s)
+            SoundManager.playFrom(SoundManager.BRIDGE_ADD_PIECE, 0.0, 1.5);
             triggerSparkle();
             if (model.isComplete()) {
                 if (gameTimer != null) {
@@ -408,6 +408,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
                     ((Timer) e.getSource()).stop();
                     stopTimers();
                     game.setBridgeCompleted(true);
+                    game.addScore(model.getScore());
                     SoundManager.play(SoundManager.GAME_FINISH);
                     screen = Screen.FINISH;
                     repaint();

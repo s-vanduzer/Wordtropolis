@@ -7,7 +7,6 @@ import com.cs4474.wordtropolis.model.Game;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -459,6 +458,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
         }
 
         Game.getInstance().setCatCompleted(true);
+        Game.getInstance().addScore(model.getTotalScore());
         currentScreen = Screen.RESCUE;
 
         catRescueY = 0.0f;

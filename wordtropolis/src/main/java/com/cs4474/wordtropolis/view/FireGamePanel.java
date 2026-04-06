@@ -33,7 +33,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
     private static final int REIGNITE_LIMIT = 4;
     private static final int HINT_THRESHOLD = 3; // Initial wrong tries before first hint
     private static final int NUMBER_OF_FIRES = 6;
-    private static final int BASE_SCORE = 50;
 
     private static final int NPC_COLS = 6, NPC_FW = 32, NPC_FH = 32;
 
@@ -157,7 +156,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
     private BufferedImage loadHeroImage() {
         try {
-            String avatar = Game.getInstance().getAvatarPath();
+            String avatar = game.getAvatarPath();
             if ("Mia".equalsIgnoreCase(avatar)) {
                 return img("/images/general/hero1_standing.png");
             }
@@ -232,9 +231,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
             hintCount = 0;
             extinguishFire();
-
-            game.addScore(BASE_SCORE * model.getStreakCount());
-
+            
             if (model.getFireCounter() < NUMBER_OF_FIRES) {
                 model.pickNextWord();
 
@@ -247,6 +244,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
                 currentScreen = Screen.FINISH;
                 SoundManager.play(SoundManager.GAME_FINISH);
                 game.setFireCompleted(true);
+                game.addScore(model.getScore());
             }
 
         } else {
@@ -414,8 +412,8 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
                 Rectangle backToMap = clickZones.get("back_to_map");
                 if (backToMap != null && backToMap.contains(mx, my)) {
-                    stopAll();
                     SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                    stopAll();
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
                 }
@@ -763,7 +761,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         FontMetrics fm = g2.getFontMetrics();
 
         // 4. Horizontal Centering Logic
-        String scoreText = "SCORE: " + game.getScore();
+        String scoreText = "SCORE: " + model.getScore();
 
         // Calculate the X coordinate: (Box Width - Text Width) / 2 + Box's X Position
         int textX = boxX + (boxW - fm.stringWidth(scoreText)) / 2;

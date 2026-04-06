@@ -37,7 +37,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
         INTRO, GAME, FINISH, LOSE
     }
     private Screen currentScreen = Screen.INTRO;
-
+    
     // ── Images ────────────────────────────────────────────────────────────────
     private BufferedImage imgBg, imgTree, imgNpc;
     private BufferedImage imgLetterBox, imgOuterBox;
@@ -615,7 +615,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
         AnswerResult result = model.submitAnswer();
 
-        if (result.correct) {
+        if (result.correct) {            
             // Play attack animation
             triggerAttackAnimation(result.damageDealt);
 
@@ -1003,7 +1003,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
             SoundManager.stopMusic();
             stopAll();
             SoundManager.playConditional(SoundManager.BOSS_VICTORY, SoundManager.GameActivity.BOSS_GAME);
-//            Game.getInstance().setCatCompleted(true);
             feedbackMsg = "";
             currentScreen = Screen.FINISH;
 
@@ -1192,7 +1191,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
         int scoreX = 390;
         int scoreY = 10;
         paintOuterBoxButton(g2, scoreX, scoreY, scoreW, scoreH,
-                "Score: " + game.getScore(), "");
+                "Score: " + model.getScore(), "");
     }
     // ── Intro screen ──────────────────────────────────────────────────────────
 
@@ -1407,7 +1406,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
         // You'll need to ensure these methods exist in your model/logic
         // If your variables are named differently, swap them here:
-        drawCentredString(g2, "Total Score: " + game.getScore(), W / 2, statsStartY);
+        drawCentredString(g2, "Score: " + model.getScore(), W / 2, statsStartY);
 
         g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
         drawCentredString(g2, "Correct Guesses: " + model.getCorrectAttempts(), W / 2, statsStartY + 35);
