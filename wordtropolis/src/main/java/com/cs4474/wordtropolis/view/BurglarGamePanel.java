@@ -7,7 +7,6 @@ import com.cs4474.wordtropolis.model.Game;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -45,7 +44,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
     private int animationFrame = 0;
     private Timer animationTimer;
     private static final int TOTAL_FRAMES = 4; // Both sheets have 4 frames
-   
+
     private static final int FRAME_W = 192; // Updated from 160 to match 768px total width
     private static final int FRAME_H = 160; // 160 is fine as a max height buffer   
 
@@ -341,8 +340,6 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
             showFeedback("Correct! The hero moves forward!", UITheme.ACCENT_TEAL);
             SoundManager.playFromConditional(SoundManager.SFX_CORRECT, 1.0, 1.5, SoundManager.GameActivity.BURGLAR_GAME);
             System.out.println("Hero position: " + model.getHeroPosition());
-            int points = BurglarGameModel.POINTS_PER_CORRECT;
-            Game.getInstance().addScore(points);
             triggerSparkle(getWidth() / 2, getHeight() / 2);
             repaint();
 
@@ -361,7 +358,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
             String correctWord = model.getCurrentFullWord();
             // Updated error message as requested
             showFeedback("Incorrect! It was '" + correctWord + "', he's is getting away!", UITheme.ACCENT_RED);
-            
+
             Game.getInstance().addMisspelledWord(correctWord);
 
             SoundManager.playConditional(SoundManager.SFX_ERROR, SoundManager.GameActivity.BURGLAR_GAME);
@@ -588,37 +585,37 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
     }
 
     // Inside paintCharacters(Graphics2D g2, int W, int H)
-private void paintCharacters(Graphics2D g2, int W, int H) {
-    int groundY = (int) (H * 0.85);
-    // Increase charSize slightly to 120 or 140 so the bigger 192px sprite isn't squashed
-    int charSize = 130; 
-    int stepSize = 50;
+    private void paintCharacters(Graphics2D g2, int W, int H) {
+        int groundY = (int) (H * 0.85);
+        // Increase charSize slightly to 120 or 140 so the bigger 192px sprite isn't squashed
+        int charSize = 130;
+        int stepSize = 50;
 
-    int heroX = 100 + (model.getHeroPosition() * stepSize) - (int) cameraOffset;
-    int robberX = 100 + (model.getRobberPosition() * stepSize) - (int) cameraOffset;
+        int heroX = 100 + (model.getHeroPosition() * stepSize) - (int) cameraOffset;
+        int robberX = 100 + (model.getRobberPosition() * stepSize) - (int) cameraOffset;
 
-    // The math now uses 192, so it jumps exactly to the start of the next alien/hero
-    int sx1 = animationFrame * FRAME_W; 
-    int sx2 = sx1 + FRAME_W;
-    int sy1 = 0;
-    int sy2 = FRAME_H;
+        // The math now uses 192, so it jumps exactly to the start of the next alien/hero
+        int sx1 = animationFrame * FRAME_W;
+        int sx2 = sx1 + FRAME_W;
+        int sy1 = 0;
+        int sy2 = FRAME_H;
 
-    // Draw Hero
-    if (imgHero != null) {
-        g2.drawImage(imgHero,
-                heroX, groundY - charSize, heroX + charSize, groundY, 
-                sx1, sy1, sx2, sy2, 
-                null);
+        // Draw Hero
+        if (imgHero != null) {
+            g2.drawImage(imgHero,
+                    heroX, groundY - charSize, heroX + charSize, groundY,
+                    sx1, sy1, sx2, sy2,
+                    null);
+        }
+
+        // Draw Robber
+        if (imgRobber != null) {
+            g2.drawImage(imgRobber,
+                    robberX, groundY - charSize, robberX + charSize, groundY,
+                    sx1, sy1, sx2, sy2,
+                    null);
+        }
     }
-
-    // Draw Robber
-    if (imgRobber != null) {
-        g2.drawImage(imgRobber,
-                robberX, groundY - charSize, robberX + charSize, groundY,
-                sx1, sy1, sx2, sy2,
-                null);
-    }
-}
 
     private void paintStartScreen(Graphics2D g2, int W, int H) {
         // Full-page dark overlay
@@ -662,6 +659,10 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
         int btnY = cardY + cardH - btnH - 20;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start chase!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_chase");
+
+        int panelX = 14;
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
     }
 
     private void paintOuterBoxButton(Graphics2D g2, int x, int y, int w, int h,
@@ -1041,16 +1042,6 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
                 int mx = e.getX(), my = e.getY();
-                if (currentScreen == Screen.INTRO) {
-                    Rectangle backToMap = clickZones.get("start_chase");
-                    if (backToMap != null && backToMap.contains(mx, my) && !isDragging) {
-                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
-                        startGame();
-                        return;
-                    }
-                    return;
-                }
-
                 if (!model.isGameActive() || waitingForNext) {
                     return;
                 }
@@ -1113,6 +1104,17 @@ private void paintCharacters(Graphics2D g2, int W, int H) {
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
                 }
+
+                if (currentScreen == Screen.INTRO) {
+                    Rectangle startGame = clickZones.get("start_chase");
+                    if (startGame != null && startGame.contains(mx, my) && !isDragging) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                        startGame();
+                        return;
+                    }
+                    return;
+                }
+
                 // Button clicks
                 if (!isDragging) {
                     Rectangle check = clickZones.get("check_btn");

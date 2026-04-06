@@ -7,7 +7,6 @@ import com.cs4474.wordtropolis.model.Game;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -421,8 +420,6 @@ public class CatGamePanel extends JPanel implements Refreshable {
             }
         } else {
             showFeedback("Incorrect. Please try again!", UITheme.ACCENT_RED);
-//            String correctWord = model.getCurrentWord();
-//            Game.getInstance().addMisspelledWord(correctWord);
             SoundManager.playConditional(SoundManager.CAT_MEOW_MAD, SoundManager.GameActivity.CAT_GAME);
             SoundManager.playConditional(SoundManager.CAT_ERROR, SoundManager.GameActivity.CAT_GAME);
             shakeEffect();
@@ -459,6 +456,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
         }
 
         Game.getInstance().setCatCompleted(true);
+        Game.getInstance().addScore(model.getTotalScore());
         currentScreen = Screen.RESCUE;
 
         catRescueY = 0.0f;
@@ -1012,6 +1010,11 @@ public class CatGamePanel extends JPanel implements Refreshable {
         int btnY = cardY + cardH - btnH - 20;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start Rescue!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_rescue");
+
+        int panelX = 14;
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
+
     }
 
     // ── Game UI: floating tiles + word box + buttons ───────────────────────
@@ -1109,7 +1112,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
         drawCentredString(g2, "Total Score: " + Game.getInstance().getScore(), W / 2, statsStartY);
 
         g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
-        drawCentredString(g2, "Correct Guesses: " + model.getTotalScore(), W / 2, statsStartY + 35);
+        drawCentredString(g2, "Correct Guesses: " + model.getWordsCompleted(), W / 2, statsStartY + 35);
         drawCentredString(g2, "Mistakes Made: " + model.getIncorrectAttempts(), W / 2, statsStartY + 65);
 
         // 6. Final Praise

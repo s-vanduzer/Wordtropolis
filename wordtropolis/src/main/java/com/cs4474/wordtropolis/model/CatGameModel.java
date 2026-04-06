@@ -34,7 +34,6 @@ public class CatGameModel {
     // ── Constants ─────────────────────────────────────────────────────────────
     public static final int TOTAL_WORDS = 6;
     public static final int POINTS_PER_CORRECT = 50;
-//    public static final int PENALTY_INCORRECT  = 10;
 
     private static final char[] DISTRACTOR_POOL = "XQZVWBJK".toCharArray();
 
@@ -322,7 +321,6 @@ public class CatGameModel {
         if (answer.equals(currentWord)) {
             wordsCompleted++;
             totalScore += POINTS_PER_CORRECT;
-            Game.getInstance().addScore(POINTS_PER_CORRECT);
             return true;
         } else {
             incorrectAttempts++;

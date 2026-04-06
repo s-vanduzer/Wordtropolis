@@ -181,7 +181,6 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     private BufferedImage loadHeroImage() {
         try {
             String avatar = Game.getInstance().getAvatarPath();
-            System.out.println("[Fire] Trying to load: " + avatar);
             if ("Mia".equalsIgnoreCase(avatar)) {
                 return img("/images/general/hero1_standing.png");
             }
@@ -399,7 +398,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
 
         if (model.isAnswerCorrect()) {
             model.applyCorrectRound();
-            SoundManager.playFrom(SoundManager.BRIDGE_ADD_PIECE, 0.0, 1.5); // ← cha-ching (first 1.5s)
+            SoundManager.playFrom(SoundManager.BRIDGE_ADD_PIECE, 0.0, 1.5);
             triggerSparkle();
             if (model.isComplete()) {
                 if (gameTimer != null) {
@@ -409,6 +408,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
                     ((Timer) e.getSource()).stop();
                     stopTimers();
                     game.setBridgeCompleted(true);
+                    game.addScore(model.getScore());
                     SoundManager.play(SoundManager.GAME_FINISH);
                     screen = Screen.FINISH;
                     repaint();
@@ -473,20 +473,26 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
         paintHero(g2, w, h);
         paintBridge(g2, w, h);
 
-        if (screen == Screen.INTRO) {
-            paintTimerBar(g2, w);
-            paintLeftPanel(g2, h);
-            paintIntro(g2, w, h);
-        } else if (screen == Screen.PLAYING) {
-            paintWordTiles(g2, w, h);
-            paintTimerBar(g2, w);
-            paintLeftPanel(g2, h);
-            paintBottomUI(g2, w, h);
-            if (showSparkle) {
-                paintSparkle(g2);
+        if (null != screen) {
+            switch (screen) {
+                case INTRO:
+                    paintIntro(g2, w, h);
+                    break;
+                case PLAYING:
+                    paintWordTiles(g2, w, h);
+                    paintTimerBar(g2, w);
+                    paintLeftPanel(g2, h);
+                    paintBottomUI(g2, w, h);
+                    if (showSparkle) {
+                        paintSparkle(g2);
+                    }
+                    break;
+                case FINISH:
+                    paintFinishOverlay(g2, w, h);
+                    break;
+                default:
+                    break;
             }
-        } else if (screen == Screen.FINISH) {
-            paintFinishOverlay(g2, w, h);
         }
 
         if (shakeTimer != null && shakeTimer.isRunning() && shakeTick % 2 == 0) {
@@ -729,6 +735,9 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
         paintClickBox(g2, W / 2 - btnW / 2, cardY + cardH - btnH - 14,
                 btnW, btnH, "Start Fixing!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_btn");
+
+        int panelX = 14;
+        paintOuterBoxButton(g2, panelX, 12, 120, 40, "< Back", "back_btn");
     }
 
     private void paintFinishOverlay(Graphics2D g2, int W, int H) {

@@ -89,7 +89,6 @@ public final class SoundManager {
     public static final String BOSS_TIMER_TICKING = "boss_game/timer_ticking.wav";
     public static final String BOSS_BGM = "boss_game/Boss_Battle.wav";
     public static final String BOSS_HINT_ACTIVATE = "boss_game/hint_activate.wav";
-//    public static final String BOSS_HINT_PLACE = "boss_game/click.wav";
 
     // ── Fire Game sounds ─────────────────────────────────────────────────────
     public static final String FIRE_IGNITE = "fire_game/fire_ignite.wav";
@@ -149,30 +148,27 @@ public final class SoundManager {
         }
 
         new Thread(() -> {
+            Clip clip = openClip(filename); // Uses the updated robust helper above
+            if (clip == null) {
+                return;
+            }
+
             try {
-                URL res = SoundManager.class.getResource("/sounds/" + filename);
-                if (res == null) {
-                    return;
-                }
+                applyVolume(clip, sfxVolume);
+                activeSfx.add(clip);
 
-                try (AudioInputStream ais = AudioSystem.getAudioInputStream(res)) {
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(ais);
-                    applyVolume(clip, sfxVolume);
+                clip.addLineListener(e -> {
+                    if (e.getType() == LineEvent.Type.STOP) {
+                        clip.stop();
+                        clip.flush();
+                        clip.close();
+                        activeSfx.remove(clip);
+                    }
+                });
 
-                    activeSfx.add(clip); // Track it
-
-                    clip.addLineListener(e -> {
-                        if (e.getType() == LineEvent.Type.STOP) {
-                            clip.close();
-                            activeSfx.remove(clip); // Remove it
-                        }
-                    });
-
-                    clip.start();
-                }
+                clip.start();
             } catch (Exception ex) {
-                System.err.println("[SoundManager] SFX Error: " + filename);
+                System.err.println("[SoundManager] Playback error: " + filename);
             }
         }, "sfx-thread").start();
     }
@@ -413,18 +409,31 @@ public final class SoundManager {
 
     // ═══════════════════════════════ PRIVATE HELPERS ══════════════════════════
     private static Clip openClip(String filename) {
+        // Ensure filename starts with a leading slash for getResource
+        String path = filename.startsWith("/") ? filename : "/sounds/" + filename;
+
         try {
-            URL res = SoundManager.class.getResource("/sounds/" + filename);
+            URL res = SoundManager.class.getResource(path);
             if (res == null) {
+                System.err.println("[SoundManager] Resource not found: " + path);
                 return null;
             }
-            AudioInputStream ais = AudioSystem.getAudioInputStream(res);
+
+            // Using a buffered input stream can prevent 'mark/reset not supported' 
+            // errors that occasionally pop up in certain JAR environments/OS.
+            java.io.InputStream is = res.openStream();
+            java.io.InputStream bufferedIn = new java.io.BufferedInputStream(is);
+
+            AudioInputStream ais = AudioSystem.getAudioInputStream(bufferedIn);
             Clip clip = AudioSystem.getClip();
             clip.open(ais);
-            // Note: ais is typically closed when the clip is closed, 
-            // but in some OS environments, keeping it open is safer until open() finishes.
+
+            // It is important to close the stream AFTER the clip has loaded it into memory
+            ais.close();
+
             return clip;
         } catch (Exception e) {
+            System.err.println("[SoundManager] Error loading " + filename + ": " + e.getMessage());
             return null;
         }
     }

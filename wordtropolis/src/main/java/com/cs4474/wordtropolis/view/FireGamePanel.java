@@ -33,7 +33,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
     private static final int REIGNITE_LIMIT = 4;
     private static final int HINT_THRESHOLD = 3; // Initial wrong tries before first hint
     private static final int NUMBER_OF_FIRES = 6;
-    private static final int BASE_SCORE = 50;
 
     private static final int NPC_COLS = 6, NPC_FW = 32, NPC_FH = 32;
 
@@ -116,7 +115,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
         grabFocus();
 
         model.restartGame();
-        System.out.println("[Fire] Wrong count aftr reset: " + model.getWrongCount());
         clickZones.clear();
         currentScreen = Screen.INTRO;
         feedbackMsg = "";
@@ -158,8 +156,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
     private BufferedImage loadHeroImage() {
         try {
-            String avatar = Game.getInstance().getAvatarPath();
-            System.out.println("[Fire] Trying to load: " + avatar);
+            String avatar = game.getAvatarPath();
             if ("Mia".equalsIgnoreCase(avatar)) {
                 return img("/images/general/hero1_standing.png");
             }
@@ -235,8 +232,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
             hintCount = 0;
             extinguishFire();
 
-            game.addScore(BASE_SCORE * model.getStreakCount());
-
             if (model.getFireCounter() < NUMBER_OF_FIRES) {
                 model.pickNextWord();
 
@@ -249,15 +244,10 @@ public class FireGamePanel extends JPanel implements Refreshable {
                 currentScreen = Screen.FINISH;
                 SoundManager.play(SoundManager.GAME_FINISH);
                 game.setFireCompleted(true);
+                game.addScore(model.getScore());
             }
 
         } else {
-
-            System.out.println("[Fire] Wrong count beginning of handle: " + model.getWrongCount());
-            System.out.println("[Fire] Fire counter: " + model.getFireCounter());
-            System.out.println("[Fire] math: " + model.getWrongCount() % REIGNITE_LIMIT);
-            System.out.println(model.getWrongCount() % REIGNITE_LIMIT == 0 && model.getFireCounter() > 0);
-
             if (model.getWrongCount() % REIGNITE_LIMIT == 0 && model.getFireCounter() > 0) {
                 showFeedback("Oh no! A fire relit!");
                 reigniteFire();
@@ -280,7 +270,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
             SoundManager.play(SoundManager.FIRE_ERROR);
             SoundManager.setSfxVolume(prevVol);
         }
-        System.out.println("[Fire] Wrong count at end of handle: " + model.getWrongCount());
         resetInputWithHints();
         repaint();
     }
@@ -329,7 +318,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
         if (model.getFireIndex() >= 0 && model.getFireIndex() < flames.size()) {
             flames.get(model.getFireIndex()).extinguish(); // Play the end animation for this fire
 
-            System.out.println("extinguish " + model.getFireIndex() + "\n");
             updateFireCounter(1); // Increment the counter when the fire is extinguished
             SoundManager.play(SoundManager.FIRE_HOSE);
         }
@@ -338,7 +326,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
     // Handle reigniting logic (allow fires to be reignited after extinguishing)
     private void reigniteFire() {
         updateFireCounter(-1);
-        System.out.println("reigniting...");
 
         boolean ignite = true;
         int i;
@@ -425,8 +412,8 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
                 Rectangle backToMap = clickZones.get("back_to_map");
                 if (backToMap != null && backToMap.contains(mx, my)) {
-                    stopAll();
                     SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                    stopAll();
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
                 }
@@ -495,8 +482,9 @@ public class FireGamePanel extends JPanel implements Refreshable {
             paintFinishOverlay(g2, W, H);
         } else {
             switch (currentScreen) {
-                case INTRO ->
+                case INTRO -> {
                     paintIntro(g2, W, H);
+                }
                 case GAME -> {
                     paintGameUI(g2, W, H);
                     paintFlames(g2, W, H);
@@ -513,7 +501,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         g2.dispose();
     }
 
-// Paint background
+    // Paint background
     private void paintBackground(Graphics2D g2, int W, int H) {
         if (imgBg != null) {
             g2.drawImage(imgBg, 0, 0, W, H, null);
@@ -578,6 +566,11 @@ public class FireGamePanel extends JPanel implements Refreshable {
         int btnY = cardY + cardH - btnH - 25;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_btn");
+
+        // Back to map button
+        int panelX = 14;
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
     }
 
     private void paintLeftPanel(Graphics2D g2, int H) {
@@ -587,7 +580,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         int backBtnW = 120, backBtnH = 40;
         paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
 
-        // --- 2. Side Status Panel (Replacing the Top Banner) ---
+        // --- 2. Side Status Panel ---
         if (currentScreen == Screen.GAME) {
             int panelW = 200;
             int panelH = 180;
@@ -774,7 +767,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         FontMetrics fm = g2.getFontMetrics();
 
         // 4. Horizontal Centering Logic
-        String scoreText = "SCORE: " + game.getScore();
+        String scoreText = "SCORE: " + model.getScore();
 
         // Calculate the X coordinate: (Box Width - Text Width) / 2 + Box's X Position
         int textX = boxX + (boxW - fm.stringWidth(scoreText)) / 2;
