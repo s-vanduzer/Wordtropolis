@@ -74,6 +74,7 @@ public class CatGameModel {
         currentDifficulty = Difficulty.EASY;
         loadNextWord();
     }
+    
 
     // ── Word queue ────────────────────────────────────────────────────────────
     /**
@@ -318,7 +319,8 @@ public class CatGameModel {
             return true;
         } else {
             incorrectAttempts++;
-            Game.getInstance().addMisspelledWord(answer);
+      
+            Game.getInstance().addMisspelledWord(this.currentWord);
             availableLetters.addAll(playerArrangement);
             playerArrangement.clear();
             Collections.shuffle(availableLetters);

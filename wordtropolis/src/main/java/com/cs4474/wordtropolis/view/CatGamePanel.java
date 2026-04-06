@@ -421,6 +421,8 @@ public class CatGamePanel extends JPanel {
             }
         } else {
             showFeedback("Incorrect. Please try again!", UITheme.ACCENT_RED);
+//            String correctWord = model.getCurrentWord();
+//            Game.getInstance().addMisspelledWord(correctWord);
             SoundManager.playConditional(SoundManager.CAT_MEOW_MAD, SoundManager.GameActivity.CAT_GAME);
             SoundManager.playConditional(SoundManager.CAT_ERROR, SoundManager.GameActivity.CAT_GAME);
             shakeEffect();
