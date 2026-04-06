@@ -136,7 +136,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
         grabFocus();
         stopAll();
 
-        model.resetGame();
+        model.restartGame();
         clickZones.clear();
         currentScreen = Screen.INTRO;
         feedbackMsg = "";

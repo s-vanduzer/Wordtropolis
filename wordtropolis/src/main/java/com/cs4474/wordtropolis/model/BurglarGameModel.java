@@ -52,22 +52,30 @@ public class BurglarGameModel {
     private boolean gameActive;
 
     // ── Constructor ───────────────────────────────────────────────────────────
-    public BurglarGameModel(List<String> providedWords) {
-        // 1. Create a copy of the list to avoid modifying the original source
-        shuffledWords = new ArrayList<>(providedWords);
-        resetGame();
+    public BurglarGameModel() {
+        restartGame();
     }
 
-    public final void resetGame() {
+    public final void restartGame() {
+        // 1. Fetch/re-fetch words from singleton to ensure updates are caught
+        List<String> provided = Game.getInstance().getWordList();
+        this.shuffledWords = new ArrayList<>(provided);
         Collections.shuffle(shuffledWords);
 
+        // 2. Rebuild the queue from the fresh list
         wordQueue = buildWordQueue(shuffledWords);
+
+        // 3. Reset Stats
         wordsCompleted = 0;
         incorrectAttempts = 0;
         totalScore = 0;
-        heroPosition = HERO_START_POS;
-        robberPosition = ROBBER_START_POS;
         gameActive = true;
+
+        // 4. Reset Positions
+        heroPosition = HERO_START_POS;      // 0
+        robberPosition = ROBBER_START_POS;  // 10
+
+        // 5. Initialize First Word
         loadNextWord();
     }
 

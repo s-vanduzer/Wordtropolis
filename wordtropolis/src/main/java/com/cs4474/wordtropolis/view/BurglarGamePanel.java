@@ -77,7 +77,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
 
     // ── Constructor ───────────────────────────────────────────────────────────
     public BurglarGamePanel() {
-        model = new BurglarGameModel(Game.getInstance().getWordList());
+        model = new BurglarGameModel();
         setLayout(null);
         setBackground(Color.BLACK);
         loadImages();
@@ -117,7 +117,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
         stopAll();
         grabFocus();
 
-        model.resetGame();
+        model.restartGame();
         clickZones.clear();
         currentScreen = Screen.INTRO;
         feedbackMsg = "";

@@ -80,7 +80,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
     public FireGamePanel() {
         this.game = Game.getInstance();
-        model = new FireGameModel(game.getWordList());
+        model = new FireGameModel();
 
         hintCount = 0; // Number of letters revealed as hints
 
@@ -115,7 +115,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
     public void refresh() {
         grabFocus();
 
-        model.resetGame();
+        model.restartGame();
         System.out.println("[Fire] Wrong count aftr reset: " + model.getWrongCount());
         clickZones.clear();
         currentScreen = Screen.INTRO;

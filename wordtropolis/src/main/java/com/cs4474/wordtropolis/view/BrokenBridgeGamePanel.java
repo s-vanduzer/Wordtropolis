@@ -143,7 +143,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
         grabFocus();
         stopTimers();
 
-        model.resetGame();
+        model.restartGame();
         tileRects.clear();
         clickZones.clear();
         screen = Screen.INTRO;

@@ -160,35 +160,20 @@ public class Wordtropolis {
     // ── Navigation API ────────────────────────────────────────────────────────
     public static void showScreen(String screenName) {
         SoundManager.stopAll();
-        for (Component comp : cardPanel.getComponents()) {
-            if (comp.isVisible() && comp instanceof Refreshable) {
-                ((Refreshable) comp).refresh();
-            }
-        }
 
+        // 1. Switch the screen first
         cardLayout.show(cardPanel, screenName);
-//        // Tell SoundManager which room we are in so it knows which sounds are allowed
-// Update the SoundManager state
-        switch (screenName) {
-            case SCREEN_MAP -> {
-                SoundManager.setActivity(SoundManager.GameActivity.SCREEN_MAP);
-                SoundManager.stopMusic(); // Stop cat music when returning to map
-            }
-            case SCREEN_CAT_GAME -> SoundManager.setActivity(SoundManager.GameActivity.CAT_GAME);
-            case SCREEN_BURGLAR_GAME -> SoundManager.setActivity(SoundManager.GameActivity.BURGLAR_GAME);
-            case SCREEN_BOSS_GAME -> SoundManager.setActivity(SoundManager.GameActivity.BOSS_GAME);
-            case SCREEN_FIRE_GAME -> SoundManager.setActivity(SoundManager.GameActivity.FIRE_GAME);
-            case SCREEN_BRIDGE_GAME -> SoundManager.setActivity(SoundManager.GameActivity.BRIDGE_GAME);
-            default -> {
-            }
-        }
 
+        // 2. Update Sound Manager state
+        updateSoundActivity(screenName); // Use your helper method here!
+
+        // 3. Refresh ONLY the now-visible screen
         for (Component comp : cardPanel.getComponents()) {
+            // cardLayout.show() just made 'screenName' visible, so this will only hit the new screen
             if (comp.isVisible() && comp instanceof Refreshable) {
                 ((Refreshable) comp).refresh();
             }
         }
-
     }
 
     public static void replaceScreen(String screenName, JPanel newPanel) {

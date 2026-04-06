@@ -39,7 +39,7 @@ public class CatGameModel {
     private static final char[] DISTRACTOR_POOL = "XQZVWBJK".toCharArray();
 
     // ── State ─────────────────────────────────────────────────────────────────
-    private final List<String> words;
+    private List<String> words;
     private List<String> wordQueue;
     private String currentWord;
     private List<Character> playerArrangement;
@@ -63,18 +63,25 @@ public class CatGameModel {
      */
     public CatGameModel(List<String> providedWords) {
         this.words = providedWords;
-        resetGame();
+        restartGame();
     }
 
-    public final void resetGame() {
-        wordQueue = buildWordQueue(words);
+    public final void restartGame() {
+        // 1. Fetch/re-fetch words from singleton to ensure updates are caught
+        List<String> provided = Game.getInstance().getWordList();
+        this.words = new ArrayList<>(provided);
+        Collections.shuffle(words);
+
+        // 2. Existing reset logic
+        wordQueue = buildWordQueue(this.words);
         wordsCompleted = 0;
         incorrectAttempts = 0;
         totalScore = 0;
         currentDifficulty = Difficulty.EASY;
+
+        // 3. Start the game
         loadNextWord();
     }
-    
 
     // ── Word queue ────────────────────────────────────────────────────────────
     /**
@@ -319,7 +326,7 @@ public class CatGameModel {
             return true;
         } else {
             incorrectAttempts++;
-      
+
             Game.getInstance().addMisspelledWord(this.currentWord);
             availableLetters.addAll(playerArrangement);
             playerArrangement.clear();

@@ -4,6 +4,8 @@
  */
 package com.cs4474.wordtropolis.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -13,7 +15,7 @@ import java.util.Random;
  */
 public class FireGameModel {
 
-    private final List<String> words;
+    private List<String> words;
     private final Random random = new Random();
 
     private String currentWord;
@@ -30,28 +32,32 @@ public class FireGameModel {
     /**
      * Constructor.
      *
-     * @param providedWords list of words to be used in the game
      */
-    public FireGameModel(List<String> providedWords) {
-        if (providedWords == null || providedWords.isEmpty()) {
+    public FireGameModel() {
+        if (Game.getInstance().getWordList() == null || Game.getInstance().getWordList().isEmpty()) {
             throw new IllegalArgumentException("Word list cannot be null or empty.");
         }
-        this.words = providedWords;
-        resetGame();
+        restartGame();
     }
 
     /**
      * Resets the game state.
      */
-    public final void resetGame() {
+    public final void restartGame() {
+        // 1. Fetch/re-fetch words from singleton to ensure updates are caught
+        List<String> provided = Game.getInstance().getWordList();
+        this.words = new ArrayList<>(provided);
+        Collections.shuffle(words);
+
+        // 2. Reset all counters
         correctCount = 0;
         wrongCount = 0;
-        fireCounter = 0; // Counter for completed fires
-        fireIndex = 0;
-
-        streakCount = 0; // For score multiplier
         totalWrongCount = 0;
+        fireCounter = 0;
+        fireIndex = 0;
+        streakCount = 0;
 
+        // 3. New word
         pickNextWord();
     }
 
@@ -84,14 +90,14 @@ public class FireGameModel {
         }
 
         if (playerInput.equalsIgnoreCase(currentWord)) {
-            correctCount++;
             wrongCount = 0;
-            pickNextWord();  // Move to the next word
-            
+
             if (wrongCount == 0 || streakCount == 0) {
                 streakCount++;
             }
-            
+            correctCount++;
+            pickNextWord();
+
             return true;
         } else {
             wrongCount++;

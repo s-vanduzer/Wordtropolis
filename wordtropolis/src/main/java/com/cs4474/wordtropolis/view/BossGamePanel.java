@@ -118,7 +118,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         setBackground(Color.BLACK);
         loadImages();
         
-        startAnimations();
         setupKeyboard();
         setupMouseInteraction();
         
@@ -145,10 +144,13 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
     @Override
     public void refresh() {
+        model.restartGame();
         refreshGame();
+        startAnimations();
         clickZones.clear();
         currentScreen = Screen.INTRO;
         imgHero = loadHeroImage();
+        feedbackMsg = "";
 
         SwingUtilities.invokeLater(this::requestFocusInWindow);
         repaint();
@@ -200,13 +202,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         return null;
     }
 
-//    private BufferedImage img(String path) {
-//        try {
-//            URL r = getClass().getResource(path);
-//            if (r == null) { System.out.println("[Cat] missing: " + path); return null; }
-//            return ImageIO.read(r);
-//        } catch (Exception e) { System.out.println("[Cat] err: " + path); return null; }
-//    }
     // ═══════════════════════════════ ANIMATIONS ══════════════════════════════
     private void startAnimations() {
         heroTimer = new Timer(180, e -> {

@@ -85,67 +85,102 @@ public class BossGameModel {
         loadNextWord();
     }
 
-private void initializeWordLists(List<String> providedWords) {
-    // 1. Get the mistakes from the Global Singleton
-    List<String> mistakes = Game.getInstance().getMisspelledWordList();
-    
-    // DEBUG PRINT
-    System.out.println("BOSS BATTLE START: Loading " + mistakes.size() + " mistakes from previous games.");
-    System.out.println("Mistakes received: " + mistakes);
-    
-    // 2. Clean the mistakes (just like you did for the teacher words)
-    List<String> cleanMistakes = new ArrayList<>();
-    for (String w : mistakes) {
-        if (w != null) {
-            String upper = w.trim().toUpperCase();
-            if (!upper.isEmpty() && upper.matches("[A-Z]+")) {
-                cleanMistakes.add(upper);
+    /**
+     * Restarts the boss battle by resetting health, phases, and word pools.
+     *
+     */
+    public void restartGame() {
+
+        // 1. Reset Combat Stats
+        this.heroHealth = HERO_MAX_HEALTH;
+        this.mayorHealth = MAYOR_MAX_HEALTH;
+        this.mayorShield = SHIELD_MAX_HEALTH;
+        this.wordsCompletedInPhase = 0;
+        this.incorrectAttempts = 0;
+        this.correctAttempts = 0;
+        this.currentDifficulty = Difficulty.EASY;
+        this.isRunning = true;
+
+        // 2. Clear Session-Specific Data
+        this.misspelledDuringGame.clear();
+        this.timeoutWords.clear();
+        this.playerArrangement = new ArrayList<>();
+
+        // 3. Reset Hint System
+        resetHintMode();
+
+        // 4. Re-initialize Word Lists and Phases
+        // This pulls fresh mistakes from the Game singleton and shuffles everything
+        initializeWordLists(Game.getInstance().getWordList());
+
+        // 5. Start from Phase 1A
+        startPhase(BattlePhase.PHASE_1A);
+
+        System.out.println("[BossGame] Restart Complete. Battle Phase: " + currentPhase);
+        debugBattleState();
+    }
+
+    private void initializeWordLists(List<String> providedWords) {
+        // 1. Get the mistakes from the Global Singleton
+        List<String> mistakes = Game.getInstance().getMisspelledWordList();
+
+        // DEBUG PRINT
+        System.out.println("BOSS BATTLE START: Loading " + mistakes.size() + " mistakes from previous games.");
+        System.out.println("Mistakes received: " + mistakes);
+
+        // 2. Clean the mistakes (just like you did for the teacher words)
+        List<String> cleanMistakes = new ArrayList<>();
+        for (String w : mistakes) {
+            if (w != null) {
+                String upper = w.trim().toUpperCase();
+                if (!upper.isEmpty() && upper.matches("[A-Z]+")) {
+                    cleanMistakes.add(upper);
+                }
             }
         }
-    }
-    // 3. Assign to Phase 1B (The Review Phase)
-    // If there are no mistakes, we fall back to the teacher's provided words
-    if (!cleanMistakes.isEmpty() && cleanMistakes.size() > 6) {
-        this.phase1BWords = new ArrayList<>(cleanMistakes);
-    } else {
-        this.phase1BWords = new ArrayList<>(providedWords);
-    }
-    Collections.shuffle(this.phase1BWords);
+        // 3. Assign to Phase 1B (The Review Phase)
+        // If there are no mistakes, we fall back to the teacher's provided words
+        if (!cleanMistakes.isEmpty() && cleanMistakes.size() > 6) {
+            this.phase1BWords = new ArrayList<>(cleanMistakes);
+        } else {
+            this.phase1BWords = new ArrayList<>(providedWords);
+        }
+        Collections.shuffle(this.phase1BWords);
 
-    // 4. Phase 1A: You can choose to mix them or keep teacher words
-    this.phase1AWords = new ArrayList<>(providedWords);
-    Collections.shuffle(this.phase1AWords);
-    this.phase1AWords.sort(Comparator.comparingInt(String::length));
-    
-    // 5. Phase 1C: Use the longest words from either list for the finale
-    this.phase1CWords = new ArrayList<>(providedWords);
-    if (!cleanMistakes.isEmpty()) this.phase1CWords.addAll(cleanMistakes);
-    this.phase1CWords.sort((a, b) -> Integer.compare(b.length(), a.length()));
-}
-    
-    
-    
-private void startPhase(BattlePhase phase) {
-    this.currentPhase = phase;
-    
-    switch (phase) {
-        case PHASE_1A:
-            currentWordPool = new ArrayList<>(phase1AWords);
-            break;
-        case PHASE_1B:
-            // CRITICAL: Refresh the pool with the misspelled list now
-            currentWordPool = new ArrayList<>(phase1BWords); 
-            if (currentWordPool.isEmpty()) {
-                currentWordPool.addAll(phase1AWords); // Fallback if no mistakes
-            }
-            break;
-        case PHASE_1C:
-            currentWordPool = new ArrayList<>(phase1CWords);
-            break;
+        // 4. Phase 1A: You can choose to mix them or keep teacher words
+        this.phase1AWords = new ArrayList<>(providedWords);
+        Collections.shuffle(this.phase1AWords);
+        this.phase1AWords.sort(Comparator.comparingInt(String::length));
+
+        // 5. Phase 1C: Use the longest words from either list for the finale
+        this.phase1CWords = new ArrayList<>(providedWords);
+        if (!cleanMistakes.isEmpty()) {
+            this.phase1CWords.addAll(cleanMistakes);
+        }
+        this.phase1CWords.sort((a, b) -> Integer.compare(b.length(), a.length()));
     }
-    Collections.shuffle(currentWordPool);
-    loadNextWord();
-}
+
+    private void startPhase(BattlePhase phase) {
+        this.currentPhase = phase;
+
+        switch (phase) {
+            case PHASE_1A:
+                currentWordPool = new ArrayList<>(phase1AWords);
+                break;
+            case PHASE_1B:
+                // CRITICAL: Refresh the pool with the misspelled list now
+                currentWordPool = new ArrayList<>(phase1BWords);
+                if (currentWordPool.isEmpty()) {
+                    currentWordPool.addAll(phase1AWords); // Fallback if no mistakes
+                }
+                break;
+            case PHASE_1C:
+                currentWordPool = new ArrayList<>(phase1CWords);
+                break;
+        }
+        Collections.shuffle(currentWordPool);
+        loadNextWord();
+    }
 
     private List<String> cleanWordList(List<String> words) {
         List<String> clean = new ArrayList<>();
@@ -242,7 +277,6 @@ private void startPhase(BattlePhase phase) {
         loadNextWord();
         debugBattleState(); // Print battle state after refresh
     }
-//    
 
     private List<Character> buildAvailableLetters(String word, Difficulty diff) {
         List<Character> letters = new ArrayList<>();
