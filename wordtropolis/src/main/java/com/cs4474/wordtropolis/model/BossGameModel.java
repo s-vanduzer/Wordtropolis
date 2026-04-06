@@ -145,7 +145,7 @@ public class BossGameModel {
         }
         // 3. Assign to Phase 1B (The Review Phase)
         // If there are no mistakes, we fall back to the teacher's provided words
-        if (!cleanMistakes.isEmpty() && cleanMistakes.size() > 6) {
+        if (!cleanMistakes.isEmpty() && cleanMistakes.size() >= 5) {
             this.phase1BWords = new ArrayList<>(cleanMistakes);
         } else {
             this.phase1BWords = new ArrayList<>(providedWords);
@@ -522,7 +522,7 @@ public class BossGameModel {
             damageTaken = HERO_DAMAGE_PER_INCORRECT;
             heroHealth = Math.max(0, heroHealth - damageTaken);
             incorrectAttempts++;
-            Game.getInstance().addMisspelledWord(answer);
+            Game.getInstance().addMisspelledWord(this.currentWord);
 
             System.out.println("[BossGame] Incorrect! Hero health: " + heroHealth + "/" + HERO_MAX_HEALTH);
 
