@@ -312,7 +312,7 @@ public class BurglarGameModel {
             robberPosition++;
             incorrectAttempts++;
             // We log what they actually spelled (e.g., "WODN")
-            Game.getInstance().addMisspelledWord(fullSpelledWord);
+            //Game.getInstance().addMisspelledWord(fullSpelledWord);
             totalScore = Math.max(0, totalScore - PENALTY_INCORRECT);
         }
 
