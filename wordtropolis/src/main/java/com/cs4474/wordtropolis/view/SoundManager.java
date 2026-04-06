@@ -424,12 +424,12 @@ public final class SoundManager {
             java.io.InputStream is = res.openStream();
             java.io.InputStream bufferedIn = new java.io.BufferedInputStream(is);
 
-            AudioInputStream ais = AudioSystem.getAudioInputStream(bufferedIn);
-            Clip clip = AudioSystem.getClip();
-            clip.open(ais);
-
-            // It is important to close the stream AFTER the clip has loaded it into memory
-            ais.close();
+            Clip clip;
+            try (AudioInputStream ais = AudioSystem.getAudioInputStream(bufferedIn)) {
+                clip = AudioSystem.getClip();
+                clip.open(ais);
+                // It is important to close the stream AFTER the clip has loaded it into memory
+            }
 
             return clip;
         } catch (Exception e) {

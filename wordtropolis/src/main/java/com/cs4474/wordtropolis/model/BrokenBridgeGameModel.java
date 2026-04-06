@@ -148,6 +148,7 @@ public class BrokenBridgeGameModel {
      * Checks whether the full selection matches the correct alphabetical order.
      * Uses getWordsThisRound() so the check always matches the current word
      * count.
+     * @return if answer is correct
      */
     public boolean isAnswerCorrect() {
         if (selected.size() != getWordsThisRound()) {

@@ -359,8 +359,6 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
             // Updated error message as requested
             showFeedback("Incorrect! It was '" + correctWord + "', he's is getting away!", UITheme.ACCENT_RED);
 
-            Game.getInstance().addMisspelledWord(correctWord);
-
             SoundManager.playConditional(SoundManager.SFX_ERROR, SoundManager.GameActivity.BURGLAR_GAME);
             shakeEffect();
             repaint();
