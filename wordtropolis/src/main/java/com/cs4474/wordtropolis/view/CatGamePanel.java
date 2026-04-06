@@ -140,8 +140,6 @@ public class CatGamePanel extends JPanel implements Refreshable {
         currentScreen = Screen.INTRO;
         feedbackMsg = "";
         imgHero = loadHeroImage();
-
-        startAnimations();
     }
 
     // ═══════════════════════════════ LOADING ═════════════════════════════════
@@ -570,6 +568,12 @@ public class CatGamePanel extends JPanel implements Refreshable {
         // ── 1. Background — fills the whole panel ─────────────────────────────
         paintBackground(g2, W, H);
 
+        // ── 2. Intro — check current screen ─────────────────────────────
+        if (currentScreen == Screen.INTRO) {
+            paintIntro(g2, W, H);
+            return;
+        }
+
         // ── 3. NPCs at the bottom ─────────────────────────────────────────────
         paintNpcs(g2, W, H);
 
@@ -603,8 +607,6 @@ public class CatGamePanel extends JPanel implements Refreshable {
         } else // -- 10. Intro, Game, or Finish overlays --
         {
             switch (currentScreen) {
-                case INTRO ->
-                    paintIntro(g2, W, H);
                 case FINISH ->
                     paintFinishOverlay(g2, W, H);
                 default ->
@@ -1570,6 +1572,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
         computeTilePositions();
         speakWord();
         startCountdown();
+        startAnimations();
         repaint();
     }
 

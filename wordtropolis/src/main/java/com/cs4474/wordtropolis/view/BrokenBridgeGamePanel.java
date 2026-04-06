@@ -152,8 +152,6 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
         errorFrame = 0;
         showSparkle = false;
         imgHero = loadHeroImage();
-
-        initTimers();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -374,6 +372,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     private void startGame() {
         screen = Screen.PLAYING;
         startGameTimer();
+        initTimers();
         requestFocusInWindow();
         SwingUtilities.invokeLater(this::requestFocusInWindow);
         new Thread(() -> SoundManager.startMusic(SoundManager.BRIDGE_BGM), "bgm-thread").start();

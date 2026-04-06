@@ -484,6 +484,12 @@ public class FireGamePanel extends JPanel implements Refreshable {
         // ── 1. Background — fills the whole panel ─────────────────────────────
         paintBackground(g2, W, H);
 
+        // Check for intro first
+        if (currentScreen == Screen.INTRO) {
+            paintIntro(g2, W, H);
+            return;
+        }
+
         // ── 2. NPCs — placed at the bottom ground line ────────────────────────
         paintNPCS(g2, W, H);
 
@@ -497,18 +503,15 @@ public class FireGamePanel extends JPanel implements Refreshable {
         paintLeftPanel(g2, H);
 
         // ── 6. Screen Overlays — handles Intro, Game, and Finish states ───────
-        if (null == currentScreen) {
-            paintFinishOverlay(g2, W, H);
-        } else {
+        if (currentScreen != null) {
             switch (currentScreen) {
-                case INTRO -> {
-                    paintIntro(g2, W, H);
-                }
                 case GAME -> {
                     paintGameUI(g2, W, H);
                     paintFlames(g2, W, H);
                     paintTopBanner(g2, W);
                 }
+                case FINISH ->
+                    paintFinishOverlay(g2, W, H);
                 default ->
                     paintFinishOverlay(g2, W, H);
             }
@@ -684,7 +687,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
         }
     }
 
-    // Paint Hero
     // Paint Hero
     private void paintHero(Graphics2D g2, int W, int H) {
         if (imgHero == null) {

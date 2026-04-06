@@ -146,7 +146,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
     public void refresh() {
         model.restartGame();
         refreshGame();
-        startAnimations();
         clickZones.clear();
         currentScreen = Screen.INTRO;
         imgHero = loadHeroImage();
@@ -728,7 +727,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
             hintTimer.stop();
         }
         computeTilePositions();
-        startCountdown();
         BossGameModel.Difficulty d = model.getCurrentDifficulty();
         if (d != lastDiff) {
             lastDiff = d;
@@ -797,6 +795,11 @@ public class BossGamePanel extends JPanel implements Refreshable {
         // ── 1. Background — fills the whole panel ─────────────────────────────
         paintBackground(g2, W, H);
 
+        // ── 2. Intro or game puzzle overlay ──────────────────────────────────
+        if (null != currentScreen && currentScreen == Screen.INTRO) {
+            paintIntro(g2, W, H);
+            return;
+        }
         // Paint health bars (replaces left panel)
         paintHealthBars(g2, W, H);
 
@@ -843,8 +846,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         // ── 10. Intro or game puzzle overlay ──────────────────────────────────
         if (null != currentScreen) {
             switch (currentScreen) {
-                case INTRO ->
-                    paintIntro(g2, W, H);
                 case GAME ->
                     paintGameUI(g2, W, H);
                 case FINISH ->
@@ -1237,7 +1238,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
         int btnX = W / 2 - btnW / 2;
         int btnY = cardY + cardH - btnH - 20;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start battle!", UITheme.FONT_HEADING,
-                new Color(0xFCD475), UITheme.BG_DARK, "start_rescue");
+                new Color(0xFCD475), UITheme.BG_DARK, "start_battle");
 
         int panelX = 14;
         int backBtnW = 120, backBtnH = 40;
@@ -1701,9 +1702,9 @@ public class BossGamePanel extends JPanel implements Refreshable {
                         return;
                     }
 
-                    // Check Start Rescue button (intro screen)
+                    // Check Start Battle button (intro screen)
                     if (currentScreen == Screen.INTRO) {
-                        Rectangle r = clickZones.get("start_rescue");
+                        Rectangle r = clickZones.get("start_battle");
                         if (r != null && r.contains(mx, my)) {
                             SoundManager.play(SoundManager.GAME_BTN_CLICK);
                             startGame();
@@ -1906,6 +1907,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
         currentScreen = Screen.GAME;
         computeTilePositions();
         startCountdown();
+        startAnimations();
         repaint();
     }
 
