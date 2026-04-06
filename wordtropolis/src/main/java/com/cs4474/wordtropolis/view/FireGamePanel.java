@@ -66,8 +66,9 @@ public class FireGamePanel extends JPanel implements Refreshable {
     private int heroFrame = 0;
 
     private int hintCount; // Number of letters revealed as hints
+    private int shakeTick;
 
-    private Timer heroTimer, npcTimer, feedbackTimer;
+    private Timer heroTimer, npcTimer, feedbackTimer, shakeTimer;
 
     private java.util.Map<String, Rectangle> clickZones = new java.util.HashMap<>();
 
@@ -248,6 +249,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
             }
 
         } else {
+            shakeEffect();
             if (model.getWrongCount() % REIGNITE_LIMIT == 0 && model.getFireCounter() > 0) {
                 showFeedback("Oh no! A fire relit!");
                 reigniteFire();
@@ -375,7 +377,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
     }
 
     private void stopAll() {
-        for (Timer t : new Timer[]{heroTimer, npcTimer, feedbackTimer}) {
+        for (Timer t : new Timer[]{heroTimer, npcTimer, feedbackTimer, shakeTimer}) {
             if (t != null) {
                 t.stop();
             }
@@ -453,6 +455,23 @@ public class FireGamePanel extends JPanel implements Refreshable {
         addMouseMotionListener(ma);
     }
 
+    private void shakeEffect() {
+        if (shakeTimer != null && shakeTimer.isRunning()) {
+            return;
+        }
+
+        shakeTick = 0;
+        shakeTimer = new Timer(40, e -> {
+            if (++shakeTick > 8) {
+                shakeTimer.stop();
+                repaint();
+            } else {
+                repaint();
+            }
+        });
+        shakeTimer.start();
+    }
+
     // -- ALL PAINTING --------------------------------------------
     @Override
     protected void paintComponent(Graphics g) {
@@ -497,6 +516,12 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
         // ── 7. Feedback — floating message alerts ─────────────────────────────
         paintFeedback(g2, W, H);
+
+        // ── 8. Shake effect — incorrect word submitted ─────────────────────────────
+        if (shakeTimer != null && shakeTimer.isRunning() && shakeTick % 2 == 0) {
+            g2.setColor(new Color(1f, 0f, 0f, 0.12f));
+            g2.fillRect(0, 0, W, H);
+        }
 
         g2.dispose();
     }
