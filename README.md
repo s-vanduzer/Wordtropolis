@@ -13,7 +13,7 @@ Wordtropolis is an interactive, gamified spelling application set in a pixel-sty
 - [Core Features](#core-features)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
+  - [Requirements](#requirements)
   - [Cloning the Repository](#cloning-the-repository)
   - [Running in NetBeans](#running-in-netbeans)
   - [Building an Executable JAR](#building-an-executable-jar)
@@ -58,20 +58,19 @@ This design is effective because it integrates educational content with interact
 
 - **Language:** Java, Java Swing
 - **IDE:** NetBeans
-- **Build Tool:** 
+- **Build Tool: Maven** 
 
 ---
 
 ## Getting Started
 
-### Prerequisites
+### Requirements
 
 Before you begin, ensure you have the following installed:
 
--  Java SDK 25
--  Java Version 
--  [Maven](https://maven.apache.org/) 
--  [NetBeans IDE](https://netbeans.apache.org/) for development
+-  [Java 17 SDK](https://jdk.java.net/17/) (or newer)
+-  [Apache Maven](https://maven.apache.org/) (version 3.6+ recommended)
+-  [NetBeans IDE](https://netbeans.apache.org/) (only if you want to build project in NetBeans)
 
 To verify your Java installation:
 ```bash
@@ -79,6 +78,10 @@ java -version
 javac -version
 ```
 
+To verify your Maven installation:
+```bash
+mvn -version
+```
 ---
 
 ### Cloning the Repository
@@ -109,11 +112,38 @@ You can package Wordtropolis into a standalone `.jar` file that anyone with Java
 1. Open the project in NetBeans
 2. Go to **Run → Clean and Build Project** (or press `Shift + F11`)
 3. NetBeans will generate the JAR file at:
-   ```
-   dist/Wordtropolis.jar
-   ```
+```
+wordtropolis/target/Wordtropolis.jar
+```
 
----
+#### Option B: Using a Terminal
+
+This project uses Maven to build a **JAR with all dependencies included**.
+
+##### 1. Open a Terminal
+
+* **Windows:** `Command Prompt` or `PowerShell`
+* **Linux/macOS:** `Terminal`
+
+##### 2. Navigate to the Project Directory
+
+```bash
+cd /path/to/wordtropolis
+```
+
+Replace `/path/to/wordtropolis` with the location of the project root (where `pom.xml` is located).
+
+##### 3. Compile and Package the Project
+
+Run the following Maven command:
+
+```bash
+mvn clean package
+```
+
+* `clean` removes any previous build artifacts.
+* `package` compiles the project and creates a JAR with dependencies.
+
 
 ### Running the Executable JAR
 
@@ -122,7 +152,7 @@ Once you have the `.jar` file built:
 #### From the Terminal / Command Prompt
 
 ```bash
-java -jar dist/Wordtropolis.jar
+java -jar target/Wordtropolis.jar
 ```
 
 > ⚠️ **Note:** If the game uses a GUI, make sure you are running this on a system with a display (not a headless server).
@@ -153,7 +183,7 @@ Introducing Our Team!:
 
 1. Anna Nguyen
 2. Sarah Solaiman
-3. Sarah Xiao Jun VanDuzer
+3. Sarah VanDuzer
 4. Vaishnavi Gudimella
 5. Yedam Lee
 6. Yukta Asit Mehta
