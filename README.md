@@ -1,4 +1,5 @@
 # 🏙️ Wordtropolis
+<img width="14264" height="6557" alt="Title" src="https://github.com/user-attachments/assets/06f65d55-04c9-437b-8fb7-945a32779f6f" />
 
 > *Restore the city. Master the words.*
 
