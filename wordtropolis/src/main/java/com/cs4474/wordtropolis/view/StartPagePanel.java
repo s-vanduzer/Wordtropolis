@@ -59,11 +59,15 @@ public class StartPagePanel extends JPanel {
         // Cloud animation
         Timer cloudTimer = new Timer(30, e -> {
             int ax = cloudA.getX() + 2;
-            if (ax > 920) ax = -360;
+            if (ax > 920) {
+                ax = -360;
+            }
             cloudA.setLocation(ax, cloudA.getY());
 
             int bx = cloudB.getX() - 2;
-            if (bx < -360) bx = 920;
+            if (bx < -360) {
+                bx = 920;
+            }
             cloudB.setLocation(bx, cloudB.getY());
         });
         cloudTimer.start();
@@ -80,7 +84,7 @@ public class StartPagePanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 // Draw stroke (outline)
                 g2d.setColor(new Color(0x0F, 0x4D, 0x58)); // #0F4D58
                 g2d.setStroke(new BasicStroke(3));
@@ -90,7 +94,7 @@ public class StartPagePanel extends JPanel {
                 int textHeight = fm.getHeight();
                 int x = (getWidth() - textWidth) / 2;
                 int y = (getHeight() - textHeight) / 2 + fm.getAscent();
-                
+
                 // Draw stroke by drawing the text multiple times
                 for (int dx = -1; dx <= 1; dx++) {
                     for (int dy = -1; dy <= 1; dy++) {
@@ -99,21 +103,21 @@ public class StartPagePanel extends JPanel {
                         }
                     }
                 }
-                
+
                 // Draw the actual text
                 g2d.setColor(getForeground());
                 g2d.drawString(text, x, y);
-                
+
                 g2d.dispose();
             }
         };
-        
+
         JButton studentBtn = new JButton("I am a Student") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 // Draw stroke (outline)
                 g2d.setColor(new Color(0x0F, 0x4D, 0x58)); // #0F4D58
                 g2d.setStroke(new BasicStroke(3));
@@ -123,7 +127,7 @@ public class StartPagePanel extends JPanel {
                 int textHeight = fm.getHeight();
                 int x = (getWidth() - textWidth) / 2;
                 int y = (getHeight() - textHeight) / 2 + fm.getAscent();
-                
+
                 // Draw stroke by drawing the text multiple times
                 for (int dx = -1; dx <= 1; dx++) {
                     for (int dy = -1; dy <= 1; dy++) {
@@ -132,11 +136,11 @@ public class StartPagePanel extends JPanel {
                         }
                     }
                 }
-                
+
                 // Draw the actual text
                 g2d.setColor(getForeground());
                 g2d.drawString(text, x, y);
-                
+
                 g2d.dispose();
             }
         };
@@ -215,11 +219,17 @@ public class StartPagePanel extends JPanel {
         });
 
         // Navigation
-        teacherBtn.addActionListener(e ->
-                Wordtropolis.showScreen(Wordtropolis.SCREEN_TEACHER));
+        teacherBtn.addActionListener(e
+                -> {
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
+            Wordtropolis.showScreen(Wordtropolis.SCREEN_TEACHER);
+        });
 
-        studentBtn.addActionListener(e ->
-                Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK));
+        studentBtn.addActionListener(e
+                -> {
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
+            Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK);
+        });
     }
 
     private void floatTitle() {
@@ -227,7 +237,7 @@ public class StartPagePanel extends JPanel {
         double speed = 0.15;
 
         time += speed;
-        int newY = baseTitleY + (int)(Math.sin(time) * bounceRange);
+        int newY = baseTitleY + (int) (Math.sin(time) * bounceRange);
         titleLabel.setLocation(titleLabel.getX(), newY);
     }
 

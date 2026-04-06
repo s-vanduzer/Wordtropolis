@@ -141,6 +141,19 @@ public class PickHeroPanel extends JPanel {
         nameField.setCaretColor(new Color(0xEC, 0xCB, 0x2D));
         nameField.setBounds(260, 520, 400, 50);
 
+        nameField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                // Check if the character is a letter (A-Z or a-z)
+                if (Character.isLetter(e.getKeyChar())) {
+                    // Only play if we aren't currently showing the placeholder text
+                    if (!nameField.getText().equals("Enter Name Here...")) {
+                        SoundManager.play(SoundManager.GAME_KEY_CLICK);
+                    }
+                }
+            }
+        });
+
         nameField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -196,11 +209,6 @@ public class PickHeroPanel extends JPanel {
 
                 g2d.dispose();
             }
-
-            @Override
-            protected void paintBorder(Graphics g) {
-
-            }
         };
         backBtn.setFont(loadGameFont(18));
         backBtn.setForeground(Color.WHITE);
@@ -225,6 +233,7 @@ public class PickHeroPanel extends JPanel {
         });
 
         backBtn.addActionListener(e -> {
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
             Game.getInstance().setAvatarPath(null);
             Wordtropolis.showScreen(Wordtropolis.SCREEN_START);
         });
@@ -287,7 +296,7 @@ public class PickHeroPanel extends JPanel {
             if (heroName.isEmpty() || heroName.equals("Enter Name Here...")) {
                 heroName = HERO_LABELS[selectedHero];
             }
-
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
             Game.getInstance().setAvatarPath(HERO_LABELS[selectedHero]);
             Game.getInstance().setPlayerName(heroName);
             Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
@@ -297,7 +306,7 @@ public class PickHeroPanel extends JPanel {
         bottomPanel.add(startBtn);
         background.add(bottomPanel);
 
-        selectHero(0);
+        selectHero(0, false);
     }
 
     private JPanel createHeroCard(int idx) {
@@ -374,11 +383,14 @@ public class PickHeroPanel extends JPanel {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            selectHero(index);
+            selectHero(index, true);
         }
     }
 
-    private void selectHero(int index) {
+    private void selectHero(int index, boolean playSound) {
+        if (playSound) {
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
+        }
         selectedHero = index;
         confirmLabel.setText("Selected: " + HERO_LABELS[index]);
 

@@ -213,6 +213,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
 
             // SIMPLIFIED: Just call the registered screen
             actButtons[i].addActionListener(e -> {
+                SoundManager.play(SoundManager.GAME_BTN_CLICK);
                 if (isLevelUnlocked(idx)) {
                     Wordtropolis.showScreen(ACT_SCREENS[idx]);
                 } else {
@@ -229,6 +230,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
         updateBossTooltip();
 
         bossBtn.addActionListener(e -> {
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
             if (isBossUnlocked()) {
                 Wordtropolis.showScreen(Wordtropolis.SCREEN_BOSS_GAME);
             } else {
@@ -272,15 +274,20 @@ public class MapPagePanel extends JPanel implements Refreshable {
         backBtn.setOpaque(false);
         backBtn.setBounds(20, 600, 120, 45);
         backBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        backBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK));
         backBtn.setToolTipText("Return to Hero Selection (progress saved)");
+        backBtn.addActionListener(e -> {
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
+            Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK);
+        });
 
         backBtn.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseEntered(MouseEvent evt) {
                 backBtn.setBackground(new Color(0x6A6A6A));
                 backBtn.repaint();
             }
 
+            @Override
             public void mouseExited(MouseEvent evt) {
                 backBtn.setBackground(new Color(0x4A4A4A));
                 backBtn.repaint();
@@ -302,16 +309,13 @@ public class MapPagePanel extends JPanel implements Refreshable {
 
         if (!isLevelUnlocked(idx)) {
             switch (idx) {
-                case 1:
+                case 1 ->
                     actButtons[idx].setToolTipText("🔒 Complete Cat in Tree to unlock!");
-                    break;
-                case 2:
+                case 2 ->
                     actButtons[idx].setToolTipText("🔒 Complete Burglar Chase to unlock!");
-                    break;
-                case 3:
+                case 3 ->
                     actButtons[idx].setToolTipText("🔒 Complete Fix the Bridge to unlock!");
-                    break;
-                default:
+                default ->
                     actButtons[idx].setToolTipText(null);
             }
         } else {
@@ -332,16 +336,16 @@ public class MapPagePanel extends JPanel implements Refreshable {
     }
 
     private String getUnlockMessage(int idx) {
-        switch (idx) {
-            case 1:
-                return "Complete the Cat in Tree mission first!";
-            case 2:
-                return "Complete the Burglar Chase mission first!";
-            case 3:
-                return "Complete the Fix the Bridge mission first!";
-            default:
-                return "Complete the previous mission first!";
-        }
+        return switch (idx) {
+            case 1 ->
+                "Complete the Cat in Tree mission first!";
+            case 2 ->
+                "Complete the Burglar Chase mission first!";
+            case 3 ->
+                "Complete the Fix the Bridge mission first!";
+            default ->
+                "Complete the previous mission first!";
+        };
     }
 
     private boolean isLevelUnlocked(int idx) {
@@ -351,18 +355,21 @@ public class MapPagePanel extends JPanel implements Refreshable {
         }
 
         Game g = Game.getInstance();
-        switch (idx) {
-            case 0:
-                return true; // Cat always unlocked
-            case 1:
-                return g.isCatCompleted(); // Burglar unlocks after Cat
-            case 2:
-                return g.isBurgularCompleted(); // Bridge unlocks after Burglar
-            case 3:
-                return g.isBridgeCompleted(); // Fire unlocks after Bridge
-            default:
-                return false;
-        }
+        return switch (idx) {
+            case 0 ->
+                true;
+            case 1 ->
+                g.isCatCompleted();
+            case 2 ->
+                g.isBurgularCompleted();
+            case 3 ->
+                g.isBridgeCompleted();
+            default ->
+                false;
+        }; // Cat always unlocked
+        // Burglar unlocks after Cat
+        // Bridge unlocks after Burglar
+        // Fire unlocks after Bridge
     }
 
     private boolean isBossUnlocked() {
@@ -521,18 +528,18 @@ public class MapPagePanel extends JPanel implements Refreshable {
 
     private boolean isActivityDone(int idx) {
         Game g = Game.getInstance();
-        switch (idx) {
-            case 0:
-                return g.isCatCompleted();
-            case 1:
-                return g.isBurgularCompleted();
-            case 2:
-                return g.isBridgeCompleted();
-            case 3:
-                return g.isFireCompleted();
-            default:
-                return false;
-        }
+        return switch (idx) {
+            case 0 ->
+                g.isCatCompleted();
+            case 1 ->
+                g.isBurgularCompleted();
+            case 2 ->
+                g.isBridgeCompleted();
+            case 3 ->
+                g.isFireCompleted();
+            default ->
+                false;
+        };
     }
 
     @Override

@@ -23,7 +23,7 @@ import java.util.Random;
  *
  * @author svand
  */
-public class FireGamePanel extends JPanel {
+public class FireGamePanel extends JPanel implements Refreshable {
 
     private enum Screen {
         INTRO, GAME, FINISH
@@ -89,27 +89,16 @@ public class FireGamePanel extends JPanel {
         setupMouseInteraction();
 
         this.addHierarchyListener(e -> {
-            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
-                grabFocus();
-
-                model.resetGame();
-                System.out.println("[Fire] Wrong count aftr reset: " + model.getWrongCount());
-                clickZones.clear();
-                currentScreen = Screen.INTRO;
-                feedbackMsg = "";
-                imgHero = loadHeroImage();
-                hintCount = 0;
-
-                currentInput.setLength(0);
-
-                stopAll();
-
-                int prevVol = SoundManager.getSfxVolume();
-                SoundManager.setSfxVolume(15); // don't scare people
-                SoundManager.play(SoundManager.FIRE_TRUCK);
-                SoundManager.setSfxVolume(prevVol);
+            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+                if (this.isShowing()) {
+                    int prevVol = SoundManager.getSfxVolume();
+                    SoundManager.setSfxVolume(15);
+                    SoundManager.play(SoundManager.FIRE_TRUCK);
+                    SoundManager.setSfxVolume(prevVol);
+                }
             }
         });
+
     }
 
     @Override
@@ -120,6 +109,23 @@ public class FireGamePanel extends JPanel {
             this.setFocusable(true);
             this.requestFocusInWindow();
         });
+    }
+
+    @Override
+    public void refresh() {
+        grabFocus();
+
+        model.resetGame();
+        System.out.println("[Fire] Wrong count aftr reset: " + model.getWrongCount());
+        clickZones.clear();
+        currentScreen = Screen.INTRO;
+        feedbackMsg = "";
+        imgHero = loadHeroImage();
+        hintCount = 0;
+
+        currentInput.setLength(0);
+
+        stopAll();
     }
 
     private BufferedImage img(String path) {
@@ -183,10 +189,12 @@ public class FireGamePanel extends JPanel {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
-                if (currentScreen != Screen.GAME) {
+                char key = e.getKeyChar();
+
+                if (!Character.isLetter(key) || currentScreen != Screen.GAME) {
                     return;
                 }
-                char key = e.getKeyChar();
+                SoundManager.play(SoundManager.GAME_KEY_CLICK);
 
                 // Only allow letters and stay within word length
                 if (Character.isLetter(key) && currentInput.length() < model.getCurrentWord().length()) {
@@ -210,6 +218,8 @@ public class FireGamePanel extends JPanel {
     }
 
     private void handleSubmit() {
+        SoundManager.play(SoundManager.GAME_BTN_CLICK);
+
         if (currentInput.toString().length() < model.getCurrentWord().length()) {
             showFeedback("Complete the word!");
             return;
@@ -277,6 +287,7 @@ public class FireGamePanel extends JPanel {
 
     private void handleDelete() {
         // Prevent deleting if the current length is at or below the hintCount
+        SoundManager.play(SoundManager.GAME_BTN_CLICK);
         if (currentInput.length() > hintCount) {
             currentInput.setLength(currentInput.length() - 1);
             repaint();
@@ -415,6 +426,7 @@ public class FireGamePanel extends JPanel {
                 Rectangle backToMap = clickZones.get("back_to_map");
                 if (backToMap != null && backToMap.contains(mx, my)) {
                     stopAll();
+                    SoundManager.play(SoundManager.GAME_BTN_CLICK);
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
                 }
@@ -422,6 +434,7 @@ public class FireGamePanel extends JPanel {
                 if (currentScreen == Screen.INTRO) {
                     Rectangle start = clickZones.get("start_btn");
                     if (start != null && start.contains(mx, my)) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         startGame();
                     }
                     return;
@@ -441,6 +454,7 @@ public class FireGamePanel extends JPanel {
 
                 Rectangle again = clickZones.get("again_btn");
                 if (again != null && again.contains(mx, my)) {
+                    SoundManager.play(SoundManager.GAME_BTN_CLICK);
                     playWord();
                     return;
                 }
