@@ -99,7 +99,7 @@ public final class SoundManager {
     public static final String FIRE_BGM = "fire_game/background_music.wav";
 
     // ── General sounds ─────────────────────────────────────────────────────
-    public static final String GAME_BTN_CLICK = "general/click.wav";
+    public static final String GAME_BTN_CLICK = "general/btn_click.wav";
     public static final String GAME_FINISH = "general/completion_sound.wav";
     public static final String GAME_KEY_CLICK = "general/key_click.wav";
 

@@ -315,7 +315,6 @@ public class BurglarGameModel {
             heroPosition++;
             wordsCompleted++;
             totalScore += POINTS_PER_CORRECT;
-            Game.getInstance().addScore(POINTS_PER_CORRECT);
         } else {
             robberPosition++;
             incorrectAttempts++;
@@ -402,6 +401,7 @@ public class BurglarGameModel {
     public void finishGame() {
         this.gameActive = false;
         // Update the global singleton
+        Game.getInstance().addScore(totalScore);
         Game.getInstance().setBurgularCompleted(true);
         // The score is already added to Game.getInstance() via your handleCorrectAnswer logic
     }
