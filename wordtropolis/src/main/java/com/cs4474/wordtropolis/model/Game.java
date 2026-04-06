@@ -132,7 +132,22 @@ public void loadWordsForDifficulty() {
     public void   setAvatarPath(String avatarPath)       { this.avatarPath = avatarPath; }
 
     public List<String> getMisspelledWorldList()         { return misspelledWorldList; }
-    public void         addMisspelledWord(String word)   { if (!misspelledWorldList.contains(word)) misspelledWorldList.add(word); }
+
+    
+    public void addMisspelledWord(String word) {
+    if (word == null || word.isEmpty()) return;
+    
+    String upper = word.toUpperCase().trim();
+    if (!misspelledWorldList.contains(upper)) {
+        misspelledWorldList.add(upper);
+        
+        // DEBUG PRINT LINE
+        System.out.println("--- DEBUG: Misspelled List Updated ---");
+        System.out.println("Added: " + upper);
+        System.out.println("Current List: " + misspelledWorldList);
+        System.out.println("---------------------------------------");
+    }
+}
 
     public int  getScore()                               { return score; }
     public void addScore(int points)                     { this.score += points; }

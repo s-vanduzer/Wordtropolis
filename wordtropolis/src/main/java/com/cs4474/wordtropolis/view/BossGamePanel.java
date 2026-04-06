@@ -34,7 +34,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
     // ── Game screens ──────────────────────────────────────────────────────────
     private enum Screen {
-        INTRO, GAME, FINISH
+        INTRO, GAME, FINISH, LOSE
     }
     private Screen currentScreen = Screen.INTRO;
 
@@ -114,7 +114,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
                 Game.getInstance().getWordList(),
                 Game.getInstance().getMisspelledWordList() // You'll need to add this getter
         );
-        printGameWordList();
         setLayout(null);   // absolute positioning — we paint everything ourselves
         setBackground(Color.BLACK);
         loadImages();
@@ -122,6 +121,8 @@ public class BossGamePanel extends JPanel implements Refreshable {
         startAnimations();
         setupKeyboard();
         setupMouseInteraction();
+        
+        printGameWordList();
     }
 
     // Update cleanup in removeNotify
@@ -853,6 +854,8 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     paintGameUI(g2, W, H);
                 case FINISH ->
                     paintFinishOverlay(g2, W, H);
+                case LOSE ->
+                    paintLoseOverlay(g2, W, H);
                 default -> {
                 }
             }
@@ -1005,13 +1008,16 @@ public class BossGamePanel extends JPanel implements Refreshable {
             SoundManager.stopMusic();
             stopAll();
             SoundManager.playConditional(SoundManager.BOSS_VICTORY, SoundManager.GameActivity.BOSS_GAME);
-            Game.getInstance().setCatCompleted(true);
+//            Game.getInstance().setCatCompleted(true);
             feedbackMsg = "";
             currentScreen = Screen.FINISH;
 
         } else {
-            showFeedback("DEFEAT! Hero has fallen!", UITheme.ACCENT_RED);
+            SoundManager.stopMusic();
+            stopAll();
             SoundManager.playConditional(SoundManager.BOSS_DEFEAT, SoundManager.GameActivity.BOSS_GAME);
+            feedbackMsg = "";
+            currentScreen = Screen.LOSE;
         }
     }
 
@@ -1399,7 +1405,58 @@ public class BossGamePanel extends JPanel implements Refreshable {
                 new Color(0xFCD475), UITheme.BG_DARK, "finish_screen");
     }
 
-    // ── Feedback message ──────────────────────────────────────────────────────
+    
+
+
+    private void paintLoseOverlay(Graphics2D g2, int W, int H) {
+        // 1. Full-page dark overlay (dimming the background)
+        g2.setColor(new Color(0, 0, 0, 180)); // Slightly darker for the finish
+        g2.fillRect(0, 0, W, H);
+
+        // 2. Card Dimensions (Matching your Intro style)
+        int cardW = Math.min(W - 80, 600);
+        int cardH = 320; // Slightly taller to fit stats
+        int cardX = W / 2 - cardW / 2;
+        int cardY = H / 2 - cardH / 2;
+
+        // 3. Draw the Card Background
+        paintOuterBoxButton(g2, cardX, cardY, cardW, cardH, "", "");
+
+        // 4. Header: Congratulatory Message
+        g2.setFont(UITheme.FONT_HEADING);
+        g2.setColor(new Color(0x3B2A1A));
+        drawCentredString(g2, "DEFEAT! Try again!", W / 2, cardY + 50);
+
+        // 5. Stats Section
+        g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g2.setColor(new Color(0x5A4A3A));
+
+        // Y-offsets for stats
+        int statsStartY = cardY + 100;
+
+        // You'll need to ensure these methods exist in your model/logic
+        // If your variables are named differently, swap them here:
+        drawCentredString(g2, "Total Score: " + game.getScore(), W / 2, statsStartY);
+
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        drawCentredString(g2, "Correct Guesses: " + model.getCorrectAttempts(), W / 2, statsStartY + 35);
+        drawCentredString(g2, "Mistakes Made: " + model.getIncorrectAttempts(), W / 2, statsStartY + 65);
+
+        // 8. Back to Map Button (Matching the "Start" button style)
+        int btnW = 240, btnH = 50;
+        int btnX = W / 2 - btnW / 2;
+        int btnY = cardY + cardH - btnH - 20;
+
+        // Using your click box style with a gold tint
+        paintClickBox(g2, btnX, btnY, btnW, btnH, "Back to Map", UITheme.FONT_HEADING,
+                new Color(0xFCD475), UITheme.BG_DARK, "back_to_map");
+    }
+
+
+
+
+
+// ── Feedback message ──────────────────────────────────────────────────────
     private void paintFeedback(Graphics2D g2, int W, int H) {
         // FIX 3: bigger feedback box + larger font so text is easy to read
         int fw = Math.min(W - 60, 700);
