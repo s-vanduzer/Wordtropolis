@@ -31,6 +31,7 @@ public class BossGameModel {
     private static final int DAMAGE_PER_CORRECT = 15;
     private static final int HERO_DAMAGE_PER_INCORRECT = 10;
     private static final int SCORE_POINTS = 50;
+    private static final int VICTORY_POINTS = 50;
 
     private static final char[] DISTRACTOR_POOL = "XQZVWBJK".toCharArray();
 
@@ -473,7 +474,9 @@ public class BossGameModel {
             switch (currentPhase) {
                 case PHASE_1A:
                     damageDealt = Math.min(DAMAGE_PER_CORRECT, mayorHealth);
-                    mayorHealth -= DAMAGE_PER_CORRECT;
+
+                    mayorHealth = Math.max(0, mayorHealth - damageDealt);
+
                     wordsCompletedInPhase++;
 
                     if (mayorHealth <= MAYOR_MAX_HEALTH / 2) {
@@ -500,14 +503,16 @@ public class BossGameModel {
 
                 case PHASE_1C:
                     damageDealt = Math.min(DAMAGE_PER_CORRECT, mayorHealth);
-                    mayorHealth -= DAMAGE_PER_CORRECT;
+
+                    mayorHealth = Math.max(0, mayorHealth - damageDealt);
+
                     wordsCompletedInPhase++;
 
                     System.out.println("[BossGame] Phase 1C - Mayor Health: " + mayorHealth + "/" + MAYOR_MAX_HEALTH);
 
                     if (mayorHealth <= 0) {
                         isVictory = true;
-                        Game.getInstance().addScore(score);
+                        Game.getInstance().addScore(score + VICTORY_POINTS);
                         System.out.println("[BossGame] VICTORY! Mayor defeated!");
                     }
                     break;
@@ -552,7 +557,6 @@ public class BossGameModel {
 
         // Check for victory
         if (isVictory) {
-            Game.getInstance().addScore(200);
             return new AnswerResult(isCorrect, damageDealt, damageTaken, false, true, currentPhase, "VICTORY");
         }
 

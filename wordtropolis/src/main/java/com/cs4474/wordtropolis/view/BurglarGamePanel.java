@@ -340,8 +340,6 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
             showFeedback("Correct! The hero moves forward!", UITheme.ACCENT_TEAL);
             SoundManager.playFromConditional(SoundManager.SFX_CORRECT, 1.0, 1.5, SoundManager.GameActivity.BURGLAR_GAME);
             System.out.println("Hero position: " + model.getHeroPosition());
-            int points = BurglarGameModel.POINTS_PER_CORRECT;
-            Game.getInstance().addScore(points);
             triggerSparkle(getWidth() / 2, getHeight() / 2);
             repaint();
 

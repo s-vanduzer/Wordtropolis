@@ -420,8 +420,6 @@ public class CatGamePanel extends JPanel implements Refreshable {
             }
         } else {
             showFeedback("Incorrect. Please try again!", UITheme.ACCENT_RED);
-//            String correctWord = model.getCurrentWord();
-//            Game.getInstance().addMisspelledWord(correctWord);
             SoundManager.playConditional(SoundManager.CAT_MEOW_MAD, SoundManager.GameActivity.CAT_GAME);
             SoundManager.playConditional(SoundManager.CAT_ERROR, SoundManager.GameActivity.CAT_GAME);
             shakeEffect();
@@ -1114,7 +1112,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
         drawCentredString(g2, "Total Score: " + Game.getInstance().getScore(), W / 2, statsStartY);
 
         g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
-        drawCentredString(g2, "Correct Guesses: " + model.getTotalScore(), W / 2, statsStartY + 35);
+        drawCentredString(g2, "Correct Guesses: " + model.getWordsCompleted(), W / 2, statsStartY + 35);
         drawCentredString(g2, "Mistakes Made: " + model.getIncorrectAttempts(), W / 2, statsStartY + 65);
 
         // 6. Final Praise
