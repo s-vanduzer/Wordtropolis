@@ -45,8 +45,9 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
     private int animationFrame = 0;
     private Timer animationTimer;
     private static final int TOTAL_FRAMES = 4; // Both sheets have 4 frames
-    private static final int FRAME_W = 160;     // Width of one sprite frame
-    private static final int FRAME_H = 160;     // Height of one sprite frame
+   
+    private static final int FRAME_W = 192; // Updated from 160 to match 768px total width
+    private static final int FRAME_H = 160; // 160 is fine as a max height buffer   
 
     // ── Floating letter tile positions ────────────────────────────────────────
     private int[] tileBaseX, tileBaseY;
@@ -587,37 +588,37 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
     }
 
     // Inside paintCharacters(Graphics2D g2, int W, int H)
-    private void paintCharacters(Graphics2D g2, int W, int H) {
-        int groundY = (int) (H * 0.85);
-        int charSize = 105;
-        int stepSize = 50;
+private void paintCharacters(Graphics2D g2, int W, int H) {
+    int groundY = (int) (H * 0.85);
+    // Increase charSize slightly to 120 or 140 so the bigger 192px sprite isn't squashed
+    int charSize = 130; 
+    int stepSize = 50;
 
-        // Use a consistent screen-space calculation
-        int heroX = 100 + (model.getHeroPosition() * stepSize) - (int) cameraOffset;
-        int robberX = 100 + (model.getRobberPosition() * stepSize) - (int) cameraOffset;
+    int heroX = 100 + (model.getHeroPosition() * stepSize) - (int) cameraOffset;
+    int robberX = 100 + (model.getRobberPosition() * stepSize) - (int) cameraOffset;
 
-        //Calculate source coordinates precisely
-        int sx1 = animationFrame * FRAME_W;
-        int sx2 = sx1 + FRAME_W;
-        int sy1 = 0;
-        int sy2 = FRAME_H;
+    // The math now uses 192, so it jumps exactly to the start of the next alien/hero
+    int sx1 = animationFrame * FRAME_W; 
+    int sx2 = sx1 + FRAME_W;
+    int sy1 = 0;
+    int sy2 = FRAME_H;
 
-        // Draw Hero
-        if (imgHero != null) {
-            g2.drawImage(imgHero,
-                    heroX, groundY - charSize, heroX + charSize, groundY, // Destination
-                    sx1, sy1, sx2, sy2, // Source
-                    null);
-        }
-
-        // Draw Robber
-        if (imgRobber != null) {
-            g2.drawImage(imgRobber,
-                    robberX, groundY - charSize, robberX + charSize, groundY,
-                    sx1, sy1, sx2, sy2,
-                    null);
-        }
+    // Draw Hero
+    if (imgHero != null) {
+        g2.drawImage(imgHero,
+                heroX, groundY - charSize, heroX + charSize, groundY, 
+                sx1, sy1, sx2, sy2, 
+                null);
     }
+
+    // Draw Robber
+    if (imgRobber != null) {
+        g2.drawImage(imgRobber,
+                robberX, groundY - charSize, robberX + charSize, groundY,
+                sx1, sy1, sx2, sy2,
+                null);
+    }
+}
 
     private void paintStartScreen(Graphics2D g2, int W, int H) {
         // Full-page dark overlay
