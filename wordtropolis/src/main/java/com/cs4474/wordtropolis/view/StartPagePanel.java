@@ -52,25 +52,25 @@ public class StartPagePanel extends JPanel {
         int panelWidth = 500;
         int panelHeight = 180;
         int panelX = (920 - panelWidth) / 2;
-        int panelY = 360; 
+        int panelY = 360;
 
         JPanel buttonPanel = new JPanel(null) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 // Color #052957 with Alpha (200/255 for slight transparency)
-                g2d.setColor(new Color(5, 41, 87, 200)); 
-                
+                g2d.setColor(new Color(5, 41, 87, 200));
+
                 // Draw the rounded rectangle
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
-                
+
                 // Optional: add a border/outline in the same color (fully opaque)
                 g2d.setColor(new Color(5, 41, 87));
                 g2d.setStroke(new BasicStroke(3));
                 g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 30, 30);
-                
+
                 g2d.dispose();
             }
         };
@@ -110,8 +110,11 @@ public class StartPagePanel extends JPanel {
                 selector.setBounds(100, 42, 28, 28);
                 selector.setVisible(true);
             }
+
             @Override
-            public void mouseExited(MouseEvent e) { selector.setVisible(false); }
+            public void mouseExited(MouseEvent e) {
+                selector.setVisible(false);
+            }
         });
 
         studentBtn.addMouseListener(new MouseAdapter() {
@@ -120,14 +123,23 @@ public class StartPagePanel extends JPanel {
                 selector.setBounds(100, 112, 28, 28);
                 selector.setVisible(true);
             }
+
             @Override
-            public void mouseExited(MouseEvent e) { selector.setVisible(false); }
+            public void mouseExited(MouseEvent e) {
+                selector.setVisible(false);
+            }
         });
 
         // Navigation & Timers
-        teacherBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_TEACHER));
-        studentBtn.addActionListener(e -> Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK));
-        
+        teacherBtn.addActionListener(e -> {
+            Wordtropolis.showScreen(Wordtropolis.SCREEN_TEACHER);
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
+        });
+        studentBtn.addActionListener(e -> {
+            Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK);
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
+        });
+
         new Timer(60, e -> floatTitle()).start();
         new Timer(30, e -> {
             cloudA.setLocation(cloudA.getX() > 920 ? -360 : cloudA.getX() + 2, cloudA.getY());
@@ -148,7 +160,9 @@ public class StartPagePanel extends JPanel {
                 g2d.setColor(new Color(5, 41, 87));
                 for (int i = -1; i <= 1; i++) {
                     for (int j = -1; j <= 1; j++) {
-                        if (i != 0 || j != 0) g2d.drawString(getText(), x + i, y + j);
+                        if (i != 0 || j != 0) {
+                            g2d.drawString(getText(), x + i, y + j);
+                        }
                     }
                 }
                 g2d.setColor(getForeground());
@@ -164,7 +178,7 @@ public class StartPagePanel extends JPanel {
 
     private void floatTitle() {
         time += 0.15;
-        titleLabel.setLocation(titleLabel.getX(), baseTitleY + (int)(Math.sin(time) * 10));
+        titleLabel.setLocation(titleLabel.getX(), baseTitleY + (int) (Math.sin(time) * 10));
     }
 
     private Font loadGameFont(int size) {
