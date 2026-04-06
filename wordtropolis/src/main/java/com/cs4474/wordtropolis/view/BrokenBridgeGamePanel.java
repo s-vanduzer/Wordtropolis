@@ -181,7 +181,6 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     private BufferedImage loadHeroImage() {
         try {
             String avatar = Game.getInstance().getAvatarPath();
-            System.out.println("[Fire] Trying to load: " + avatar);
             if ("Mia".equalsIgnoreCase(avatar)) {
                 return img("/images/general/hero1_standing.png");
             }

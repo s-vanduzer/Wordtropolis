@@ -117,10 +117,10 @@ public class BossGamePanel extends JPanel implements Refreshable {
         setLayout(null);   // absolute positioning — we paint everything ourselves
         setBackground(Color.BLACK);
         loadImages();
-        
+
         setupKeyboard();
         setupMouseInteraction();
-        
+
         printGameWordList();
     }
 
@@ -1039,16 +1039,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         System.out.println("║           WORDTROPOLIS - BATTLE GAME WORD LIST            ║");
         System.out.println("╚════════════════════════════════════════════════════════════╝");
 
-        System.out.println("\n▶ PHASE 1A - Main Attack Words (from provided wordlist):");
-        List<String> mainWords = Game.getInstance().getWordList();
-        if (mainWords != null && !mainWords.isEmpty()) {
-            for (int i = 0; i < mainWords.size(); i++) {
-                System.out.printf("   %2d. %s%n", i + 1, mainWords.get(i).toUpperCase());
-            }
-        } else {
-            System.out.println("   ⚠ No words provided - using defaults");
-        }
-
         System.out.println("\n▶ PHASE 1B - Misspelled Words (tracked during gameplay):");
         List<String> misspelled = Game.getInstance().getMisspelledWordList();
         if (misspelled != null && !misspelled.isEmpty()) {
@@ -1058,17 +1048,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         } else {
             System.out.println("   (Will be populated as player misspells words)");
         }
-
-        System.out.println("\n▶ PHASE 1C - Final Battle Words (harder difficulty):");
-        if (mainWords != null && !mainWords.isEmpty()) {
-            for (int i = 0; i < mainWords.size(); i++) {
-                System.out.printf("   %2d. %s%n", i + 1, mainWords.get(i).toUpperCase());
-            }
-        } else {
-            System.out.println("   ⚠ No words provided - using defaults");
-        }
-
-        System.out.println("\n═══════════════════════════════════════════════════════════════\n");
     }
 
     // ── Sparkle ───────────────────────────────────────────────────────────────
@@ -1400,9 +1379,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
                 new Color(0xFCD475), UITheme.BG_DARK, "finish_screen");
     }
 
-    
-
-
     private void paintLoseOverlay(Graphics2D g2, int W, int H) {
         // 1. Full-page dark overlay (dimming the background)
         g2.setColor(new Color(0, 0, 0, 180)); // Slightly darker for the finish
@@ -1446,10 +1422,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Back to Map", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "back_to_map");
     }
-
-
-
-
 
 // ── Feedback message ──────────────────────────────────────────────────────
     private void paintFeedback(Graphics2D g2, int W, int H) {

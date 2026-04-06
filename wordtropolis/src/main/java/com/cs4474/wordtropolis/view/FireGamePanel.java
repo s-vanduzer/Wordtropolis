@@ -116,7 +116,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
         grabFocus();
 
         model.restartGame();
-        System.out.println("[Fire] Wrong count aftr reset: " + model.getWrongCount());
         clickZones.clear();
         currentScreen = Screen.INTRO;
         feedbackMsg = "";
@@ -159,7 +158,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
     private BufferedImage loadHeroImage() {
         try {
             String avatar = Game.getInstance().getAvatarPath();
-            System.out.println("[Fire] Trying to load: " + avatar);
             if ("Mia".equalsIgnoreCase(avatar)) {
                 return img("/images/general/hero1_standing.png");
             }
@@ -252,12 +250,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
             }
 
         } else {
-
-            System.out.println("[Fire] Wrong count beginning of handle: " + model.getWrongCount());
-            System.out.println("[Fire] Fire counter: " + model.getFireCounter());
-            System.out.println("[Fire] math: " + model.getWrongCount() % REIGNITE_LIMIT);
-            System.out.println(model.getWrongCount() % REIGNITE_LIMIT == 0 && model.getFireCounter() > 0);
-
             if (model.getWrongCount() % REIGNITE_LIMIT == 0 && model.getFireCounter() > 0) {
                 showFeedback("Oh no! A fire relit!");
                 reigniteFire();
@@ -280,7 +272,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
             SoundManager.play(SoundManager.FIRE_ERROR);
             SoundManager.setSfxVolume(prevVol);
         }
-        System.out.println("[Fire] Wrong count at end of handle: " + model.getWrongCount());
         resetInputWithHints();
         repaint();
     }
@@ -329,7 +320,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
         if (model.getFireIndex() >= 0 && model.getFireIndex() < flames.size()) {
             flames.get(model.getFireIndex()).extinguish(); // Play the end animation for this fire
 
-            System.out.println("extinguish " + model.getFireIndex() + "\n");
             updateFireCounter(1); // Increment the counter when the fire is extinguished
             SoundManager.play(SoundManager.FIRE_HOSE);
         }
@@ -338,7 +328,6 @@ public class FireGamePanel extends JPanel implements Refreshable {
     // Handle reigniting logic (allow fires to be reignited after extinguishing)
     private void reigniteFire() {
         updateFireCounter(-1);
-        System.out.println("reigniting...");
 
         boolean ignite = true;
         int i;
