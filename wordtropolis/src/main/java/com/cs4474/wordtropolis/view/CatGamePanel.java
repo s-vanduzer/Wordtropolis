@@ -1012,6 +1012,11 @@ public class CatGamePanel extends JPanel implements Refreshable {
         int btnY = cardY + cardH - btnH - 20;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start Rescue!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_rescue");
+
+        int panelX = 14;
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
+
     }
 
     // ── Game UI: floating tiles + word box + buttons ───────────────────────

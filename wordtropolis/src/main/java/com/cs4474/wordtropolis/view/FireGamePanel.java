@@ -231,7 +231,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
 
             hintCount = 0;
             extinguishFire();
-            
+
             if (model.getFireCounter() < NUMBER_OF_FIRES) {
                 model.pickNextWord();
 
@@ -482,8 +482,9 @@ public class FireGamePanel extends JPanel implements Refreshable {
             paintFinishOverlay(g2, W, H);
         } else {
             switch (currentScreen) {
-                case INTRO ->
+                case INTRO -> {
                     paintIntro(g2, W, H);
+                }
                 case GAME -> {
                     paintGameUI(g2, W, H);
                     paintFlames(g2, W, H);
@@ -500,7 +501,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         g2.dispose();
     }
 
-// Paint background
+    // Paint background
     private void paintBackground(Graphics2D g2, int W, int H) {
         if (imgBg != null) {
             g2.drawImage(imgBg, 0, 0, W, H, null);
@@ -565,6 +566,11 @@ public class FireGamePanel extends JPanel implements Refreshable {
         int btnY = cardY + cardH - btnH - 25;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start!", UITheme.FONT_HEADING,
                 new Color(0xFCD475), UITheme.BG_DARK, "start_btn");
+
+        // Back to map button
+        int panelX = 14;
+        int backBtnW = 120, backBtnH = 40;
+        paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
     }
 
     private void paintLeftPanel(Graphics2D g2, int H) {
@@ -574,7 +580,7 @@ public class FireGamePanel extends JPanel implements Refreshable {
         int backBtnW = 120, backBtnH = 40;
         paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
 
-        // --- 2. Side Status Panel (Replacing the Top Banner) ---
+        // --- 2. Side Status Panel ---
         if (currentScreen == Screen.GAME) {
             int panelW = 200;
             int panelH = 180;
