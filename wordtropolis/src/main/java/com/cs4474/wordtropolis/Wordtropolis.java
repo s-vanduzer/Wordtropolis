@@ -111,6 +111,7 @@ public class Wordtropolis {
         volumePanel = new JPanel(null);
         volumePanel.setOpaque(false);
         volumePanel.setBounds(830, 525, 100, 180);  // Changed y from 520 to 525
+        volumePanel.setFocusable(false);
 
         try {
             Image speakerRaw = new ImageIcon(Wordtropolis.class.getResource("/images/general/speaker.png")).getImage();
@@ -129,6 +130,11 @@ public class Wordtropolis {
         volumeIcon = new JLabel(speakerImg != null ? speakerImg : new ImageIcon());
         volumeIcon.setBounds(10, 70, 40, 40);
         volumeIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        
+            if (volumeIcon != null) {
+        volumeIcon.setFocusable(false);
+    }
         volumePanel.add(volumeIcon);
 
         volumeSlider = new JSlider(JSlider.VERTICAL, 0, 100, 50);
@@ -136,6 +142,8 @@ public class Wordtropolis {
         volumeSlider.setOpaque(false);
         volumeSlider.setForeground(new Color(0xECCB2D));
         volumeSlider.setVisible(false);
+        
+        volumeSlider.setFocusable(false);
         volumePanel.add(volumeSlider);
 
         volumeIcon.addMouseListener(new MouseAdapter() {
@@ -143,6 +151,7 @@ public class Wordtropolis {
             public void mouseClicked(MouseEvent e) {
                 volumeSlider.setVisible(!volumeSlider.isVisible());
                 volumePanel.repaint();
+                
             }
         });
 
@@ -153,6 +162,11 @@ public class Wordtropolis {
             } else if (speakerImg != null) {
                 volumeIcon.setIcon(speakerImg);
             }
+            
+            // Connect to SoundManager
+            SoundManager.setSfxVolume(value);
+            SoundManager.setMusicVolume(value);
+//            System.out.println("Volume set to: " + value);
 
         });
     }
