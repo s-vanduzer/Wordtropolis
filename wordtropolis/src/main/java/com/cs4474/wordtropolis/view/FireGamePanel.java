@@ -237,7 +237,7 @@ public class FireGamePanel extends JPanel {
                 stopAll();
                 SoundManager.startMusic(SoundManager.FIRE_BGM);
                 currentScreen = Screen.FINISH;
-                SoundManager.play(SoundManager.FIRE_END_GAME);
+                SoundManager.play(SoundManager.GAME_FINISH);
                 game.setFireCompleted(true);
             }
 

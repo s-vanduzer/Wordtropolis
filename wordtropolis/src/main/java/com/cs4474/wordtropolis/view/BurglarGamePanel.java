@@ -89,14 +89,9 @@ public class BurglarGamePanel extends JPanel {
             repaint();
         }).start();
 
-        animationTimer = new Timer(150, e -> {
-            animationFrame = (animationFrame + 1) % TOTAL_FRAMES;
-            repaint();
-        });
-        animationTimer.start();
-        
         this.addHierarchyListener(e -> {
             if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                stopAll();
                 grabFocus();
 
                 model.resetGame();
@@ -105,7 +100,7 @@ public class BurglarGamePanel extends JPanel {
                 feedbackMsg = "";
                 imgHero = loadHeroImage();
 
-                stopAll();
+                startAnimations();
             }
         });
     }
@@ -216,6 +211,14 @@ public class BurglarGamePanel extends JPanel {
     }
 
     // ═══════════════════════════════ ANIMATIONS ══════════════════════════════
+    private void startAnimations() {
+        animationTimer = new Timer(150, e -> {
+            animationFrame = (animationFrame + 1) % TOTAL_FRAMES;
+            repaint();
+        });
+        animationTimer.start();
+    }
+
     private void triggerSparkle(int x, int y) {
         sparkleX = x;
         sparkleY = y;
@@ -382,9 +385,9 @@ public class BurglarGamePanel extends JPanel {
 
     private void chaseComplete() {
         SoundManager.stopMusic();
-        SoundManager.playConditional(SoundManager.SFX_LEVEL_COMPLETE, SoundManager.GameActivity.BURGLAR_GAME);
         Game.getInstance().setBurgularCompleted(true);
 
+        SoundManager.play(SoundManager.GAME_FINISH);
         currentScreen = Screen.WIN; // Switch to win overlay
         stopAll();
         repaint();

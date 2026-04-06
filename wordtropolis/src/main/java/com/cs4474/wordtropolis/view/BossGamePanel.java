@@ -438,7 +438,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     model.updateHint();
 
                     // Play hint sound effect
-                    SoundManager.playConditional(SoundManager.BOSS_HINT_PLACE, SoundManager.GameActivity.BOSS_GAME);
+                    SoundManager.playConditional(SoundManager.GAME_BTN_CLICK, SoundManager.GameActivity.BOSS_GAME);
 
                     // Show visual feedback
                     triggerHintGlow();

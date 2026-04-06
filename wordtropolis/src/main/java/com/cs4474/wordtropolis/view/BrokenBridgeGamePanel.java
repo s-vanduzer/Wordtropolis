@@ -103,7 +103,6 @@ public class BrokenBridgeGamePanel extends JPanel {
         setLayout(null);
         setBackground(Color.BLACK);
         loadImages();
-        initTimers();
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -125,6 +124,7 @@ public class BrokenBridgeGamePanel extends JPanel {
         this.addHierarchyListener(e -> {
             if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
                 grabFocus();
+                stopTimers();
 
                 model.resetGame();
                 tileRects.clear();
@@ -134,10 +134,9 @@ public class BrokenBridgeGamePanel extends JPanel {
                 sparkleFrame = 0;
                 errorFrame = 0;
                 showSparkle = false;
-
                 imgHero = loadHeroImage();
 
-                stopTimers();
+                initTimers();
             }
         });
     }
@@ -393,7 +392,7 @@ public class BrokenBridgeGamePanel extends JPanel {
 
         if (model.isAnswerCorrect()) {
             model.applyCorrectRound();
-            SoundManager.playFrom(SoundManager.BRIDGE_WIN, 0.0, 1.5); // ← cha-ching (first 1.5s)
+            SoundManager.playFrom(SoundManager.BRIDGE_ADD_PIECE, 0.0, 1.5); // ← cha-ching (first 1.5s)
             triggerSparkle();
             if (model.isComplete()) {
                 if (gameTimer != null) {
@@ -403,6 +402,7 @@ public class BrokenBridgeGamePanel extends JPanel {
                     ((Timer) e.getSource()).stop();
                     stopTimers();
                     game.setBridgeCompleted(true);
+                    SoundManager.play(SoundManager.GAME_FINISH);
                     screen = Screen.FINISH;
                     repaint();
                 }).start();
