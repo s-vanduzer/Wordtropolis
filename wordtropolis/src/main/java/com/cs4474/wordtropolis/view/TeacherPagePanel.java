@@ -35,7 +35,7 @@ public class TeacherPagePanel extends JPanel {
 
     private void loadBackgroundImage() {
         try {
-            java.net.URL imgUrl = getClass().getResource("/images/general/BG.png");
+            java.net.URL imgUrl = getClass().getResource("/images/backgrounds/menu_background.png");
             if (imgUrl != null) {
                 ImageIcon icon = new ImageIcon(imgUrl);
                 backgroundImage = icon.getImage();
@@ -142,7 +142,7 @@ public class TeacherPagePanel extends JPanel {
 
         JLabel wordtropolisTitle = new JLabel();
         try {
-            ImageIcon titleIcon = new ImageIcon(getClass().getResource("/images/general/wordtropiatitle2.png"));
+            ImageIcon titleIcon = new ImageIcon(getClass().getResource("/images/sprites/wordtroplis_title.png"));
             Image scaledImg = titleIcon.getImage().getScaledInstance(500, 100, Image.SCALE_SMOOTH);
             wordtropolisTitle.setIcon(new ImageIcon(scaledImg));
         } catch (Exception e) {

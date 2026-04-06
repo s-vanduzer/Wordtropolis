@@ -160,21 +160,13 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
     // Image loading
     // ─────────────────────────────────────────────────────────────────────────
     private void loadImages() {
-        imgBg = img("/images/bridge_game/bridge_background.png",
-                "/images/bridge_game/city_background.png",
-                "/images/burglar_game/city_extended_bg.png");
-        imgIndividualBox = img("/images/bridge_game/individual_box.png",
-                "/images/cat_game/individual_box.png");
-        imgOuterBox = img("/images/bridge_game/outer_box.png",
-                "/images/cat_game/outer_box.png");
-        imgProgressBar = img("/images/bridge_game/progress_bar.png",
-                "/images/cat_game/progress_bar.png");
-        imgCheck = img("/images/bridge_game/check.png",
-                "/images/cat_game/check.png");
-        imgBack = img("/images/bridge_game/back.png",
-                "/images/cat_game/back.png");
-        imgSparkle = img("/images/bridge_game/blue_sparkle.png",
-                "/images/cat_game/blue_sparkle.png");
+        imgBg = img("/images/backgrounds/bridge_background.png");
+        imgIndividualBox = img("/images/ui/individual_box.png");
+        imgOuterBox = img("/images/ui/outer_box.png");
+        imgProgressBar = img("/images/ui/progress_bar.png");
+        imgCheck = img("/images/ui/check.png");
+        imgBack = img("/images/bridge_game/back.png");
+        imgSparkle = img("/images/effects/blue_sparkle.png");
         imgHero = loadHeroImage();
     }
 
@@ -204,6 +196,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
                         return bi;
                     }
                 }
+                System.out.println("[Bridge] missing: " + path);
             } catch (Exception ignored) {
             }
         }

@@ -17,9 +17,9 @@ public class PickHeroPanel extends JPanel {
 
     private static final String[] HERO_LABELS = {"Mia", "Alex", "Zyx"};
     private static final String[] HERO_IMAGES = {
-        "/images/general/girlhero.png", // Mia - girl hero
-        "/images/general/boyhero.png", // Alex - boy hero
-        "/images/general/alien.png" // Zyx - alien
+        "/images/char_sprites/girlhero_sprite.png", // Mia - girl hero
+        "/images/char_sprites/boyhero_sprite.png", // Alex - boy hero
+        "/images/char_sprites/alien_sprite.png" // Zyx - alien
     };
     private static final Color[] HERO_COLORS = {
         new Color(0xFF6B9D), // Pink for Mia
@@ -41,14 +41,14 @@ public class PickHeroPanel extends JPanel {
         setBackground(Color.BLACK);
 
         // BG
-        Image bg = new ImageIcon(getClass().getResource("/images/general/BG.png")).getImage();
+        Image bg = new ImageIcon(getClass().getResource("/images/backgrounds/menu_background.png")).getImage();
         Image scaledBg = bg.getScaledInstance(920, 700, Image.SCALE_SMOOTH);
         JLabel background = new JLabel(new ImageIcon(scaledBg));
         background.setBounds(0, 0, 920, 700);
         background.setLayout(null);
         add(background);
 
-        Image titleImg = new ImageIcon(getClass().getResource("/images/general/wordtropiatitle2.png")).getImage();
+        Image titleImg = new ImageIcon(getClass().getResource("/images/sprites/wordtroplis_title.png")).getImage();
         Image scaledTitle = titleImg.getScaledInstance(600, -1, Image.SCALE_SMOOTH);
         JLabel gameTitle = new JLabel(new ImageIcon(scaledTitle));
         gameTitle.setBounds((920 - 600) / 2, 10, 600, 200);

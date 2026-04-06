@@ -5,7 +5,6 @@ import com.cs4474.wordtropolis.model.Game;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.HierarchyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
@@ -31,10 +30,10 @@ public class MapPagePanel extends JPanel implements Refreshable {
         Wordtropolis.SCREEN_FIRE_GAME
     };
     private static final String[] ACT_ICONS = {
-        "/images/general/CatTreeicon.png",
-        "/images/general/Burglaricon.png",
-        "/images/general/Bridgeicon.png",
-        "/images/general/Fireicon.png"
+        "/images/icons/CatTreeicon.png",
+        "/images/icons/Burglaricon.png",
+        "/images/icons/Bridgeicon.png",
+        "/images/icons/Fireicon.png"
     };
 
     private static final int[][] BUTTON_POSITIONS = {
@@ -64,9 +63,9 @@ public class MapPagePanel extends JPanel implements Refreshable {
 
     private void loadImages() {
         try {
-            backgroundImage = new ImageIcon(getClass().getResource("/images/general/city.png")).getImage();
-            checkImage = new ImageIcon(getClass().getResource("/images/bridge_game/check.png")).getImage();
-            bossIcon = new ImageIcon(getClass().getResource("/images/general/FinalBossicon.png")).getImage();
+            backgroundImage = new ImageIcon(getClass().getResource("/images/backgrounds/map_backgroud.png")).getImage();
+            checkImage = new ImageIcon(getClass().getResource("/images/ui/check.png")).getImage();
+            bossIcon = new ImageIcon(getClass().getResource("/images/icons/FinalBossicon.png")).getImage();
 
             for (int i = 0; i < ACT_ICONS.length; i++) {
                 iconImages[i] = new ImageIcon(getClass().getResource(ACT_ICONS[i])).getImage();

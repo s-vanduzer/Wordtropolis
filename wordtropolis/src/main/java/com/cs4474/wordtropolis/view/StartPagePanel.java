@@ -18,7 +18,7 @@ public class StartPagePanel extends JPanel {
         setPreferredSize(new Dimension(920, 700));
 
         // Background
-        Image bg = new ImageIcon(getClass().getResource("/images/general/BG.png")).getImage();
+        Image bg = new ImageIcon(getClass().getResource("/images/backgrounds/menu_background.png")).getImage();
         Image scaledBg = bg.getScaledInstance(920, 700, Image.SCALE_SMOOTH);
         JLabel background = new JLabel(new ImageIcon(scaledBg));
         background.setBounds(0, 0, 920, 700);
@@ -26,7 +26,7 @@ public class StartPagePanel extends JPanel {
         add(background);
 
         // Clouds
-        Image cloudRaw = new ImageIcon(getClass().getResource("/images/general/cloud.png")).getImage();
+        Image cloudRaw = new ImageIcon(getClass().getResource("/images/sprites/cloud.png")).getImage();
         Image cloudScaled = cloudRaw.getScaledInstance(360, 190, Image.SCALE_SMOOTH);
         ImageIcon cloudImg = new ImageIcon(cloudScaled);
 
@@ -39,7 +39,7 @@ public class StartPagePanel extends JPanel {
         background.add(cloudB);
 
         // Title
-        Image title = new ImageIcon(getClass().getResource("/images/general/wordtropiatitle2.png")).getImage();
+        Image title = new ImageIcon(getClass().getResource("/images/sprites/wordtroplis_title.png")).getImage();
         Image scaledTitle = title.getScaledInstance(700, -1, Image.SCALE_SMOOTH);
         titleLabel = new JLabel(new ImageIcon(scaledTitle));
         int titleWidth = scaledTitle.getWidth(null);
@@ -96,7 +96,7 @@ public class StartPagePanel extends JPanel {
         buttonPanel.add(studentBtn);
 
         // Triangle selector
-        Image triangleRaw = new ImageIcon(getClass().getResource("/images/general/triangle.png")).getImage();
+        Image triangleRaw = new ImageIcon(getClass().getResource("/images/ui/triangle.png")).getImage();
         Image triangleScaled = triangleRaw.getScaledInstance(28, 28, Image.SCALE_SMOOTH);
         ImageIcon triangleIcon = new ImageIcon(triangleScaled);
         JLabel selector = new JLabel(triangleIcon);

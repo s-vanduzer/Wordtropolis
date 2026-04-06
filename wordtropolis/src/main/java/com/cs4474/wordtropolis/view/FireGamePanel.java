@@ -143,16 +143,16 @@ public class FireGamePanel extends JPanel implements Refreshable {
     }
 
     private void loadImages() {
-        imgBg = img("/images/fire_game/building.png"); // Background image for Fire Game
-        imgFireStart = img("/images/fire_game/fire_start.png");
-        imgFireLoop = img("/images/fire_game/fire_loop.png");
-        imgFireEnd = img("/images/fire_game/fire_end.png");
-        imgFireTruck = img("/images/fire_game/fire_truck.png"); // Fire truck image
-        imgOuterBox = img("/images/fire_game/outer_box.png");
-        imgBack = img("/images/fire_game/back.png");
-        imgCheck = img("/images/fire_game/check.png");
-        imgNpc = img("/images/fire_game/npc.png");
-        imgPanel = img("/images/fire_game/panel.png");
+        imgBg = img("/images/backgrounds/fire_background.png"); // Background image for Fire Game
+        imgFireStart = img("/images/effects/fire_start.png");
+        imgFireLoop = img("/images/effects/fire_loop.png");
+        imgFireEnd = img("/images/effects/fire_end.png");
+        imgFireTruck = img("/images/sprites/fire_truck.png"); // Fire truck image
+        imgOuterBox = img("/images/ui/outer_box.png");
+        imgBack = img("/images/ui/back.png");
+        imgCheck = img("/images/ui/check.png");
+        imgNpc = img("/images/char_sprites/npc.png");
+        imgPanel = img("/images/ui/panel.png");
     }
 
     private BufferedImage loadHeroImage() {

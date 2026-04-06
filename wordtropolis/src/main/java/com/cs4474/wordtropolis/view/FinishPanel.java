@@ -41,25 +41,25 @@ public class FinishPanel extends JPanel implements Refreshable {
 
     private void loadImages() {
         try {
-            java.net.URL bgUrl = getClass().getResource("/images/general/BG.png");
+            java.net.URL bgUrl = getClass().getResource("/images/backgrounds/menu_background.png");
             if (bgUrl != null) {
                 ImageIcon icon = new ImageIcon(bgUrl);
                 backgroundImage = icon.getImage();
             }
 
-            java.net.URL trophyUrl = getClass().getResource("/images/general/trophy.png");
+            java.net.URL trophyUrl = getClass().getResource("/images/sprites/trophy.png");
             if (trophyUrl != null) {
                 ImageIcon icon = new ImageIcon(trophyUrl);
                 trophyImage = icon.getImage();
             }
 
-            java.net.URL cloudUrl = getClass().getResource("/images/general/cloud.png");
+            java.net.URL cloudUrl = getClass().getResource("/images/sprites/cloud.png");
             if (cloudUrl != null) {
                 ImageIcon icon = new ImageIcon(cloudUrl);
                 cloudImage = icon.getImage();
             }
         } catch (Exception e) {
-            System.out.println("Could not load images: " + e.getMessage());
+            System.out.println("[Final] Could not load images: " + e.getMessage());
         }
     }
 
@@ -165,7 +165,7 @@ public class FinishPanel extends JPanel implements Refreshable {
         // ── Wordtropolis Title Image ──────────────────────────────────────────
         titleLabel = new JLabel();
         try {
-            ImageIcon titleIcon = new ImageIcon(getClass().getResource("/images/general/wordtropiatitle2.png"));
+            ImageIcon titleIcon = new ImageIcon(getClass().getResource("/images/sprites/wordtroplis_title.png"));
             Image scaledImg = titleIcon.getImage().getScaledInstance(600, 120, Image.SCALE_SMOOTH);
             titleLabel.setIcon(new ImageIcon(scaledImg));
         } catch (Exception e) {

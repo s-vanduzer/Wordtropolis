@@ -114,11 +114,11 @@ public class Wordtropolis {
         volumePanel.setFocusable(false);
 
         try {
-            Image speakerRaw = new ImageIcon(Wordtropolis.class.getResource("/images/general/speaker.png")).getImage();
+            Image speakerRaw = new ImageIcon(Wordtropolis.class.getResource("/images/ui/speaker.png")).getImage();
             Image speakerScaled = speakerRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
             speakerImg = new ImageIcon(speakerScaled);
 
-            Image muteRaw = new ImageIcon(Wordtropolis.class.getResource("/images/general/nospeaker.png")).getImage();
+            Image muteRaw = new ImageIcon(Wordtropolis.class.getResource("/images/ui/nospeaker.png")).getImage();
             Image muteScaled = muteRaw.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
             muteImg = new ImageIcon(muteScaled);
         } catch (Exception e) {

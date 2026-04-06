@@ -131,15 +131,14 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
 
         try {
 
-            imgRobber = img("/images/burglar_game/robber.png");
-            imgBg = img("/images/burglar_game/street.png");//        
-            imgRobber = img("/images/burglar_game/robber.png");
-            imgProgressBar = img("/images/cat_game/progress_bar.png");
-            imgLetterBox = img("/images/cat_game/individual_box.png");
-            imgOuterBox = img("/images/cat_game/outer_box.png");
-            imgCheck = img("/images/cat_game/check.png");
-            imgBack = img("/images/cat_game/back.png");
-            imgSparkle = img("/images/cat_game/blue_sparkle.png");
+            imgRobber = img("/images/char_sprites/robber_sprite.png");
+            imgBg = img("/images/backgrounds/burglar_background.png");
+            imgProgressBar = img("/images/ui/progress_bar.png");
+            imgLetterBox = img("/images/ui/individual_box.png");
+            imgOuterBox = img("/images/ui/outer_box.png");
+            imgCheck = img("/images/ui/check.png");
+            imgBack = img("/images/ui/back.png");
+            imgSparkle = img("/images/effects/blue_sparkle.png");
 
         } catch (Exception e) {
             System.err.println("Error loading Burglar Game sprites: " + e.getMessage());

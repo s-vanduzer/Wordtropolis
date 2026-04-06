@@ -158,15 +158,14 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
     // ═══════════════════════════════ LOADING ═════════════════════════════════
     private void loadImages() {
-        imgVillain = img("/images/boss_game/boss.png");
-        imgShield = img("/images/boss_game/shield.png");
-        imgBg = img("/images/boss_game/roof_bg.png");
-        imgLetterBox = img("/images/cat_game/individual_box.png");
-        imgOuterBox = img("/images/cat_game/outer_box.png");
-        imgBack = img("/images/cat_game/back.png");
-        imgCheck = img("/images/cat_game/check.png");
-        imgSparkle = img("/images/cat_game/blue_sparkle.png");
-        imgSparkle = img("/images/cat_game/blue_sparkle.png");
+        imgVillain = img("/images/char_sprites/boss_sprite.png");
+        imgShield = img("/images/sprites/shield.png");
+        imgBg = img("/images/backgrounds/boss_background.png");
+        imgLetterBox = img("/images/ui/individual_box.png");
+        imgOuterBox = img("/images/ui/outer_box.png");
+        imgBack = img("/images/ui/back.png");
+        imgCheck = img("/images/ui/check.png");
+        imgSparkle = img("/images/effects/blue_sparkle.png");
         imgHero = loadHeroImage();
     }
 
@@ -196,6 +195,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
                         return bi;
                     }
                 }
+                System.out.println("[Boss] missing: " + path);
             } catch (Exception ignored) {
             }
         }

@@ -146,25 +146,25 @@ public class CatGamePanel extends JPanel implements Refreshable {
 
     // ═══════════════════════════════ LOADING ═════════════════════════════════
     private void loadImages() {
-        imgBg = img("/images/cat_game/city_background.png");
-        imgTree = img("/images/cat_game/tree.png");
-        imgCat = img("/images/cat_game/cat.png");
-        imgNpc = img("/images/cat_game/npc.png");
-        imgLadder = img("/images/cat_game/ladder.png");
-        imgLightPole = img("/images/cat_game/light_pole.png");
-        imgProgressBar = img("/images/cat_game/progress_bar.png");
-        imgLetterBox = img("/images/cat_game/individual_box.png");
-        imgOuterBox = img("/images/cat_game/outer_box.png");
-        imgBanner = img("/images/cat_game/banner.png");
-        imgBack = img("/images/cat_game/back.png");
-        imgCheck = img("/images/cat_game/check.png");
-        imgSparkle = img("/images/cat_game/blue_sparkle.png");
+        imgBg = img("/images/backgrounds/city_background.png");
+        imgTree = img("/images/sprites/tree.png");
+        imgCat = img("/images/char_sprites/cat.png");
+        imgNpc = img("/images/char_sprites/npc.png");
+        imgLadder = img("/images/sprites/ladder.png");
+        imgLightPole = img("/images/sprites/light_pole.png");
+        imgProgressBar = img("/images/ui/progress_bar.png");
+        imgLetterBox = img("/images/ui/individual_box.png");
+        imgOuterBox = img("/images/ui/outer_box.png");
+        imgBanner = img("/images/ui/banner.png");
+        imgBack = img("/images/ui/back.png");
+        imgCheck = img("/images/ui/check.png");
+        imgSparkle = img("/images/effects/blue_sparkle.png");
     }
 
     private BufferedImage loadHeroImage() {
         try {
             String avatar = Game.getInstance().getAvatarPath();
-            System.out.println("[Fire] Trying to load: " + avatar);
+            System.out.println("[Cat] Trying to load: " + avatar);
             if ("Mia".equalsIgnoreCase(avatar)) {
                 return img("/images/general/hero1_standing.png");
             }
