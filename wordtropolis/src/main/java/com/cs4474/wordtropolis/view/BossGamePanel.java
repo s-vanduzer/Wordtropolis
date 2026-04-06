@@ -117,11 +117,10 @@ public class BossGamePanel extends JPanel implements Refreshable {
         setLayout(null);   // absolute positioning — we paint everything ourselves
         setBackground(Color.BLACK);
         loadImages();
-        // FIX 3: music starts only when user clicks "Start Rescue!" not on load
-        startAnimations();
+        
         setupKeyboard();
         setupMouseInteraction();
-        // Intro screen just paints — clicking Start Rescue transitions to GAME
+        
         printGameWordList();
     }
 
@@ -145,10 +144,13 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
     @Override
     public void refresh() {
+        model.restartGame();
         refreshGame();
+        startAnimations();
         clickZones.clear();
         currentScreen = Screen.INTRO;
         imgHero = loadHeroImage();
+        feedbackMsg = "";
 
         SwingUtilities.invokeLater(this::requestFocusInWindow);
         repaint();
@@ -200,13 +202,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         return null;
     }
 
-//    private BufferedImage img(String path) {
-//        try {
-//            URL r = getClass().getResource(path);
-//            if (r == null) { System.out.println("[Cat] missing: " + path); return null; }
-//            return ImageIO.read(r);
-//        } catch (Exception e) { System.out.println("[Cat] err: " + path); return null; }
-//    }
     // ═══════════════════════════════ ANIMATIONS ══════════════════════════════
     private void startAnimations() {
         heroTimer = new Timer(180, e -> {
@@ -438,7 +433,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     model.updateHint();
 
                     // Play hint sound effect
-                    SoundManager.playConditional(SoundManager.GAME_BTN_CLICK, SoundManager.GameActivity.BOSS_GAME);
+                    SoundManager.play(SoundManager.GAME_BTN_CLICK);
 
                     // Show visual feedback
                     triggerHintGlow();
@@ -1716,6 +1711,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     // Check Skip button FIRST (most specific)
                     if (skipButtonRect != null && skipButtonRect.contains(mx, my)) {
                         System.out.println("[BossGame] Skip button clicked!");
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         handleSkipWord();
                         return;
                     }
@@ -1723,6 +1719,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     // Check Back to Map button
                     Rectangle backToMap = clickZones.get("back_to_map");
                     if (backToMap != null && backToMap.contains(mx, my)) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         SoundManager.stopAll();
                         stopAll();
                         Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
@@ -1731,6 +1728,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
 
                     Rectangle finishScreen = clickZones.get("finish_screen");
                     if (finishScreen != null && finishScreen.contains(mx, my)) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         SoundManager.stopAll();
                         stopAll();
                         Wordtropolis.showScreen(Wordtropolis.SCREEN_FINISH);
@@ -1741,6 +1739,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     if (currentScreen == Screen.INTRO) {
                         Rectangle r = clickZones.get("start_rescue");
                         if (r != null && r.contains(mx, my)) {
+                            SoundManager.play(SoundManager.GAME_BTN_CLICK);
                             startGame();
                         }
                         isDragging = false;
@@ -1751,12 +1750,14 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     if (currentScreen == Screen.GAME && !waitingForNext) {
                         Rectangle check = clickZones.get("check_btn");
                         if (check != null && check.contains(mx, my)) {
+                            SoundManager.play(SoundManager.GAME_BTN_CLICK);
                             handleSubmit();
                             return;
                         }
 
                         Rectangle back = clickZones.get("back_btn");
                         if (back != null && back.contains(mx, my)) {
+                            SoundManager.play(SoundManager.GAME_BTN_CLICK);
                             model.clearArrangement();
                             computeTilePositions();
                             repaint();

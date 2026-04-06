@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * CatGamePanel.java
  */
-public class CatGamePanel extends JPanel {
+public class CatGamePanel extends JPanel implements Refreshable {
 
     // ── Model ─────────────────────────────────────────────────────────────────
     private final CatGameModel model;
@@ -105,22 +105,6 @@ public class CatGamePanel extends JPanel {
         loadImages();
         setupKeyboard();
         setupMouseInteraction();
-        // Intro screen just paints — clicking Start Rescue transitions to GAME
-
-        this.addHierarchyListener(e -> {
-            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
-                grabFocus();
-                stopAll();
-
-                model.resetGame();
-                clickZones.clear();
-                currentScreen = Screen.INTRO;
-                feedbackMsg = "";
-                imgHero = loadHeroImage();
-
-                startAnimations();
-            }
-        });
     }
 
     @Override
@@ -145,6 +129,20 @@ public class CatGamePanel extends JPanel {
             this.setFocusable(true);
             this.requestFocusInWindow();
         });
+    }
+
+    @Override
+    public void refresh() {
+        grabFocus();
+        stopAll();
+
+        model.restartGame();
+        clickZones.clear();
+        currentScreen = Screen.INTRO;
+        feedbackMsg = "";
+        imgHero = loadHeroImage();
+
+        startAnimations();
     }
 
     // ═══════════════════════════════ LOADING ═════════════════════════════════
@@ -387,6 +385,8 @@ public class CatGamePanel extends JPanel {
     }
 
     private void handleSubmit() {
+        SoundManager.play(SoundManager.GAME_BTN_CLICK);
+
         if (waitingForNext) {
             return;
         }
@@ -1408,12 +1408,14 @@ public class CatGamePanel extends JPanel {
                 if (backToMap != null && backToMap.contains(mx, my) && !isDragging) {
                     SoundManager.stopAll();
                     stopAll();
+                    SoundManager.play(SoundManager.GAME_BTN_CLICK);
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
                 }
                 if (currentScreen == Screen.INTRO) {
                     Rectangle r = clickZones.get("start_rescue");
                     if (r != null && r.contains(mx, my) && !isDragging) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         startGame();
                     }
                     isDragging = false;
@@ -1433,6 +1435,7 @@ public class CatGamePanel extends JPanel {
                     }
                     Rectangle back = clickZones.get("back_btn");
                     if (back != null && back.contains(mx, my)) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         model.clearArrangement();
                         computeTilePositions();
                         repaint();

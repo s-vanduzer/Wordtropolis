@@ -20,7 +20,7 @@ import javax.swing.Timer;
  * BurglarGamePanel.java Custom painting panel for the burglar chase word game.
  * Players select missing letters to advance the hero and catch the burglar.
  */
-public class BurglarGamePanel extends JPanel {
+public class BurglarGamePanel extends JPanel implements Refreshable {
 
     // ── Model ─────────────────────────────────────────────────────────────────
     private final BurglarGameModel model;
@@ -77,7 +77,7 @@ public class BurglarGamePanel extends JPanel {
 
     // ── Constructor ───────────────────────────────────────────────────────────
     public BurglarGamePanel() {
-        model = new BurglarGameModel(Game.getInstance().getWordList());
+        model = new BurglarGameModel();
         setLayout(null);
         setBackground(Color.BLACK);
         loadImages();
@@ -88,21 +88,6 @@ public class BurglarGamePanel extends JPanel {
             updateCamera();
             repaint();
         }).start();
-
-        this.addHierarchyListener(e -> {
-            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
-                stopAll();
-                grabFocus();
-
-                model.resetGame();
-                clickZones.clear();
-                currentScreen = Screen.INTRO;
-                feedbackMsg = "";
-                imgHero = loadHeroImage();
-
-                startAnimations();
-            }
-        });
     }
 
     @Override
@@ -125,6 +110,20 @@ public class BurglarGamePanel extends JPanel {
             this.setFocusable(true);
             this.requestFocusInWindow();
         });
+    }
+
+    @Override
+    public void refresh() {
+        stopAll();
+        grabFocus();
+
+        model.restartGame();
+        clickZones.clear();
+        currentScreen = Screen.INTRO;
+        feedbackMsg = "";
+        imgHero = loadHeroImage();
+
+        startAnimations();
     }
 
     // ═══════════════════════════════ LOADING ═════════════════════════════════
@@ -291,8 +290,10 @@ public class BurglarGamePanel extends JPanel {
                     computeTilePositions();
                     repaint();
                 } else if (c == KeyEvent.VK_ENTER) {
+                    SoundManager.play(SoundManager.GAME_BTN_CLICK);
                     handleSubmit();
                 } else if (c == KeyEvent.VK_ESCAPE) {
+                    SoundManager.play(SoundManager.GAME_BTN_CLICK);
                     model.clearArrangement();
                     computeTilePositions();
                     repaint();
@@ -1038,19 +1039,17 @@ public class BurglarGamePanel extends JPanel {
 
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
+                int mx = e.getX(), my = e.getY();
                 if (currentScreen == Screen.INTRO) {
-                    int W = getWidth(), H = getHeight();
-                    int btnW = 240, btnH = 60;
-                    int btnX = (W - btnW) / 2;
-                    int btnY = H / 2;
-
-                    Rectangle btnRect = new Rectangle(btnX, btnY, btnW, btnH);
-                    if (btnRect.contains(e.getPoint())) {
+                    Rectangle backToMap = clickZones.get("start_chase");
+                    if (backToMap != null && backToMap.contains(mx, my) && !isDragging) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         startGame();
+                        return;
                     }
                     return;
                 }
-                int mx = e.getX(), my = e.getY();
+
                 if (!model.isGameActive() || waitingForNext) {
                     return;
                 }
@@ -1108,6 +1107,7 @@ public class BurglarGamePanel extends JPanel {
                 // Named zone clicks (always checked, even without dragging)
                 Rectangle backToMap = clickZones.get("back_to_map");
                 if (backToMap != null && backToMap.contains(mx, my) && !isDragging) {
+                    SoundManager.play(SoundManager.GAME_BTN_CLICK);
                     SoundManager.stopMusic();
                     Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
                     return;
@@ -1116,11 +1116,13 @@ public class BurglarGamePanel extends JPanel {
                 if (!isDragging) {
                     Rectangle check = clickZones.get("check_btn");
                     if (check != null && check.contains(mx, my)) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         handleSubmit();
                         return;
                     }
                     Rectangle back = clickZones.get("back_btn");
                     if (back != null && back.contains(mx, my)) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         model.clearArrangement();
                         computeTilePositions();
                         repaint();

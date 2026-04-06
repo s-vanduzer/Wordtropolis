@@ -30,7 +30,7 @@ import java.util.Map;
  * model.getWordsThisRound() • Sound: BGM on start, box on tile place, error on
  * wrong, cha-ching on correct
  */
-public class BrokenBridgeGamePanel extends JPanel {
+public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
 
     // ── Sparkle ───────────────────────────────────────────────────────────────
     private static final int SPKL_FRAMES = 14, SPKL_W = 32, SPKL_H = 32, SPKL_SCALE = 3;
@@ -116,27 +116,9 @@ public class BrokenBridgeGamePanel extends JPanel {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER && screen == Screen.PLAYING) {
+                    SoundManager.play(SoundManager.GAME_BTN_CLICK);
                     handleCheck();
                 }
-            }
-        });
-
-        this.addHierarchyListener(e -> {
-            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
-                grabFocus();
-                stopTimers();
-
-                model.resetGame();
-                tileRects.clear();
-                clickZones.clear();
-                screen = Screen.INTRO;
-                feedbackMsg = "";
-                sparkleFrame = 0;
-                errorFrame = 0;
-                showSparkle = false;
-                imgHero = loadHeroImage();
-
-                initTimers();
             }
         });
     }
@@ -154,6 +136,24 @@ public class BrokenBridgeGamePanel extends JPanel {
     public void removeNotify() {
         super.removeNotify();
         stopTimers();
+    }
+
+    @Override
+    public void refresh() {
+        grabFocus();
+        stopTimers();
+
+        model.restartGame();
+        tileRects.clear();
+        clickZones.clear();
+        screen = Screen.INTRO;
+        feedbackMsg = "";
+        sparkleFrame = 0;
+        errorFrame = 0;
+        showSparkle = false;
+        imgHero = loadHeroImage();
+
+        initTimers();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -315,8 +315,11 @@ public class BrokenBridgeGamePanel extends JPanel {
             Rectangle s = clickZones.get("start_btn"), b = clickZones.get("back_btn");
             if (b != null && b.contains(mx, my)) {
                 stopTimers();
+                SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                SoundManager.stopAll();
                 Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
             } else if (s != null && s.contains(mx, my)) {
+                SoundManager.play(SoundManager.GAME_BTN_CLICK);
                 startGame();
             }
             return;
@@ -331,15 +334,19 @@ public class BrokenBridgeGamePanel extends JPanel {
 
         if (back != null && back.contains(mx, my)) {
             stopTimers();
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
+            SoundManager.stopAll();
             Wordtropolis.showScreen(Wordtropolis.SCREEN_MAP);
             return;
         }
         if (clear != null && clear.contains(mx, my)) {
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
             model.clearSelection();
             repaint();
             return;
         }
         if (check != null && check.contains(mx, my)) {
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
             handleCheck();
             return;
         }
