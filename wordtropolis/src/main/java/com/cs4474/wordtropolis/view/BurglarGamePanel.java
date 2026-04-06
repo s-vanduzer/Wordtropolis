@@ -7,6 +7,7 @@ import com.cs4474.wordtropolis.model.Game;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -19,7 +20,7 @@ import javax.swing.Timer;
  * BurglarGamePanel.java Custom painting panel for the burglar chase word game.
  * Players select missing letters to advance the hero and catch the burglar.
  */
-public class BurglarGamePanel extends JPanel implements Refreshable {
+public class BurglarGamePanel extends JPanel {
 
     // ── Model ─────────────────────────────────────────────────────────────────
     private final BurglarGameModel model;
@@ -88,12 +89,20 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
             repaint();
         }).start();
 
-        animationTimer = new Timer(150, e -> {
-            animationFrame = (animationFrame + 1) % TOTAL_FRAMES;
-            repaint();
-        });
-        animationTimer.start();
+        this.addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                stopAll();
+                grabFocus();
 
+                model.resetGame();
+                clickZones.clear();
+                currentScreen = Screen.INTRO;
+                feedbackMsg = "";
+                imgHero = loadHeroImage();
+
+                startAnimations();
+            }
+        });
     }
 
     @Override
@@ -109,17 +118,13 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
     }
 
     @Override
-    public void refresh() {
-        model.resetGame();
-        clickZones.clear();
-        currentScreen = Screen.INTRO;
-        feedbackMsg = "";
-        refreshGame();
-
-        imgHero = loadHeroImage();
-
-        SwingUtilities.invokeLater(this::requestFocusInWindow);
-        repaint();
+    public void grabFocus() {
+        // We use invokeLater to ensure the component is fully 
+        // realized in the UI tree before requesting focus
+        SwingUtilities.invokeLater(() -> {
+            this.setFocusable(true);
+            this.requestFocusInWindow();
+        });
     }
 
     // ═══════════════════════════════ LOADING ═════════════════════════════════
@@ -206,6 +211,14 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
     }
 
     // ═══════════════════════════════ ANIMATIONS ══════════════════════════════
+    private void startAnimations() {
+        animationTimer = new Timer(150, e -> {
+            animationFrame = (animationFrame + 1) % TOTAL_FRAMES;
+            repaint();
+        });
+        animationTimer.start();
+    }
+
     private void triggerSparkle(int x, int y) {
         sparkleX = x;
         sparkleY = y;
@@ -374,9 +387,9 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
 
     private void chaseComplete() {
         SoundManager.stopMusic();
-        SoundManager.playConditional(SoundManager.SFX_LEVEL_COMPLETE, SoundManager.GameActivity.BURGLAR_GAME);
         Game.getInstance().setBurgularCompleted(true);
 
+        SoundManager.play(SoundManager.GAME_FINISH);
         currentScreen = Screen.WIN; // Switch to win overlay
         stopAll();
         repaint();
@@ -646,7 +659,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
         int btnX = W / 2 - btnW / 2;
         int btnY = cardY + cardH - btnH - 20;
         paintClickBox(g2, btnX, btnY, btnW, btnH, "Start chase!", UITheme.FONT_HEADING,
-                new Color(0xFCD475), UITheme.BG_DARK, "start_rescue");
+                new Color(0xFCD475), UITheme.BG_DARK, "start_chase");
     }
 
     private void paintOuterBoxButton(Graphics2D g2, int x, int y, int w, int h,
@@ -1035,7 +1048,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
                     if (btnRect.contains(e.getPoint())) {
                         startGame();
                     }
-                    return; // Don't process game clicks while in Intro
+                    return;
                 }
                 int mx = e.getX(), my = e.getY();
                 if (!model.isGameActive() || waitingForNext) {

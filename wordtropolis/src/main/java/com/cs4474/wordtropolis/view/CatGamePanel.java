@@ -103,8 +103,6 @@ public class CatGamePanel extends JPanel {
         setLayout(null);   // absolute positioning — we paint everything ourselves
         setBackground(Color.BLACK);
         loadImages();
-        // FIX 3: music starts only when user clicks "Start Rescue!" not on load
-        startAnimations();
         setupKeyboard();
         setupMouseInteraction();
         // Intro screen just paints — clicking Start Rescue transitions to GAME
@@ -112,6 +110,7 @@ public class CatGamePanel extends JPanel {
         this.addHierarchyListener(e -> {
             if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
                 grabFocus();
+                stopAll();
 
                 model.resetGame();
                 clickZones.clear();
@@ -119,7 +118,7 @@ public class CatGamePanel extends JPanel {
                 feedbackMsg = "";
                 imgHero = loadHeroImage();
 
-                stopAll();
+                startAnimations();
             }
         });
     }
@@ -459,7 +458,6 @@ public class CatGamePanel extends JPanel {
             feedbackTimer.stop();
         }
 
-        SoundManager.playConditional(SoundManager.CAT_LEVEL_DONE, SoundManager.GameActivity.CAT_GAME);
         Game.getInstance().setCatCompleted(true);
         currentScreen = Screen.RESCUE;
 
@@ -471,6 +469,7 @@ public class CatGamePanel extends JPanel {
                 ((Timer) e.getSource()).stop();
                 SoundManager.stopMusic();
                 stopAll();
+                SoundManager.play(SoundManager.GAME_FINISH);
                 currentScreen = Screen.FINISH;
             }
             repaint();

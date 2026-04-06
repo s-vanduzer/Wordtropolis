@@ -62,7 +62,6 @@ public final class SoundManager {
     public static final String CAT_ERROR = "cat_game/gentle_error_tone.wav";
     public static final String CAT_WIND = "cat_game/wind_sound.wav";
     public static final String CAT_TILE_CLICK = "cat_game/box_effect.wav";
-    public static final String CAT_LEVEL_DONE = "cat_game/completion_sound.wav";
     public static final String CAT_GAME_START = "cat_game/game_start.wav";
     public static final String CAT_BGM = "cat_game/background_music.wav";
 
@@ -70,7 +69,6 @@ public final class SoundManager {
     public static final String SFX_CORRECT = "cat_game/magical_soft_chime.wav";
     public static final String SFX_ERROR = "cat_game/gentle_error_tone.wav";
     public static final String SFX_TILE_CLICK = "cat_game/box_effect.wav";
-    public static final String SFX_LEVEL_COMPLETE = "cat_game/completion_sound.wav";
     public static final String SFX_GAME_START = "cat_game/game_start.wav";
     public static final String BGM_BACKGROUND = "burglar_game/chase.wav";
 
@@ -79,7 +77,7 @@ public final class SoundManager {
     public static final String BRIDGE_BGM = "bridge_game/background.wav";
     public static final String BRIDGE_BOX = "bridge_game/box_effect.wav";
     public static final String BRIDGE_ERROR = "bridge_game/gentle_error_tone.wav";
-    public static final String BRIDGE_WIN = "bridge_game/chaching.wav";
+    public static final String BRIDGE_ADD_PIECE = "bridge_game/add_bridge.wav";
 
     // ── Boss Game sounds ─────────────────────────────────────────────────────
     public static final String BOSS_ATTACK_HIT = "boss_game/attack_hit.wav";
@@ -91,16 +89,19 @@ public final class SoundManager {
     public static final String BOSS_TIMER_TICKING = "boss_game/timer_ticking.wav";
     public static final String BOSS_BGM = "boss_game/Boss_Battle.wav";
     public static final String BOSS_HINT_ACTIVATE = "boss_game/hint_activate.wav";
-    public static final String BOSS_HINT_PLACE = "boss_game/click.wav";
+//    public static final String BOSS_HINT_PLACE = "boss_game/click.wav";
 
     // ── Fire Game sounds ─────────────────────────────────────────────────────
     public static final String FIRE_IGNITE = "fire_game/fire_ignite.wav";
     public static final String FIRE_HOSE = "fire_game/hose.wav";
     public static final String FIRE_TRUCK = "fire_game/fire_truck.wav";
     public static final String FIRE_ERROR = "fire_game/incorrect.wav";
-    public static final String FIRE_END_GAME = "fire_game/end_game.wav";
     public static final String FIRE_BGM_FIRE = "fire_game/background_music_fire.wav";
     public static final String FIRE_BGM = "fire_game/background_music.wav";
+
+    // ── General sounds ─────────────────────────────────────────────────────
+    public static final String GAME_BTN_CLICK = "general/click.wav";
+    public static final String GAME_FINISH = "general/completion_sound.wav";
 
     // ═══════════════════════════════ ACTIVITY MANAGEMENT ══════════════════════
     /**
@@ -124,7 +125,7 @@ public final class SoundManager {
 
     /**
      * Stops all music and clips in activeSfx
-     * 
+     *
      */
     public static void stopAll() {
         stopMusic();

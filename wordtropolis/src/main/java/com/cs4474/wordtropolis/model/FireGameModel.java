@@ -18,7 +18,14 @@ public class FireGameModel {
 
     private String currentWord;
     private int correctCount;
-    private int wrongCount;
+
+    private int wrongCount; // Incorrect guesses on current word
+    private int totalWrongCount; // Total number of incorrect guesses
+
+    private int fireCounter; // Counter for completed fires
+    private int fireIndex;
+
+    private int streakCount; // For score multiplier
 
     /**
      * Constructor.
@@ -39,6 +46,12 @@ public class FireGameModel {
     public final void resetGame() {
         correctCount = 0;
         wrongCount = 0;
+        fireCounter = 0; // Counter for completed fires
+        fireIndex = 0;
+
+        streakCount = 0; // For score multiplier
+        totalWrongCount = 0;
+
         pickNextWord();
     }
 
@@ -52,6 +65,7 @@ public class FireGameModel {
 
     /**
      * Returns the current word for TTS or display.
+     *
      * @return current word
      */
     public String getCurrentWord() {
@@ -71,34 +85,80 @@ public class FireGameModel {
 
         if (playerInput.equalsIgnoreCase(currentWord)) {
             correctCount++;
+            wrongCount = 0;
             pickNextWord();  // Move to the next word
+            
+            if (wrongCount == 0 || streakCount == 0) {
+                streakCount++;
+            }
+            
             return true;
         } else {
             wrongCount++;
+            totalWrongCount++;
             return false;
         }
     }
 
-    /**
-     * Returns how many times the player has gotten the current word wrong.
-     * @return number of times player got word wrong
-     */
-    public int getWrongCount() {
-        return wrongCount;
-    }
-
-    /**
-     * Returns the number of words the player has gotten correct.
-     * @return number of words gotten correct
-     */
+// ── CORRECT COUNT ────────────────────────────────────────────────────────
     public int getCorrectCount() {
         return correctCount;
     }
 
-    /**
-     * Resets wrongCount
-     */
+    // ── WRONG COUNT (Current Word) ──────────────────────────────────────────
+    public int getWrongCount() {
+        return wrongCount;
+    }
+
     public void resetWrongCount() {
         wrongCount = 0;
+    }
+
+    // ── TOTAL WRONG COUNT ────────────────────────────────────────────────────
+    public int getTotalWrongCount() {
+        return totalWrongCount;
+    }
+
+    // ── FIRE COUNTER ─────────────────────────────────────────────────────────
+    public int getFireCounter() {
+        return fireCounter;
+    }
+
+    public void incrementFireCounter() {
+        fireCounter++;
+    }
+
+    public void decrementFireCounter() {
+        if (fireCounter > 0) {
+            fireCounter--;
+        }
+    }
+
+    // ── FIRE INDEX ───────────────────────────────────────────────────────────
+    public void setFireIndex(int val) {
+        fireIndex = val;
+    }
+
+    public int getFireIndex() {
+        return fireIndex;
+    }
+
+    public void incrementFireIndex() {
+        fireIndex++;
+    }
+
+    public void decrementFireIndex() {
+        if (fireIndex > 0) {
+            fireIndex--;
+        }
+    }
+
+    // ── STREAK COUNT ─────────────────────────────────────────────────────────
+    public int getStreakCount() {
+        return streakCount;
+    }
+
+    public void resetStreakCount() {
+        streakCount = 0;
     }
 }
