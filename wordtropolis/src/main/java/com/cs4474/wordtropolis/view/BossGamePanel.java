@@ -172,12 +172,12 @@ public class BossGamePanel extends JPanel implements Refreshable {
         try {
             String avatar = Game.getInstance().getAvatarPath();
             if ("Mia".equalsIgnoreCase(avatar)) {
-                return img("/images/general/hero1_boss.png");
+                return img("/images/char_sprites/hero1_boss.png");
             }
             if ("Zyx".equalsIgnoreCase(avatar)) {
-                return img("/images/general/alien_boss.png");
+                return img("/images/char_sprites/alien_boss.png");
             }
-            return img("/images/general/hero2_boss.png");
+            return img("/images/char_sprites/hero2_boss.png");
         } catch (Exception ignored) {
             System.out.println("[Boss] Error loading hero");
         }

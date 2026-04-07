@@ -149,12 +149,12 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
         try {
             String avatar = Game.getInstance().getAvatarPath();
             if ("Mia".equalsIgnoreCase(avatar)) {
-                return img("/images/burglar_game/hero1_running.png");
+                return img("/images/char_sprites/hero1_running.png");
             }
             if ("Zyx".equalsIgnoreCase(avatar)) {
-                return img("/images/burglar_game/alien_running.png");
+                return img("/images/char_sprites/alien_running.png");
             }
-            return img("/images/burglar_game/hero2_running.png");
+            return img("/images/char_sprites/hero2_running.png");
         } catch (Exception ignored) {
             System.out.println("[Burglar] Error loading hero");
         }

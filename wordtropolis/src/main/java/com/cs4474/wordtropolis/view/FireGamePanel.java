@@ -159,12 +159,12 @@ public class FireGamePanel extends JPanel implements Refreshable {
         try {
             String avatar = game.getAvatarPath();
             if ("Mia".equalsIgnoreCase(avatar)) {
-                return img("/images/general/hero1_standing.png");
+                return img("/images/char_sprites/hero1_standing.png");
             }
             if ("Zyx".equalsIgnoreCase(avatar)) {
-                return img("/images/general/alien_standing.png");
+                return img("/images/char_sprites/alien_standing.png");
             }
-            return img("/images/general/hero2_standing.png");
+            return img("/images/char_sprites/hero2_standing.png");
         } catch (Exception ignored) {
             System.out.println("[Fire] Error loading hero");
         }
