@@ -53,6 +53,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
     private Image[] iconImages = new Image[4];
     private Image checkImage;
     private Image bossIcon;
+    private Image headerImage;
 
     public MapPagePanel() {
         loadImages();
@@ -66,6 +67,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
             backgroundImage = new ImageIcon(getClass().getResource("/images/backgrounds/map_backgroud.png")).getImage();
             checkImage = new ImageIcon(getClass().getResource("/images/ui/check.png")).getImage();
             bossIcon = new ImageIcon(getClass().getResource("/images/icons/FinalBossicon.png")).getImage();
+            headerImage = new ImageIcon(getClass().getResource("/images/ui/header.png")).getImage();
 
             for (int i = 0; i < ACT_ICONS.length; i++) {
                 iconImages[i] = new ImageIcon(getClass().getResource(ACT_ICONS[i])).getImage();
@@ -95,12 +97,20 @@ public class MapPagePanel extends JPanel implements Refreshable {
     }
 
     private void buildUI() {
-
+        // 1. Create the main header container
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
-        header.setBounds(0, 0, 920, 80);
-        header.setBorder(BorderFactory.createEmptyBorder(18, 28, 10, 28));
 
+        // Increased height to 220 to ensure the infoBox has plenty of vertical room
+        header.setBounds(0, 0, 920, 220);
+        header.setBorder(BorderFactory.createEmptyBorder(10, 28, 10, 28));
+
+        // 2. Create a vertical container for Title + Player Info
+        JPanel leftColumn = new JPanel();
+        leftColumn.setLayout(new BoxLayout(leftColumn, BoxLayout.Y_AXIS));
+        leftColumn.setOpaque(false);
+
+        // --- TITLE ---
         JLabel title = new JLabel("City Map – Choose a Mission") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -111,96 +121,94 @@ public class MapPagePanel extends JPanel implements Refreshable {
                 g2d.setFont(getFont());
                 FontMetrics fm = g2d.getFontMetrics();
                 int textWidth = fm.stringWidth(text);
-                int x = (getWidth() - textWidth) / 2;
-                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
 
+                // 1. Draw the header image to fill the label's width
+                if (headerImage != null) {
+                    g2d.drawImage(headerImage, 0, 0, getWidth(), getHeight(), this);
+                }
+
+                // 2. Center the text perfectly within the label bounds
+                // We subtract fm.getDescent() to center based on visual height rather than baseline
+                int x = (getWidth() - textWidth) / 2;
+                int yOffset = 9; 
+                int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent() - yOffset;
+
+                // 3. Draw Shadow/Outline
                 g2d.setColor(new Color(0x0F4D58));
-                g2d.setStroke(new BasicStroke(3));
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -2; dx <= 2; dx++) {
+                    for (int dy = -2; dy <= 2; dy++) {
                         if (dx != 0 || dy != 0) {
                             g2d.drawString(text, x + dx, y + dy);
                         }
                     }
                 }
 
+                // 4. Draw Main Text
                 g2d.setColor(Color.WHITE);
                 g2d.drawString(text, x, y);
                 g2d.dispose();
             }
         };
+
         title.setFont(UITheme.FONT_TITLE);
-        title.setHorizontalAlignment(SwingConstants.LEFT);
-        header.add(title, BorderLayout.WEST);
 
-        JPanel info = new JPanel(new GridLayout(2, 1, 0, 2));
-        info.setOpaque(false);
+        // DYNAMIC SIZE CALCULATION
+        FontMetrics titleFm = title.getFontMetrics(UITheme.FONT_TITLE);
+        int textWidth = titleFm.stringWidth(title.getText());
 
-        playerLabel = new JLabel("Hero: —") {
+        // Increased horizontal buffer to 120 for better edge clearance
+        int horizontalBuffer = 120;
+        int headerHeight = 75;
+
+        Dimension titleSize = new Dimension(textWidth + horizontalBuffer, headerHeight);
+        title.setPreferredSize(titleSize);
+        title.setMinimumSize(titleSize);
+        title.setMaximumSize(titleSize);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        leftColumn.add(title);
+
+        // --- SPACE BETWEEN TITLE AND INFO BOX ---
+        leftColumn.add(Box.createVerticalStrut(15));
+
+        // --- INFO BOX ---
+        // We add a preferred size here to prevent BoxLayout from squishing it
+        JPanel infoBox = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                String text = getText();
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int textWidth = fm.stringWidth(text);
-                int x = (getWidth() - textWidth) / 2;
-                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-
-                g2d.setColor(new Color(0x0F4D58));
-                g2d.setStroke(new BasicStroke(2));
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        if (dx != 0 || dy != 0) {
-                            g2d.drawString(text, x + dx, y + dy);
-                        }
-                    }
-                }
-
-                g2d.setColor(UITheme.TEXT_BRIGHT);
-                g2d.drawString(text, x, y);
-                g2d.dispose();
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(15, 77, 88, 190));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                g2.dispose();
             }
         };
-        playerLabel.setFont(UITheme.FONT_BODY);
-        playerLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        infoBox.setOpaque(false);
+        // Reduced top/bottom padding slightly to save vertical space if needed
+        infoBox.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        infoBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        scoreLabel = new JLabel("Score: 0") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
 
-                String text = getText();
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int textWidth = fm.stringWidth(text);
-                int x = (getWidth() - textWidth) / 2;
-                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+        playerLabel = createShadowLabel("Hero: —", UITheme.FONT_BODY, UITheme.TEXT_BRIGHT);
+        scoreLabel = createShadowLabel("Score: 0", UITheme.FONT_BODY, Color.WHITE);
 
-                g2d.setColor(new Color(0x0F4D58));
-                g2d.setStroke(new BasicStroke(2));
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        if (dx != 0 || dy != 0) {
-                            g2d.drawString(text, x + dx, y + dy);
-                        }
-                    }
-                }
+        infoBox.add(playerLabel, gbc);
+        gbc.gridy = 1;
+        gbc.insets = new Insets(2, 0, 0, 0);
+        infoBox.add(scoreLabel, gbc);
 
-                g2d.setColor(Color.WHITE);
-                g2d.drawString(text, x, y);
-                g2d.dispose();
-            }
-        };
-        scoreLabel.setFont(UITheme.FONT_BODY);
-        scoreLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        // Wrap the info box in a panel that doesn't restrict its height
+        JPanel infoWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        infoWrapper.setOpaque(false);
+        infoWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoWrapper.add(infoBox);
 
-        info.add(playerLabel);
-        info.add(scoreLabel);
-        header.add(info, BorderLayout.EAST);
+        leftColumn.add(infoWrapper);
+        header.add(leftColumn, BorderLayout.WEST);
         add(header);
 
         for (int i = 0; i < 4; i++) {
@@ -299,6 +307,33 @@ public class MapPagePanel extends JPanel implements Refreshable {
                 UITheme.FONT_SMALL, UITheme.TEXT_DIM);
         unlockLabel.setBounds(310, 670, 300, 20);
         add(unlockLabel);
+    }
+
+    private JLabel createShadowLabel(String text, Font font, Color textColor) {
+        JLabel label = new JLabel(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                int y = fm.getAscent();
+
+                g2d.setColor(new Color(0x0F4D58));
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (dx != 0 || dy != 0) {
+                            g2d.drawString(getText(), dx, y + dy);
+                        }
+                    }
+                }
+                g2d.setColor(textColor);
+                g2d.drawString(getText(), 0, y);
+                g2d.dispose();
+            }
+        };
+        label.setFont(font);
+        return label;
     }
 
     private void updateButtonTooltip(int idx) {

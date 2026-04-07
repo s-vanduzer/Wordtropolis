@@ -148,15 +148,15 @@ public class FinishPanel extends JPanel implements Refreshable {
         background.setLayout(null);
         add(background);
 
-        // ── Clouds ─────────────────────────────────────────────────────────────
+        // ── Clouds (Added FIRST so they are at the back) ──────────────────────
         if (cloudImage != null) {
             Image cloudScaled = cloudImage.getScaledInstance(360, 190, Image.SCALE_SMOOTH);
             ImageIcon cloudImg = new ImageIcon(cloudScaled);
-
+            
             cloudA = new JLabel(cloudImg);
             cloudA.setBounds(-360, 10, 360, 190);
-            background.add(cloudA);
-
+            background.add(cloudA); // Added first = lowest Z-index
+            
             cloudB = new JLabel(cloudImg);
             cloudB.setBounds(920, 140, 360, 190);
             background.add(cloudB);
@@ -173,168 +173,64 @@ public class FinishPanel extends JPanel implements Refreshable {
             titleLabel.setFont(UITheme.FONT_TITLE);
             titleLabel.setForeground(UITheme.ACCENT_YELLOW);
         }
-        int titleWidth = 600;
-        int titleHeight = 120;
-        int titleX = (W - titleWidth) / 2;
-        titleLabel.setBounds(titleX, 40, titleWidth, titleHeight);
+        titleLabel.setBounds((W - 600) / 2, 30, 600, 120);
         background.add(titleLabel);
 
-        // ── Trophy Image ───────────────────────────────────────────────────────
+        // ── THE COLOURED BOX CONTAINER ────────────────────────────────────────
+        int boxW = 650;
+        int boxH = 400;
+        int boxX = (W - boxW) / 2;
+        int boxY = 160;
+
+        JPanel contentBox = new JPanel(null) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // Dark Blue Transparent Background
+                g2d.setColor(new Color(5, 41, 87, 200));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                // Opaque Border
+                g2d.setColor(new Color(5, 41, 87));
+                g2d.setStroke(new BasicStroke(3));
+                g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 30, 30);
+                g2d.dispose();
+            }
+        };
+        contentBox.setOpaque(false);
+        contentBox.setBounds(boxX, boxY, boxW, boxH);
+        background.add(contentBox); // Added after clouds = draws over clouds
+
+        // ── Trophy (Inside contentBox) ────────────────────────────────────
         JLabel trophyLabel = new JLabel();
         if (trophyImage != null) {
-            Image scaledTrophy = trophyImage.getScaledInstance(160, 160, Image.SCALE_SMOOTH);
+            Image scaledTrophy = trophyImage.getScaledInstance(140, 140, Image.SCALE_SMOOTH);
             trophyLabel.setIcon(new ImageIcon(scaledTrophy));
         } else {
             trophyLabel.setText("🏆");
-            trophyLabel.setFont(new Font("Segoe UI", Font.BOLD, 100));
-            trophyLabel.setForeground(UITheme.ACCENT_YELLOW);
+            trophyLabel.setFont(new Font("Segoe UI", Font.BOLD, 80));
         }
-        int trophyWidth = 160;
-        int trophyHeight = 160;
-        int trophyX = (W - trophyWidth) / 2;
-        trophyLabel.setBounds(trophyX, 200, trophyWidth, trophyHeight);
-        background.add(trophyLabel);
+        trophyLabel.setBounds((boxW - 140) / 2, 20, 140, 140);
+        contentBox.add(trophyLabel);
 
-        // ── Game Over Text ─────────────────────────────────────────────────────
-        JLabel gameOverLabel = new JLabel("GAME OVER") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // ── Labels (Inside contentBox) ────────────────────────────────────────
+        JLabel gameOverLabel = createStrokedLabel("GAME OVER", UITheme.FONT_TITLE);
+        gameOverLabel.setBounds(0, 170, boxW, 40);
+        contentBox.add(gameOverLabel);
 
-                String text = getText();
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int textWidth = fm.stringWidth(text);
-                int x = (getWidth() - textWidth) / 2;
-                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+        JLabel messageLabel = createStrokedLabel("You are a true Spelling Hero!", UITheme.FONT_TITLE);
+        messageLabel.setBounds(0, 220, boxW, 40);
+        contentBox.add(messageLabel);
 
-                g2d.setColor(new Color(0x0F4D58));
-                g2d.setStroke(new BasicStroke(3));
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        if (dx != 0 || dy != 0) {
-                            g2d.drawString(text, x + dx, y + dy);
-                        }
-                    }
-                }
+        userNameLabel = createStrokedLabel("", UITheme.FONT_HEADING);
+        userNameLabel.setBounds(0, 280, boxW, 30);
+        contentBox.add(userNameLabel);
 
-                g2d.setColor(new Color(0xECCB2D));
-                g2d.drawString(text, x, y);
-                g2d.dispose();
-            }
-        };
-        gameOverLabel.setFont(UITheme.FONT_TITLE);
-        gameOverLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        gameOverLabel.setBounds(0, 370, W, 40);
-        background.add(gameOverLabel);
+        scoreLabel = createStrokedLabel("Final Score: 0", UITheme.FONT_HEADING);
+        scoreLabel.setBounds(0, 320, boxW, 30);
+        contentBox.add(scoreLabel);
 
-        // ── Victory Message ────────────────────────────────────────────────────
-        JLabel messageLabel = new JLabel("You are a true Spelling Hero!") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                String text = getText();
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int textWidth = fm.stringWidth(text);
-                int x = (getWidth() - textWidth) / 2;
-                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-
-                g2d.setColor(new Color(0x0F4D58));
-                g2d.setStroke(new BasicStroke(3));
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        if (dx != 0 || dy != 0) {
-                            g2d.drawString(text, x + dx, y + dy);
-                        }
-                    }
-                }
-
-                g2d.setColor(new Color(0xECCB2D));
-                g2d.drawString(text, x, y);
-                g2d.dispose();
-            }
-        };
-        messageLabel.setFont(UITheme.FONT_TITLE);
-        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        messageLabel.setBounds(0, 420, W, 40);
-        background.add(messageLabel);
-
-        // ── User Name Label ────────────────────────────────────────────────────
-        userNameLabel = new JLabel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                String text = getText();
-                if (text == null || text.isEmpty()) {
-                    g2d.dispose();
-                    return;
-                }
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int textWidth = fm.stringWidth(text);
-                int x = (getWidth() - textWidth) / 2;
-                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-
-                g2d.setColor(new Color(0x0F4D58));
-                g2d.setStroke(new BasicStroke(2));
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        if (dx != 0 || dy != 0) {
-                            g2d.drawString(text, x + dx, y + dy);
-                        }
-                    }
-                }
-
-                g2d.setColor(new Color(0xECCB2D));
-                g2d.drawString(text, x, y);
-                g2d.dispose();
-            }
-        };
-        userNameLabel.setFont(UITheme.FONT_HEADING);
-        userNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        userNameLabel.setBounds(0, 470, W, 30);
-        background.add(userNameLabel);
-
-        // ── Score Label ────────────────────────────────────────────────────────
-        scoreLabel = new JLabel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                String text = getText();
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int textWidth = fm.stringWidth(text);
-                int x = (getWidth() - textWidth) / 2;
-                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-
-                g2d.setColor(new Color(0x0F4D58));
-                g2d.setStroke(new BasicStroke(2));
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        if (dx != 0 || dy != 0) {
-                            g2d.drawString(text, x + dx, y + dy);
-                        }
-                    }
-                }
-
-                g2d.setColor(new Color(0xECCB2D));
-                g2d.drawString(text, x, y);
-                g2d.dispose();
-            }
-        };
-        scoreLabel.setFont(UITheme.FONT_HEADING);
-        scoreLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        scoreLabel.setBounds(0, 510, W, 30);
-        background.add(scoreLabel);
-
+        // ── Buttons (Outside the box) ─────────────────────────────────────────
         JButton exitBtn = createRoundedButton("Exit", new Color(0x4A4A4A), new Color(0x6A6A6A), Color.WHITE);
         exitBtn.setBounds(300, 580, 130, 50);
         exitBtn.addActionListener(e -> {
@@ -353,11 +249,34 @@ public class FinishPanel extends JPanel implements Refreshable {
 
         background.add(exitBtn);
         background.add(replayBtn);
+    }
 
-        // the clouds
-        if (cloudB != null) {
-            background.setComponentZOrder(cloudB, background.getComponentCount() - 1);
-        }
+    // Helper to keep the buildUI code clean since all your labels used the same stroke logic
+    private JLabel createStrokedLabel(String text, Font font) {
+        JLabel label = new JLabel(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                String t = getText();
+                if (t == null || t.isEmpty()) return;
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                int x = (getWidth() - fm.stringWidth(t)) / 2;
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2d.setColor(new Color(0x0F4D58));
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (dx != 0 || dy != 0) g2d.drawString(t, x + dx, y + dy);
+                    }
+                }
+                g2d.setColor(new Color(0xECCB2D));
+                g2d.drawString(t, x, y);
+                g2d.dispose();
+            }
+        };
+        label.setFont(font);
+        return label;
     }
 
     private void startCloudAnimation() {

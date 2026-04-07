@@ -5,7 +5,6 @@ import com.cs4474.wordtropolis.Wordtropolis;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.IOException;
 
 public class StartPagePanel extends JPanel {
 
@@ -48,9 +47,9 @@ public class StartPagePanel extends JPanel {
         titleLabel.setBounds(titleX, baseTitleY, titleWidth, titleHeight);
         background.add(titleLabel);
 
-        // --- UPDATED ROUNDED, TRANSPARENT DARK BLUE BOX ---
+        // --- UPDATED BOX DIMENSIONS FOR 3 BUTTONS ---
         int panelWidth = 500;
-        int panelHeight = 180;
+        int panelHeight = 250; // Increased from 180 to 250
         int panelX = (920 - panelWidth) / 2;
         int panelY = 360;
 
@@ -59,41 +58,40 @@ public class StartPagePanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                // Color #052957 with Alpha (200/255 for slight transparency)
                 g2d.setColor(new Color(5, 41, 87, 200));
-
-                // Draw the rounded rectangle
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
-
-                // Optional: add a border/outline in the same color (fully opaque)
                 g2d.setColor(new Color(5, 41, 87));
                 g2d.setStroke(new BasicStroke(3));
                 g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 30, 30);
-
                 g2d.dispose();
             }
         };
-        buttonPanel.setOpaque(false); // Must be false to see the rounded corners properly
+        buttonPanel.setOpaque(false);
         buttonPanel.setBounds(panelX, panelY, panelWidth, panelHeight);
         background.add(buttonPanel);
 
         // Buttons
         JButton teacherBtn = createStyledButton("I am a Teacher");
         JButton studentBtn = createStyledButton("I am a Student");
+        JButton exitBtn = createStyledButton("Exit Game");
 
         teacherBtn.setBounds(50, 25, 400, 60);
         studentBtn.setBounds(50, 95, 400, 60);
+        exitBtn.setBounds(50, 165, 400, 60); // Positioned below student
 
-        teacherBtn.setFont(loadGameFont(24));
-        studentBtn.setFont(loadGameFont(24));
+        Font gameFont = loadGameFont(24);
+        teacherBtn.setFont(gameFont);
+        studentBtn.setFont(gameFont);
+        exitBtn.setFont(gameFont);
 
         Color gold = new Color(0xEC, 0xCB, 0x2D);
         teacherBtn.setForeground(gold);
         studentBtn.setForeground(gold);
+        exitBtn.setForeground(gold);
 
         buttonPanel.add(teacherBtn);
         buttonPanel.add(studentBtn);
+        buttonPanel.add(exitBtn);
 
         // Triangle selector
         Image triangleRaw = new ImageIcon(getClass().getResource("/images/ui/triangle.png")).getImage();
@@ -103,11 +101,11 @@ public class StartPagePanel extends JPanel {
         selector.setVisible(false);
         buttonPanel.add(selector);
 
-        // Hover Logic
+        // Hover Logic for Triangle Selector
         teacherBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                selector.setBounds(100, 42, 28, 28);
+                selector.setBounds(85, 42, 28, 28);
                 selector.setVisible(true);
             }
 
@@ -120,7 +118,7 @@ public class StartPagePanel extends JPanel {
         studentBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                selector.setBounds(100, 112, 28, 28);
+                selector.setBounds(85, 112, 28, 28);
                 selector.setVisible(true);
             }
 
@@ -130,7 +128,20 @@ public class StartPagePanel extends JPanel {
             }
         });
 
-        // Navigation & Timers
+        exitBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                selector.setBounds(85, 182, 28, 28);
+                selector.setVisible(true);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                selector.setVisible(false);
+            }
+        });
+
+        // Action Listeners
         teacherBtn.addActionListener(e -> {
             Wordtropolis.showScreen(Wordtropolis.SCREEN_TEACHER);
             SoundManager.play(SoundManager.GAME_BTN_CLICK);
@@ -139,7 +150,13 @@ public class StartPagePanel extends JPanel {
             Wordtropolis.showScreen(Wordtropolis.SCREEN_HERO_PICK);
             SoundManager.play(SoundManager.GAME_BTN_CLICK);
         });
+        exitBtn.addActionListener(e -> {
+            SoundManager.play(SoundManager.GAME_BTN_CLICK);
+//            System.exit(0);
+            Wordtropolis.showScreen(Wordtropolis.SCREEN_FINISH);
+        });
 
+        // Timers
         new Timer(60, e -> floatTitle()).start();
         new Timer(30, e -> {
             cloudA.setLocation(cloudA.getX() > 920 ? -360 : cloudA.getX() + 2, cloudA.getY());
@@ -156,7 +173,6 @@ public class StartPagePanel extends JPanel {
                 FontMetrics fm = g2d.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2;
                 int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-                // Text Stroke
                 g2d.setColor(new Color(5, 41, 87));
                 for (int i = -1; i <= 1; i++) {
                     for (int j = -1; j <= 1; j++) {
