@@ -152,8 +152,7 @@ public class StartPagePanel extends JPanel {
         });
         exitBtn.addActionListener(e -> {
             SoundManager.play(SoundManager.GAME_BTN_CLICK);
-//            System.exit(0);
-            Wordtropolis.showScreen(Wordtropolis.SCREEN_FINISH);
+            System.exit(0);
         });
 
         // Timers
