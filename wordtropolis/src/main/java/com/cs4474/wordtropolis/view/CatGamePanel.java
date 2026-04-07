@@ -859,17 +859,14 @@ public class CatGamePanel extends JPanel implements Refreshable {
     private void paintLeftPanel(Graphics2D g2, int H) {
         int panelX = 14;
 
-        // NEW CHANGE B: replace banner with outer_box "Back" button
-        // Uses only the outer_box.png image (top + bottom strips, centre filled)
-        // Clicking it returns the player to the map screen
+        // 1. Back Button
         int backBtnW = 120, backBtnH = 40;
         paintOuterBoxButton(g2, panelX, 12, backBtnW, backBtnH, "< Back", "back_to_map");
 
-        // Vertical progress bar using progress_bar.png strip (ladder progress)
-        // We take the first coloured row (row 1 = cyan) and rotate 90° to draw vertically
+        // 2. Vertical progress bar
         int barX = panelX + 10;
         int barTop = 80;
-        int barH = Math.min(H - 80, 200);
+        int barH = Math.min(H - 150, 200); // Reduced max height slightly to ensure room for button
         int barW = 18;
 
         // Background (dark strip)
@@ -879,7 +876,6 @@ public class CatGamePanel extends JPanel implements Refreshable {
         // Filled portion
         int filled = (int) ((double) model.getWordsCompleted() / model.getTotalWords() * barH);
         if (imgProgressBar != null && filled > 0) {
-            // Rotate 90° so the horizontal sprite runs vertically; crop dark border pixels
             int srcX1 = 10, srcX2 = 35;
             int srcY1 = (PB_LADDER_ROW * PB_ROW_H) + 15;
             int srcY2 = ((PB_LADDER_ROW + 1) * PB_ROW_H) - 10;
@@ -896,6 +892,15 @@ public class CatGamePanel extends JPanel implements Refreshable {
             g2.setColor(UITheme.ACCENT_TEAL);
             g2.fillRect(barX, barTop + barH - filled, barW, filled);
         }
+
+        // 3. Play Word Again Button
+        // Positioned 20 pixels below the progress bar
+        int againW = 180;
+        int againH = 45;
+        int againY = barTop + barH + 20;
+
+        // We use panelX to align it with the Back button/Progress bar area
+        paintOuterBoxButton(g2, panelX, againY, againW, againH, "Play Word Again", "again_btn");
     }
 
     // ── Top timer bar ─────────────────────────────────────────────────────────
@@ -1480,7 +1485,6 @@ public class CatGamePanel extends JPanel implements Refreshable {
                 }
 
                 // Button clicks when NOT dragging
-// Button clicks when NOT dragging
                 if (!isDragging) {
                     // 1. Check (Submit) Button
                     Rectangle check = clickZones.get("check_btn");
@@ -1506,6 +1510,14 @@ public class CatGamePanel extends JPanel implements Refreshable {
                         model.clearArrangement();
                         computeTilePositions();
                         repaint();
+                        return;
+                    }
+
+                    // 4. Play Word Again Button
+                    Rectangle again = clickZones.get("again_btn");
+                    if (again != null && again.contains(mx, my)) {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK); // Optional: play click sound
+                        speakWord(); // Call your voice function
                         return;
                     }
                 }

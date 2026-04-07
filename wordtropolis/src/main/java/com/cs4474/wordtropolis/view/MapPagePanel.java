@@ -17,7 +17,7 @@ public class MapPagePanel extends JPanel implements Refreshable {
     // Set to false for presentation (all levels unlocked)
     // Set to true for submission (linear progression enabled)
     // ============================================================
-    private static final boolean LINEAR_PROGRESSION_ENABLED = false;
+    private static final boolean LINEAR_PROGRESSION_ENABLED = true;
     // change to true for submission ( linear)
 
     private static final String[] ACT_LABELS = {
