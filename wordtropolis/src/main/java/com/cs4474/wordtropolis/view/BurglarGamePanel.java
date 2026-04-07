@@ -27,7 +27,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
     // ── Images ────────────────────────────────────────────────────────────────
     private BufferedImage imgBg, imgHero, imgRobber, imgProgressBar;
     private BufferedImage imgLetterBox, imgOuterBox;
-    private BufferedImage imgCheck, imgBack, imgSparkle;
+    private BufferedImage imgCheck, imgBack, imgShuffle, imgSparkle;
 
     // ── Sprite constants ──────────────────────────────────────────────────────
     private static final int SPKL_FRAMES = 14, SPKL_W = 32, SPKL_H = 32;
@@ -138,6 +138,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
             imgOuterBox = img("/images/ui/outer_box.png");
             imgCheck = img("/images/ui/check.png");
             imgBack = img("/images/ui/back.png");
+            imgShuffle = img("/images/ui/shuffle_button.png");
             imgSparkle = img("/images/effects/blue_sparkle.png");
 
         } catch (Exception e) {
@@ -148,6 +149,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
     private BufferedImage loadHeroImage() {
         try {
             String avatar = Game.getInstance().getAvatarPath();
+            System.out.println("[Burglar] Trying to load: " + avatar);
             if ("Mia".equalsIgnoreCase(avatar)) {
                 return img("/images/char_sprites/hero1_running.png");
             }
@@ -283,7 +285,7 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
                     return;
                 }
                 int c = e.getKeyCode();
-                if (c == KeyEvent.VK_BACK_SPACE && model.getPlayerArrangement().size() > 0) {
+                if (c == KeyEvent.VK_BACK_SPACE && !model.getPlayerArrangement().isEmpty()) {
                     model.removeLetter(model.getPlayerArrangement().size() - 1);
                     SoundManager.playConditional(SoundManager.SFX_TILE_CLICK, SoundManager.GameActivity.BURGLAR_GAME);
                     computeTilePositions();
@@ -473,8 +475,10 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
 
         if (null != currentScreen) {
             switch (currentScreen) {
-                case INTRO ->
+                case INTRO -> {
                     paintStartScreen(g2, W, H);
+                    break;
+                }
                 case GAME -> {
                     paintProgressBar(g2, W, H);
                     paintCharacters(g2, W, H);
@@ -503,15 +507,17 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
                         g2.setColor(new Color(1f, 0f, 0f, 0.12f));
                         g2.fillRect(0, 0, W, H);
                     }
-                    g2.dispose();
+                    break;
                 }
                 case WIN -> {
                     paintWinOverlay(g2, W, H);
+                    break;
                 }
                 default -> {
                 }
             }
         }
+        g2.dispose();
     }
 
     private void paintBackground(Graphics2D g2, int W, int H) {
@@ -583,35 +589,62 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
 
     // Inside paintCharacters(Graphics2D g2, int W, int H)
     private void paintCharacters(Graphics2D g2, int W, int H) {
+        if (imgHero == null || imgRobber == null) {
+            return;
+        }
+
         int groundY = (int) (H * 0.85);
-        // Increase charSize slightly to 120 or 140 so the bigger 192px sprite isn't squashed
-        int charSize = 130;
         int stepSize = 50;
 
-        int heroX = 100 + (model.getHeroPosition() * stepSize) - (int) cameraOffset;
-        int robberX = 100 + (model.getRobberPosition() * stepSize) - (int) cameraOffset;
+        // 1. INDIVIDUAL HEIGHTS
+        int heroHeight = 270;   // The hero's height
+        int robberHeight = 150; // The robber's height
 
-        // The math now uses 192, so it jumps exactly to the start of the next alien/hero
-        int sx1 = animationFrame * FRAME_W;
-        int sx2 = sx1 + FRAME_W;
-        int sy1 = 0;
-        int sy2 = FRAME_H;
+        int heroX = 150;
+        int distanceBetween = (model.getRobberPosition() - model.getHeroPosition()) * stepSize;
+        int robberX = heroX + distanceBetween;
 
+        // --- HERO SPRITE MATH (4 x 4) ---
+        int hCols = 4;
+        int hRows = 4;
+        int hFrameW = imgHero.getWidth() / hCols;  // ~210px
+        int hFrameH = imgHero.getHeight() / hRows; // ~316px
+
+        // Keep aspect ratio
+        double hRatio = (double) hFrameW / hFrameH;
+        int hDrawWidth = (int) (heroHeight * hRatio);
+
+        int heroRowIndex = 2; // Row 3
+        int hSx1 = (animationFrame % hCols) * hFrameW;
+        int hSx2 = hSx1 + hFrameW;
+        int hSy1 = heroRowIndex * hFrameH;
+        int hSy2 = hSy1 + hFrameH;
+
+        // --- ROBBER SPRITE MATH ---
+        int rCols = 4;
+        int rFrameW = imgRobber.getWidth() / rCols;
+        int rFrameH = imgRobber.getHeight();
+
+        double rRatio = (double) rFrameW / rFrameH;
+        int rDrawWidth = (int) (robberHeight * rRatio);
+
+        int rSx1 = (animationFrame % rCols) * rFrameW;
+        int rSx2 = rSx1 + rFrameW;
+
+        // --- DRAWING ---
         // Draw Hero
-        if (imgHero != null) {
-            g2.drawImage(imgHero,
-                    heroX, groundY - charSize, heroX + charSize, groundY,
-                    sx1, sy1, sx2, sy2,
-                    null);
-        }
+        g2.drawImage(imgHero,
+                heroX, groundY - heroHeight,
+                heroX + hDrawWidth, groundY,
+                hSx1, hSy1, hSx2, hSy2,
+                null);
 
         // Draw Robber
-        if (imgRobber != null) {
-            g2.drawImage(imgRobber,
-                    robberX, groundY - charSize, robberX + charSize, groundY,
-                    sx1, sy1, sx2, sy2,
-                    null);
-        }
+        g2.drawImage(imgRobber,
+                robberX, groundY - robberHeight,
+                robberX + rDrawWidth, groundY,
+                rSx1, 0, rSx2, rFrameH,
+                null);
     }
 
     private void paintStartScreen(Graphics2D g2, int W, int H) {
@@ -737,18 +770,25 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
         int btnSize = 56;
         int backY = boxY + boxH / 2 - btnSize / 2;
         int backX = boxX - btnSize - 10;
+        int shuffleX = backX - btnSize - 10;
+        int shuffleY = backY;
         int checkX = boxX + boxW + 10;
         int checkY = backY;
 
-        // Draw outer box container
+        // 1. Draw outer box container
         paintOuterBox(g2, boxX, boxY, boxW, boxH);
 
-        // ── Check (submit) button to the RIGHT of the box ─────────────────────
-        paintIconBox(g2, checkX, checkY, btnSize, imgCheck, "check_btn");
+        // 2. Draw Labeled Buttons ──────────────────────────────────────────────
+        // Check (submit) button
+        paintLabeledIcon(g2, checkX, checkY, btnSize, imgCheck, "ENTER", "check_btn");
 
-        // ── Back (reset) button to the LEFT of the box ─────────────────────
-        paintIconBox(g2, backX, backY, btnSize, imgBack, "back_btn");
+        // Back (delete last) button
+        paintLabeledIcon(g2, backX, backY, btnSize, imgBack, "BACKSPACE", "back_btn");
 
+        // Shuffle (clear/reset) button
+        paintLabeledIcon(g2, shuffleX, shuffleY, btnSize, imgShuffle, "ESC", "shuffle_btn");
+
+        // 3. Draw character slots ──────────────────────────────────────────────
         // Draw each character slot
         int slotStartX = boxX + boxPad;
         List<Character> arr = model.getPlayerArrangement();
@@ -772,6 +812,43 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
                 paintLetterTile(g2, sx, sy, slotSize, String.valueOf(c), false, -1);
             }
         }
+    }
+
+    private void paintLabeledIcon(Graphics2D g2, int x, int y, int size,
+            BufferedImage icon, String label, String zoneId) {
+        // 1. Draw the Icon itself (from your existing code)
+        paintIconBox(g2, x, y, size, icon, zoneId);
+
+        // 2. Setup Larger Font and Metrics
+        // Increased from 11 to 14
+        g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+        FontMetrics fm = g2.getFontMetrics();
+
+        int textW = fm.stringWidth(label);
+        int textH = fm.getHeight();
+
+        // 3. Positioning and Sizing the background
+        int hPadding = 8;  // Side padding
+        int vPadding = 4;  // Top/Bottom padding
+        int bgW = textW + (hPadding * 2);
+        int bgH = textH + vPadding;
+
+        // Center horizontally relative to the icon
+        int bgX = x + (size / 2) - (bgW / 2);
+        // Positioned 8 pixels below the icon
+        int bgY = y + size + 8;
+
+        // 4. Draw Background "Pill" (Dark for high contrast)
+        g2.setColor(new Color(0, 0, 0, 190)); // Slightly more opaque for visibility
+        g2.fillRoundRect(bgX, bgY, bgW, bgH, 10, 10);
+
+        // 5. Draw the Text in White
+        g2.setColor(Color.WHITE);
+        // fm.getAscent() ensures the text sits correctly inside the pill
+        g2.drawString(label, bgX + hPadding, bgY + fm.getAscent() + (vPadding / 2) - 2);
+
+        // 6. Update the Click Zone so the text is also clickable
+        clickZones.put(zoneId, new Rectangle(x, y, size, size + bgH + 8));
     }
 
     private void paintLetterTiles(Graphics2D g2) {
@@ -1122,12 +1199,21 @@ public class BurglarGamePanel extends JPanel implements Refreshable {
                     }
                     Rectangle back = clickZones.get("back_btn");
                     if (back != null && back.contains(mx, my)) {
+                        model.removeLetter(model.getPlayerArrangement().size() - 1);
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                        computeTilePositions();
+                        repaint();
+                        return;
+                    }
+                    Rectangle shuffle = clickZones.get("shuffle_btn");
+                    if (shuffle != null && shuffle.contains(mx, my)) {
                         SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         model.clearArrangement();
                         computeTilePositions();
                         repaint();
                         return;
                     }
+
                     return;
                 }
 

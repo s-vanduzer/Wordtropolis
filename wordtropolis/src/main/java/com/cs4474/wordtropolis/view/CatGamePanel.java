@@ -29,9 +29,9 @@ public class CatGamePanel extends JPanel implements Refreshable {
 
     // ── Images ────────────────────────────────────────────────────────────────
     private BufferedImage imgBg, imgTree, imgCat, imgNpc, imgLadder;
-    private BufferedImage imgLightPole, imgProgressBar;
-    private BufferedImage imgLetterBox, imgOuterBox, imgBanner;
-    private BufferedImage imgBack, imgCheck, imgSparkle;
+    private BufferedImage imgProgressBar;
+    private BufferedImage imgLetterBox, imgOuterBox;
+    private BufferedImage imgBack, imgCheck, imgShuffle, imgSparkle;
     private BufferedImage imgHero;   // selected hero sprite sheet
 
     // ── Sprite constants ──────────────────────────────────────────────────────
@@ -149,12 +149,11 @@ public class CatGamePanel extends JPanel implements Refreshable {
         imgCat = img("/images/char_sprites/cat.png");
         imgNpc = img("/images/char_sprites/npc.png");
         imgLadder = img("/images/sprites/ladder.png");
-        imgLightPole = img("/images/sprites/light_pole.png");
         imgProgressBar = img("/images/ui/progress_bar.png");
         imgLetterBox = img("/images/ui/individual_box.png");
         imgOuterBox = img("/images/ui/outer_box.png");
-        imgBanner = img("/images/ui/banner.png");
         imgBack = img("/images/ui/back.png");
+        imgShuffle = img("/images/ui/shuffle_button.png");
         imgCheck = img("/images/ui/check.png");
         imgSparkle = img("/images/effects/blue_sparkle.png");
     }
@@ -274,13 +273,20 @@ public class CatGamePanel extends JPanel implements Refreshable {
                     return;
                 }
                 int c = e.getKeyCode();
-                if (c == KeyEvent.VK_BACK_SPACE && model.backspace()) {
-                    SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.CAT_GAME);
-                    repaint();
-                } else if (c == KeyEvent.VK_ENTER) {
+                // Backspace: Remove last tile
+                if (c == KeyEvent.VK_BACK_SPACE) {
+                    if (model.backspace()) {
+                        SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.CAT_GAME);
+                        repaint();
+                    }
+                } // Enter: Submit answer
+                else if (c == KeyEvent.VK_ENTER) {
                     handleSubmit();
-                } else if (c == KeyEvent.VK_ESCAPE) {
+                } // Esc: Shuffle letters and clear arrangement
+                else if (c == KeyEvent.VK_ESCAPE) {
+                    SoundManager.play(SoundManager.GAME_BTN_CLICK);
                     model.clearArrangement();
+                    computeTilePositions();
                     repaint();
                 }
             }
@@ -1070,18 +1076,60 @@ public class CatGamePanel extends JPanel implements Refreshable {
             }
         }
 
-        // ── Back (clear) button to the LEFT of the box ────────────────────────
+        // ── Button Settings ──────────────────────────────────────────────────
         int btnSize = 56;
-        int backX = boxX - btnSize - 10;
-        int backY = boxY + boxH / 2 - btnSize / 2;
-        paintIconBox(g2, backX, backY, btnSize, imgBack, "back_btn");
+        int spacing = 30; // Increased to 30 for label breathing room
+        int commonY = boxY + boxH / 2 - btnSize / 2;
+
+        // ── Back (remove last) button to the LEFT of the box ──────────────────
+        int backX = boxX - btnSize - spacing;
+        paintLabeledIcon(g2, backX, commonY, btnSize, imgBack, "BACKSPACE", "back_btn");
+
+        // ── Shuffle (clear) button to the LEFT of the back button ─────────────
+        int shuffleX = backX - btnSize - spacing;
+        paintLabeledIcon(g2, shuffleX, commonY, btnSize, imgShuffle, "ESC", "shuffle_btn");
 
         // ── Check (submit) button to the RIGHT of the box ─────────────────────
-        int checkX = boxX + boxW + 10;
-        int checkY = backY;
-        paintIconBox(g2, checkX, checkY, btnSize, imgCheck, "check_btn");
-
+        int checkX = boxX + boxW + spacing;
+        paintLabeledIcon(g2, checkX, commonY, btnSize, imgCheck, "ENTER", "check_btn");
     }  // end paintGameUI
+
+    private void paintLabeledIcon(Graphics2D g2, int x, int y, int size,
+            BufferedImage icon, String label, String zoneId) {
+        // 1. Draw the Icon itself (from your existing code)
+        paintIconBox(g2, x, y, size, icon, zoneId);
+
+        // 2. Setup Larger Font and Metrics
+        // Increased from 11 to 14
+        g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+        FontMetrics fm = g2.getFontMetrics();
+
+        int textW = fm.stringWidth(label);
+        int textH = fm.getHeight();
+
+        // 3. Positioning and Sizing the background
+        int hPadding = 8;  // Side padding
+        int vPadding = 4;  // Top/Bottom padding
+        int bgW = textW + (hPadding * 2);
+        int bgH = textH + vPadding;
+
+        // Center horizontally relative to the icon
+        int bgX = x + (size / 2) - (bgW / 2);
+        // Positioned 8 pixels below the icon
+        int bgY = y + size + 8;
+
+        // 4. Draw Background "Pill" (Dark for high contrast)
+        g2.setColor(new Color(0, 0, 0, 190)); // Slightly more opaque for visibility
+        g2.fillRoundRect(bgX, bgY, bgW, bgH, 10, 10);
+
+        // 5. Draw the Text in White
+        g2.setColor(Color.WHITE);
+        // fm.getAscent() ensures the text sits correctly inside the pill
+        g2.drawString(label, bgX + hPadding, bgY + fm.getAscent() + (vPadding / 2) - 2);
+
+        // 6. Update the Click Zone so the text is also clickable
+        clickZones.put(zoneId, new Rectangle(x, y, size, size + bgH + 8));
+    }
 
     private void paintFinishOverlay(Graphics2D g2, int W, int H) {
         // 1. Full-page dark overlay (dimming the background)
@@ -1432,21 +1480,34 @@ public class CatGamePanel extends JPanel implements Refreshable {
                 }
 
                 // Button clicks when NOT dragging
+// Button clicks when NOT dragging
                 if (!isDragging) {
+                    // 1. Check (Submit) Button
                     Rectangle check = clickZones.get("check_btn");
                     if (check != null && check.contains(mx, my)) {
                         handleSubmit();
                         return;
                     }
+
+                    // 2. Back Button (Remove last tile only)
                     Rectangle back = clickZones.get("back_btn");
                     if (back != null && back.contains(mx, my)) {
+                        if (model.backspace()) {
+                            SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                            repaint();
+                        }
+                        return;
+                    }
+
+                    // 3. Shuffle Button (Shuffle and clear everything)
+                    Rectangle shuffle = clickZones.get("shuffle_btn");
+                    if (shuffle != null && shuffle.contains(mx, my)) {
                         SoundManager.play(SoundManager.GAME_BTN_CLICK);
                         model.clearArrangement();
                         computeTilePositions();
                         repaint();
                         return;
                     }
-                    return;
                 }
 
                 // Drop logic
@@ -1555,19 +1616,7 @@ public class CatGamePanel extends JPanel implements Refreshable {
 
     private void startGame() {
         SoundManager.playConditional(SoundManager.CAT_GAME_START, SoundManager.GameActivity.CAT_GAME);
-        // FIX 3d: music starts when user clicks Start Rescue — not before
         SoundManager.startMusic(SoundManager.CAT_BGM);
-        // Show instruction dialog
-//        JOptionPane.showMessageDialog(this,
-//            "<html><div style='font-size:14px;text-align:center;padding:10px'>"
-//            + "<b>How to Play</b><br><br>"
-//            + "Listen to the word spoken aloud.<br>"
-//            + "Drag the floating letters or type on your keyboard<br>"
-//            + "to spell the word in the box below.<br><br>"
-//            + "Each correct word builds the rescue ladder!<br>"
-//            + "You have 60 seconds per word. Good luck!"
-//            + "</div></html>",
-//            "How to Play", JOptionPane.INFORMATION_MESSAGE);
         currentScreen = Screen.GAME;
         computeTilePositions();
         speakWord();

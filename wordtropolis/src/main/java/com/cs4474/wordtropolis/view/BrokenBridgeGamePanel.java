@@ -163,7 +163,7 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
         imgOuterBox = img("/images/ui/outer_box.png");
         imgProgressBar = img("/images/ui/progress_bar.png");
         imgCheck = img("/images/ui/check.png");
-        imgBack = img("/images/bridge_game/back.png");
+        imgBack = img("/images/ui/back.png");
         imgSparkle = img("/images/effects/blue_sparkle.png");
         imgHero = loadHeroImage();
     }
@@ -873,10 +873,54 @@ public class BrokenBridgeGamePanel extends JPanel implements Refreshable {
             }
         }
 
-        int clearX = outerX - BTN_SIZE - 10, clearY = outerY + outerH / 2 - BTN_SIZE / 2;
-        paintIconBox(g2, clearX, clearY, BTN_SIZE, imgBack, "clear_btn");
-        int checkX = outerX + outerW + 10, checkY = clearY;
-        paintIconBox(g2, checkX, checkY, BTN_SIZE, imgCheck, "check_btn");
+// ── Button Settings ──────────────────────────────────────────────────
+        int spacing = 30;
+        int commonY = outerY + outerH / 2 - BTN_SIZE / 2;
+
+        // 1. Back/Clear Button (Left of box)
+        int clearX = outerX - BTN_SIZE - spacing;
+        paintLabeledIcon(g2, clearX, commonY, BTN_SIZE, imgBack, "BACKSPACE", "clear_btn");
+
+        // 2. Check Button (Right of box)
+        int checkX = outerX + outerW + spacing;
+        paintLabeledIcon(g2, checkX, commonY, BTN_SIZE, imgCheck, "ENTER", "check_btn");
+    }
+
+    private void paintLabeledIcon(Graphics2D g2, int x, int y, int size,
+            BufferedImage icon, String label, String zoneId) {
+        // 1. Draw the Icon itself (from your existing code)
+        paintIconBox(g2, x, y, size, icon, zoneId);
+
+        // 2. Setup Larger Font and Metrics
+        // Increased from 11 to 14
+        g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+        FontMetrics fm = g2.getFontMetrics();
+
+        int textW = fm.stringWidth(label);
+        int textH = fm.getHeight();
+
+        // 3. Positioning and Sizing the background
+        int hPadding = 8;  // Side padding
+        int vPadding = 4;  // Top/Bottom padding
+        int bgW = textW + (hPadding * 2);
+        int bgH = textH + vPadding;
+
+        // Center horizontally relative to the icon
+        int bgX = x + (size / 2) - (bgW / 2);
+        // Positioned 8 pixels below the icon
+        int bgY = y + size + 8;
+
+        // 4. Draw Background "Pill" (Dark for high contrast)
+        g2.setColor(new Color(0, 0, 0, 190)); // Slightly more opaque for visibility
+        g2.fillRoundRect(bgX, bgY, bgW, bgH, 10, 10);
+
+        // 5. Draw the Text in White
+        g2.setColor(Color.WHITE);
+        // fm.getAscent() ensures the text sits correctly inside the pill
+        g2.drawString(label, bgX + hPadding, bgY + fm.getAscent() + (vPadding / 2) - 2);
+
+        // 6. Update the Click Zone so the text is also clickable
+        clickZones.put(zoneId, new Rectangle(x, y, size, size + bgH + 8));
     }
 
     private void paintSparkle(Graphics2D g2) {

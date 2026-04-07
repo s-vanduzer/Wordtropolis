@@ -41,7 +41,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
     // ── Images ────────────────────────────────────────────────────────────────
     private BufferedImage imgBg, imgTree, imgNpc;
     private BufferedImage imgLetterBox, imgOuterBox;
-    private BufferedImage imgBack, imgCheck, imgSparkle;
+    private BufferedImage imgBack, imgCheck, imgShuffle, imgSparkle;
     private BufferedImage imgHero;   // selected hero sprite sheet
     private BufferedImage imgVillain;
     private BufferedImage imgShield;
@@ -163,6 +163,7 @@ public class BossGamePanel extends JPanel implements Refreshable {
         imgLetterBox = img("/images/ui/individual_box.png");
         imgOuterBox = img("/images/ui/outer_box.png");
         imgBack = img("/images/ui/back.png");
+        imgShuffle = img("/images/ui/shuffle_button.png");
         imgCheck = img("/images/ui/check.png");
         imgSparkle = img("/images/effects/blue_sparkle.png");
         imgHero = loadHeroImage();
@@ -275,15 +276,27 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     return;
                 }
                 int c = e.getKeyCode();
-                if (c == KeyEvent.VK_BACK_SPACE && model.backspace()) {
-                    SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.BOSS_GAME);
-                    repaint();
-                } else if (c == KeyEvent.VK_ENTER) {
-                    handleSubmit();
-                } else if (c == KeyEvent.VK_ESCAPE) {
-                    model.clearArrangement();
-                    repaint();
+                // Backspace: remove last tile
+                switch (c) {
+                    case KeyEvent.VK_BACK_SPACE -> {
+                        if (model.backspace()) {
+                            SoundManager.playConditional(SoundManager.CAT_TILE_CLICK, SoundManager.GameActivity.BOSS_GAME);
+                            repaint();
+                        }
+                    }
+                    case KeyEvent.VK_ENTER ->
+                        handleSubmit();
+                    case KeyEvent.VK_ESCAPE -> {
+                        SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                        model.clearArrangement();
+                        computeTilePositions(); // Ensure tiles return to their floating spots
+                        repaint();
+                    }
+                    default -> {
+                    }
                 }
+                // Enter: submit answer
+                // Escape: clear all (shuffle behavior)
             }
         });
     }
@@ -1257,7 +1270,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
         int slotSize = 64, slotGap = 10;
         int totalSlotW = wordLen * (slotSize + slotGap) - slotGap;
 
-        // The outer box spans the word slots
         int boxPad = 20;
         int boxW = totalSlotW + boxPad * 2;
         int boxH = slotSize + boxPad;
@@ -1266,17 +1278,10 @@ public class BossGamePanel extends JPanel implements Refreshable {
         int tileSize = 64;
 
         // ── Floating available tiles ──────────────────────────────────────────
-        int gapAboveBox = 30;
-
-        // 2. The Y position for all floating tiles should be the box's top minus tile height and gap
-        int floatingTilesY = boxY - slotSize - gapAboveBox;
-
-        // 3. Apply this to your loop
-        List<Character> avail = model.getAvailableLetters();
-        if (tileBaseX == null || tileBaseX.length != avail.size()) {
+        if (tileBaseX == null || tileBaseX.length != model.getAvailableLetters().size()) {
             computeTilePositions();
         }
-
+        List<Character> avail = model.getAvailableLetters();
         for (int i = 0; i < avail.size(); i++) {
             int dx = (windX != null && i < windX.length) ? windX[i] : 0;
             int dy = (windY != null && i < windY.length) ? windY[i] : 0;
@@ -1285,10 +1290,10 @@ public class BossGamePanel extends JPanel implements Refreshable {
             paintLetterTile(g2, x, y, tileSize, String.valueOf(avail.get(i)), false, i);
         }
 
-        // Draw outer_box tiled as the container
+        // Draw outer_box
         paintOuterBox(g2, boxX, boxY, boxW, boxH);
 
-        // Draw arrangement slots inside
+        // Draw arrangement slots
         List<Character> arr = model.getPlayerArrangement();
         int slotStartX = boxX + boxPad;
         for (int i = 0; i < wordLen; i++) {
@@ -1301,32 +1306,71 @@ public class BossGamePanel extends JPanel implements Refreshable {
             }
         }
 
-        // ── Back (clear) button to the LEFT of the box ────────────────────────
+        // ── Button Layout Settings ────────────────────────────────────────────
         int btnSize = 56;
-        int backX = boxX - btnSize - 10;
-        int backY = boxY + boxH / 2 - btnSize / 2;
-        paintIconBox(g2, backX, backY, btnSize, imgBack, "back_btn");
+        int spacing = 30; // Increased spacing for label breathing room
+        int btnY = boxY + boxH / 2 - btnSize / 2;
 
-        // ── Check (submit) button to the RIGHT of the box ─────────────────────
-        int checkX = boxX + boxW + 10;
-        int checkY = backY;
-        paintIconBox(g2, checkX, checkY, btnSize, imgCheck, "check_btn");
+        // 1. Back Button (Left of box)
+        int backX = boxX - btnSize - spacing;
+        paintLabeledIcon(g2, backX, btnY, btnSize, imgBack, "BACKSPACE", "back_btn");
 
-        // ── SKIP button - Now beside the Check button ─────────────────────────
+        // 2. Shuffle Button (Far Left)
+        int shuffleX = backX - btnSize - spacing;
+        paintLabeledIcon(g2, shuffleX, btnY, btnSize, imgShuffle, "ESC", "shuffle_btn");
+
+        // 3. Check Button (Right of box)
+        int checkX = boxX + boxW + spacing;
+        paintLabeledIcon(g2, checkX, btnY, btnSize, imgCheck, "ENTER", "check_btn");
+
+        // ── SKIP button - Beside the Check button ─────────────────────────────
+        // Note: Skip is a text box, so we position it relative to the Check icon
         int skipW = 80, skipH = 40;
-
-        // Position it to the right of the Check button (checkX + btnSize + 10px gap)
-        int skipX = checkX + btnSize + 10;
-
-        // Align the vertical centers of the two buttons
-        int skipY = checkY + (btnSize / 2) - (skipH / 2);
+        int skipX = checkX + btnSize + spacing;
+        int skipY = btnY + (btnSize / 2) - (skipH / 2);
 
         paintClickBox(g2, skipX, skipY, skipW, skipH, "Skip Word", UITheme.FONT_SMALL,
                 new Color(0xFFD700), new Color(0x3B2A1A), "skip_btn");
 
         skipButtonRect = new Rectangle(skipX, skipY, skipW, skipH);
-
     }  // end paintGameUI
+
+    private void paintLabeledIcon(Graphics2D g2, int x, int y, int size,
+            BufferedImage icon, String label, String zoneId) {
+        // 1. Draw the Icon itself (from your existing code)
+        paintIconBox(g2, x, y, size, icon, zoneId);
+
+        // 2. Setup Larger Font and Metrics
+        // Increased from 11 to 14
+        g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+        FontMetrics fm = g2.getFontMetrics();
+
+        int textW = fm.stringWidth(label);
+        int textH = fm.getHeight();
+
+        // 3. Positioning and Sizing the background
+        int hPadding = 8;  // Side padding
+        int vPadding = 4;  // Top/Bottom padding
+        int bgW = textW + (hPadding * 2);
+        int bgH = textH + vPadding;
+
+        // Center horizontally relative to the icon
+        int bgX = x + (size / 2) - (bgW / 2);
+        // Positioned 8 pixels below the icon
+        int bgY = y + size + 8;
+
+        // 4. Draw Background "Pill" (Dark for high contrast)
+        g2.setColor(new Color(0, 0, 0, 190)); // Slightly more opaque for visibility
+        g2.fillRoundRect(bgX, bgY, bgW, bgH, 10, 10);
+
+        // 5. Draw the Text in White
+        g2.setColor(Color.WHITE);
+        // fm.getAscent() ensures the text sits correctly inside the pill
+        g2.drawString(label, bgX + hPadding, bgY + fm.getAscent() + (vPadding / 2) - 2);
+
+        // 6. Update the Click Zone so the text is also clickable
+        clickZones.put(zoneId, new Rectangle(x, y, size, size + bgH + 8));
+    }
 
     private void paintFinishOverlay(Graphics2D g2, int W, int H) {
         // 1. Full-page dark overlay (dimming the background)
@@ -1546,16 +1590,6 @@ public class BossGamePanel extends JPanel implements Refreshable {
     }
 
     /**
-     * Draw a text label inside an outer_box styled background.
-     */
-    private void paintLabelBox(Graphics2D g2, int x, int y, int w, int h,
-            String text, Font font, Color textColor) {
-        g2.setFont(font);
-        g2.setColor(textColor);
-        drawCentredString(g2, text, x + w / 2, y + h / 2 + 5);
-    }
-
-    /**
      * Draw a clickable button box with an icon image. Also registers a click
      * region so mouseClicked can detect it.
      */
@@ -1723,7 +1757,9 @@ public class BossGamePanel extends JPanel implements Refreshable {
                     }
 
                     // Check game buttons
+// Check game buttons
                     if (currentScreen == Screen.GAME && !waitingForNext) {
+                        // 1. Check (Submit) Button
                         Rectangle check = clickZones.get("check_btn");
                         if (check != null && check.contains(mx, my)) {
                             SoundManager.play(SoundManager.GAME_BTN_CLICK);
@@ -1731,11 +1767,22 @@ public class BossGamePanel extends JPanel implements Refreshable {
                             return;
                         }
 
+                        // 2. Back Button (Remove last tile only)
                         Rectangle back = clickZones.get("back_btn");
                         if (back != null && back.contains(mx, my)) {
+                            if (model.backspace()) {
+                                SoundManager.play(SoundManager.GAME_BTN_CLICK);
+                                repaint();
+                            }
+                            return;
+                        }
+
+                        // 3. Shuffle Button (Clear entire arrangement)
+                        Rectangle shuffle = clickZones.get("shuffle_btn");
+                        if (shuffle != null && shuffle.contains(mx, my)) {
                             SoundManager.play(SoundManager.GAME_BTN_CLICK);
                             model.clearArrangement();
-                            computeTilePositions();
+                            computeTilePositions(); // Reset the floating tiles positions
                             repaint();
                             return;
                         }
